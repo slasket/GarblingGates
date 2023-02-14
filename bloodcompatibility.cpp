@@ -35,6 +35,11 @@ int OR(int a, int b) {
     return a | b;
 }
 
+//define XOR gate
+int XOR(int a, int b) {
+    return a ^ b;
+}
+
 int check_nth_bit(int num, int n){  //# From https://stackoverflow.com/questions/18111488/convert-integer-to-binary-in-python-and-compare-the-bits
     return (num >> n) & 1;
 }
@@ -48,7 +53,12 @@ int bloodCompTest(int d, int r) {
     int rB = check_nth_bit(r, 1);
     int rPos = check_nth_bit(r, 0);
 
-    return AND(AND( OR(dPos, 1^ rPos),OR(dB, 1^ rB)),OR(dA, 1^ rA));  // Makes sure r is "less than" d on each bit
+    //return AND(AND( OR(dPos, 1^ rPos),OR(dB, 1^ rB)),OR(dA, 1^ rA));  // Makes sure r is "less than" d on each bit
+    return AND(
+            AND(
+                    XOR(AND(rA, XOR(1, dA)), 1),
+                    XOR(AND(rB, XOR(1, dB)), 1)),
+                XOR(AND(rPos, XOR(1, dPos)), 1));  // Makes sure r is "less than" d on each bit
 }
 
 int bloodcompatibility::testAllCombinations() {
