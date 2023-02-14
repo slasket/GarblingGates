@@ -3,7 +3,7 @@ project(GarblingGates)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(GarblingGates main.cpp)
+add_executable(GarblingGates main.cpp bloodcompatibility.cpp bloodcompatibility.h)
 
 #local
 file(GLOB SOURCES
