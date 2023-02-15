@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_executable(GarblingGates main.cpp bloodcompatibility.cpp bloodcompatibility.h)
 add_executable(Tests tests/test_class.cpp)
+
 #local
 file(GLOB SOURCES
         *.hpp
