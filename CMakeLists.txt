@@ -19,7 +19,7 @@ target_link_libraries(GarblingGates ${Boost_LIBRARIES})
 include_directories(${Boost_INCLUDE_DIR})
 
 #cryptotool
-find_package(cryptoTools REQUIRED HINTS "C:/Program Files/cryptotools")
+find_package(cryptoTools REQUIRED HINTS "C:/Program Files/cryptotools/lib")
 target_link_libraries(GarblingGates PRIVATE oc::cryptoTools)
 
 #cryptoPP
