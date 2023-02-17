@@ -4,6 +4,7 @@
 #include "bloodcompatibility.h"
 #include "util/OTUtil/util.h"
 #include "util/OTUtil/OT.h"
+#include "toyExample/toyGarblingScheme.h"
 #include <bitset>
 
 using namespace std;
@@ -76,10 +77,18 @@ void testBaseOT(int v, int k ,int l, int elgamalKeySize){
 
 int main() {
 
-    testBaseOT(64,512,256,2048);
+//testBaseOT(64,512,256,2048);
 
     bloodcompatibility bc;
     bc.testAllCombinations();
+
+    int k = 1;
+    const tuple<int, int, int> &F = toyGarblingScheme::garble(k, 1);
+    int e = get<1>(F);
+    int d = get<2>(F);
+    int X = toyGarblingScheme::encode(e, 1);
+    int Y = toyGarblingScheme::eval(get<0>(F), X);
+    int y = toyGarblingScheme::decode(d, Y);
 
 
 
