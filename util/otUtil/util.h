@@ -34,6 +34,8 @@ public:
         return bits;
     }
     static string printBitsetofVectorofUints(vector<uint64_t> uints);
+    static string AESHash(vector<uint64_t> input);
+    static string SHA256Hash(vector<uint64_t> input);
 };
 
 
