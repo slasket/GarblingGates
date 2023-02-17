@@ -34,9 +34,8 @@ tuple<vector<::uint64_t>, vector<string>> circuitParser::parseCircuit(const stri
         std::getline(file, line);
         int i = 2;
         while (std::getline(file, line)) {
-            // using printf() in all tests for consistency
             gates[i] = line;
-            //printf("%s", line.c_str()); printf("\n");
+            //printf("%s", line.c_str(),"\n");
             i++;
 
         }

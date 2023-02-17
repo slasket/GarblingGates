@@ -80,7 +80,7 @@ int main() {
 
     //testBaseOT(64,512,256,2048);
 
-    util::printCiruit("../tests/circuits/adder64.txt");
+    util::printCircuit("../tests/circuits/BloodComp.txt");
 
 
     bloodcompatibility bc;
