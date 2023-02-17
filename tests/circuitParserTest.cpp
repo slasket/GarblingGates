@@ -1,7 +1,4 @@
-//
-// Created by a on 17/02/2023.
-//
-
+#define BOOST_TEST_MODULE MainTest
 #include <boost/test/included/unit_test.hpp>
 #include "../util/circuitParser.h"
 
@@ -26,7 +23,7 @@ BOOST_AUTO_TEST_SUITE( Parser_tests )
 
         BOOST_TEST(gates[4] == "2 1 2 6 9 XOR");
 
-        BOOST_TEST(gates[13] == "2 1 15 16 17 AND")
+        BOOST_TEST(gates[13] == "2 1 15 16 17 AND");
     }
 
 BOOST_AUTO_TEST_SUITE_END()
