@@ -80,10 +80,8 @@ int main() {
 
     //testBaseOT(64,512,256,2048);
 
-    auto res = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
+    util::printCiruit("../tests/circuits/adder64.txt");
 
-    util::printUintVec(get<0>(res));
-    util::printStrVec(get<1>(res));
 
     bloodcompatibility bc;
     bc.testAllCombinations();

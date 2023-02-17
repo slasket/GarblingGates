@@ -9,6 +9,7 @@
 #include <vector>
 #include <iterator>
 #include <iostream>
+#include "circuitParser.h"
 
 class util {
 public:
@@ -36,6 +37,12 @@ public:
         for (auto const& i: vec) {
             std::cout<< i << std::endl;
         }
+    }
+
+    static void printCiruit(const std::string& path){
+        auto res = circuitParser::parseCircuit(path);
+        util::printUintVec(get<0>(res));
+        util::printStrVec(get<1>(res));
     }
 };
 
