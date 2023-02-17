@@ -78,9 +78,10 @@ void testBaseOT(int v, int k ,int l, int elgamalKeySize){
 
 int main() {
 
-    //testBaseOT(64,512,256,2048);
-
     util::printCircuit("../tests/circuits/BloodComp.txt");
+    testBaseOT(64,512,256,2048);
+
+
 
 
     bloodcompatibility bc;
