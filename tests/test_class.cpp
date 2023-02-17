@@ -1,9 +1,6 @@
-#define BOOST_TEST_MODULE example
-#include <boost/test/included/unit_test.hpp>
-#include "../toyExample/toyGarblingScheme.h"
 
+#include <boost/test/unit_test.hpp>
 using namespace boost::unit_test;
-
 
 BOOST_AUTO_TEST_SUITE( Testing_bit_position_function )
 

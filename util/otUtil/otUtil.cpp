@@ -2,10 +2,10 @@
 // Created by a on 15/02/2023.
 //
 
-#include "util.h"
+#include "otUtil.h"
 //#include "relic_rand.h"
 
-vector <oc::u64> util::genBitsNonCrypto(int bits) {
+vector <oc::u64> otUtil::genBitsNonCrypto(int bits) {
     auto res = vector<oc::u64>((bits+64-1)/64);
     for (int blockNum = 0; blockNum <(bits+64-1)/64; ++blockNum) {
         res[blockNum] = random_bitset<64>().to_ullong();
@@ -15,7 +15,7 @@ vector <oc::u64> util::genBitsNonCrypto(int bits) {
     return res;
 }
 
-string util::printBitsetofVectorofUints(vector<uint64_t> uints){
+string otUtil::printBitsetofVectorofUints(vector<uint64_t> uints){
     string res;
     for (int i = 0; i < uints.size(); ++i) {
         res += bitset<64>(uints[i]).to_string();
@@ -24,7 +24,7 @@ string util::printBitsetofVectorofUints(vector<uint64_t> uints){
 }
 
 
-int util::findithBit(vector<uint64_t> ui, int i) {
+int otUtil::findithBit(vector<uint64_t> ui, int i) {
     int size = ui.size();
     //ith bit
     int bit = i % 64;
