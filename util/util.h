@@ -13,6 +13,8 @@
 
 class util {
 public:
+    //template for splitting strings taken from:
+    // https://stackoverflow.com/questions/236129/how-do-i-iterate-over-the-words-of-a-string
     template <typename Out>
     static void split(const std::string &s, char delim, Out result) {
         std::istringstream iss(s);
@@ -21,7 +23,6 @@ public:
             *result++ = item;
         }
     }
-
     static std::vector<std::string> split(const std::string &s, char delim) {
         std::vector<std::string> elems;
         split(s, delim, std::back_inserter(elems));
@@ -39,7 +40,7 @@ public:
         }
     }
 
-    static void printCiruit(const std::string& path){
+    static void printCircuit(const std::string& path){
         auto res = circuitParser::parseCircuit(path);
         util::printUintVec(get<0>(res));
         util::printStrVec(get<1>(res));
