@@ -2,8 +2,8 @@
 // Created by a on 15/02/2023.
 //
 
-#ifndef GARBLINGGATES_UTIL_H
-#define GARBLINGGATES_UTIL_H
+#ifndef GARBLINGGATES_OTUTIL_H
+#define GARBLINGGATES_OTUTIL_H
 
 #include <string>
 #include <bitset>
@@ -12,7 +12,7 @@
 #include <cryptoTools/Common/Defines.h>
 using namespace std;
 
-class util {
+class otUtil {
 
 public:
     static int findithBit(vector<uint64_t> ui, int i);
@@ -38,4 +38,4 @@ public:
 
 
 
-#endif //GARBLINGGATES_UTIL_H
+#endif //GARBLINGGATES_OTUTIL_H

@@ -3,7 +3,7 @@
 //
 
 #include "OT.h"
-#include "util.h"
+#include "otUtil.h"
 #include "elgamal.h"
 
 tuple<Integer, Integer,Integer>* OT::Alice::genPKArray(int keySize, Integer mod, Integer g) {
@@ -47,8 +47,8 @@ vector<uint64_t> OT::Alice::receiveCipherArr(std::string* cpArr) {
 vector<tuple<vector<oc::u64>,vector<oc::u64>>> OT::genKAmountOfSelectionStrings(int k,int bitAmount){
     auto receiverPairs = vector<tuple<vector<oc::u64>,vector<oc::u64>>>(k);
     for (int i = 0; i < k; ++i) {
-        auto leftVal = util::genBitsNonCrypto(bitAmount);
-        auto rightVal = util::genBitsNonCrypto(bitAmount);
+        auto leftVal = otUtil::genBitsNonCrypto(bitAmount);
+        auto rightVal = otUtil::genBitsNonCrypto(bitAmount);
         receiverPairs[i] = {leftVal,rightVal};
     }
     return receiverPairs;
@@ -95,7 +95,7 @@ vector<uint64_t>* OT::BaseOTTest(int const elgamalkeysize, int amountOfOTs, vect
     //kXOTk functionality
     auto* kresults = new vector<uint64_t> [amountOfOTs];
     for (int i = 0; i < amountOfOTs; ++i) {
-        int senderChoiceBit = util::findithBit(OTChoiceBits,i);
+        int senderChoiceBit = otUtil::findithBit(OTChoiceBits, i);
         vector<uint64_t> receivedKey = OT1out2(elgamalkeysize, mod, g, senderChoiceBit, get<0>(receiverPairs[i]), get<1>(receiverPairs[i]));
         kresults[i] = receivedKey;
     }
