@@ -6,19 +6,19 @@
 #include "circuitParser.h"
 #include "util.h"
 
-tuple<vector<::uint64_t>, vector<string>> circuitParser::parseCircuit(const string &circuitPath) {
+vector<string> circuitParser::parseCircuit(const string &circuitPath) {
     std::ifstream file(circuitPath);
-    vector<::uint64_t > wires;
-    vector<string> gates;
+    vector<string> circuit;
+
     if (file.is_open()) {
         std::string line;
         //amount of wires and gates
         std::getline(file, line);
 
+        string gatesAndWires= (string) line;
         std::vector<std::string> wiresngates = util::split(line, ' ');
-        wires = vector<uint64_t>(stoi( wiresngates[1]));
         //the first string is i/o info rest is gates
-        gates = vector<string>(stoi(wiresngates[1])+2);
+        circuit = vector<string>(stoi(wiresngates[0])+3);
         //input line
         std::getline(file, line);
         string inputInfo = line;//if there is a thrid input its always hardcoded to 1
@@ -27,22 +27,22 @@ tuple<vector<::uint64_t>, vector<string>> circuitParser::parseCircuit(const stri
         string outputInfo = line;
 
         //the output is defined as the last wires in the scheme, thus and output of 3 wires would be the last 3
-        gates[0] = inputInfo;
-        gates[1]= outputInfo;
+        circuit[0] = gatesAndWires;
+        circuit[1] = inputInfo;
+        circuit[2]= outputInfo;
 
         //the empty line
         std::getline(file, line);
-        int i = 2;
+        int i = 3;
         while (std::getline(file, line)) {
-            gates[i] = line;
+            circuit[i] = line;
             //printf("%s", line.c_str(),"\n");
             i++;
-
         }
         file.close();
     }else{
         printf("Error reading file at: " , circuitPath.c_str());
     }
 
-    return {wires,gates};
+    return circuit;
 }

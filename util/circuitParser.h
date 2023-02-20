@@ -12,7 +12,7 @@ using namespace std;
 
 class circuitParser {
 public:
-    static tuple<vector<::uint64_t>,vector<string>> parseCircuit(const string& circuitPath);
+    static vector<string> parseCircuit(const string& circuitPath);
 };
 
 

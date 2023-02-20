@@ -42,8 +42,7 @@ public:
 
     static void printCircuit(const std::string& path){
         auto res = circuitParser::parseCircuit(path);
-        util::printUintVec(get<0>(res));
-        util::printStrVec(get<1>(res));
+        util::printStrVec(res);
     }
 };
 
