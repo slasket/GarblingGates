@@ -18,14 +18,14 @@ set(SOURCES
         util/otUtil/OT.h
         util/otUtil/otUtil.cpp
         util/otUtil/otUtil.h
-        toyExample/toyGarblingScheme.cpp
-        toyExample/toyGarblingScheme.h
+        schemes/toyExample/toyGarblingScheme.cpp
+        schemes/toyExample/toyGarblingScheme.h
         )
 
 set(TESTS
         tests/test_class.cpp
         tests/circuitParserTest.cpp
-        tests/test_toyExample.cpp)
+        tests/test_toyExample.cpp schemes/baseGarble.cpp schemes/baseGarble.h)
 
 
 add_executable(GarblingGates ${SOURCES} main.cpp)
