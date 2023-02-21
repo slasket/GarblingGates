@@ -10,6 +10,9 @@
 #include <iterator>
 #include <iostream>
 #include "circuitParser.h"
+#include <bitset>
+#include <random>
+#include <cryptoTools/Common/Defines.h>
 
 class util {
 public:
@@ -44,7 +47,35 @@ public:
         auto res = circuitParser::parseCircuit(path);
         util::printStrVec(res);
     }
+
+    static vector <oc::u64> genBitsNonCrypto(int bits) {
+        auto res = vector<oc::u64>((bits+64-1)/64);
+        for (int blockNum = 0; blockNum <(bits+64-1)/64; ++blockNum) {
+            res[blockNum] = random_bitset<64>().to_ullong();
+            //for (int i = 0; i < 64; ++i) {bitset[i]=(prng.GenerateBit());}
+            //res[blockNum]=bitset.to_ullong();
+        }
+        return res;
+    }
+    //taken from https://www.appsloveworld.com/cplus/100/112/c-efficient-way-to-generate-random-bitset-with-configurable-mean-1s-to-0s-r
+    template< size_t size>
+    static typename std::bitset<size> random_bitset( double p = 0.5) {
+
+        typename std::bitset<size> bits;
+        std::random_device rd;
+        std::mt19937 gen( rd());
+        std::bernoulli_distribution d( p);
+
+        for( int n = 0; n < size; ++n) {
+            bits[n] = d( gen);
+        }
+
+        return bits;
+    }
+
+
 };
+
 
 
 #endif //GARBLINGGATES_UTIL_H
