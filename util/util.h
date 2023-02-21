@@ -57,6 +57,13 @@ public:
         }
         return res;
     }
+
+    static vector<oc::u64> bitVecXOR(vector<oc::u64>left, const vector<oc::u64>& right){
+        for (int i = 0; i < left.size(); ++i) {
+            left[i] = left[i] ^right[i];
+        }
+        return left;
+    }
     //taken from https://www.appsloveworld.com/cplus/100/112/c-efficient-way-to-generate-random-bitset-with-configurable-mean-1s-to-0s-r
     template< size_t size>
     static typename std::bitset<size> random_bitset( double p = 0.5) {

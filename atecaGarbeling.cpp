@@ -19,10 +19,13 @@ string atecaGarbeling::scheme::init(vector<std::string> circuit, int externalLen
     for (int i = 1; i < inputs.size(); ++i) {
         inputWires+= stoi(inputs[i]);
     }
-    vector<vector<string>> e =vector<vector<string>>(inputWires);
+    vector<tuple<vector<oc::u64>>> e =vector<tuple<vector<oc::u64>>>(inputWires);
     for (int i = 0; i < inputWires; ++i) {
-        auto lw0 = util::random_bitset(externalLength);
+        vector<oc::u64> lw0 = util::genBitsNonCrypto(externalLength);
+        vector<oc::u64> lw1 = util::bitVecXOR(util::genBitsNonCrypto(externalLength), lw0);
+        tuple<vector<oc::u64>,vector<oc::u64>> ew = {lw0,lw1};
 
+        e[i] = ew;
     }
 
 
