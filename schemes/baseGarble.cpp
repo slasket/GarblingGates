@@ -55,60 +55,32 @@ int baseGarble::garble(int k, vector<string> f) {
         vector<::uint64_t> ciphertext;
         vector<::uint64_t> gate0;
         vector<::uint64_t> gate1;
-        foo(globalDelta, permuteBitA, permuteBitB, A0, A1, B0, B1, ciphertext, gate0, gate1);
+        andGate(globalDelta, permuteBitA, permuteBitB, A0, A1, B0, B1, ciphertext, gate0, gate1);
     }
     return 0;
 }
 
 tuple<vector<::uint64_t>, vector<uint64_t>, vector<uint64_t>>
-baseGarble::foo(const vector<::uint64_t> &globalDelta, int permuteBitA, int permuteBitB, vector<uint64_t> &A0,
-                vector<uint64_t> &A1, vector<uint64_t> &B0, vector<uint64_t> &B1, vector<::uint64_t> &ciphertext,
-                vector<::uint64_t> &gate0, vector<::uint64_t> &gate1) {
+baseGarble::andGate(const vector<::uint64_t> &globalDelta, int permuteBitA, int permuteBitB, vector<uint64_t> &A0,
+                    vector<uint64_t> &A1, vector<uint64_t> &B0, vector<uint64_t> &B1, vector<::uint64_t> &ciphertext,
+                    vector<::uint64_t> &gate0, vector<::uint64_t> &gate1) {
+    ciphertext = XORHashpart(A0, B0);
+    gate1 = util::bitVecXOR(util::bitVecXOR(XORHashpart(A0, B1),ciphertext),A0);
+    gate0 = util::bitVecXOR(XORHashpart(A1, B0),ciphertext);
+    if(permuteBitA == 1){
+        gate1 = util::bitVecXOR(gate1, globalDelta);
+    } else if(permuteBitB == 1){
+        gate0 = util::bitVecXOR(gate0, globalDelta);
+    }
     if(permuteBitA == 1 & permuteBitB == 1){
-        ciphertext =
-                util::bitVecXOR(
-                        util::bitVecXOR(qouteUnqouteHashFunction(A0),qouteUnqouteHashFunction(B0)),
-                        globalDelta);
-        gate1 = util::bitVecXOR(
-                util::bitVecXOR(
-                        util::bitVecXOR(qouteUnqouteHashFunction(A0),qouteUnqouteHashFunction(B1)),
-                        ciphertext),A0);
-        gate0 = util::bitVecXOR(
-                        util::bitVecXOR(qouteUnqouteHashFunction(A1),qouteUnqouteHashFunction(B0)),
-                        ciphertext);
-
-    }
-    else if(permuteBitA == 1 & permuteBitB == 0){
-        ciphertext = util::bitVecXOR(qouteUnqouteHashFunction(A0),qouteUnqouteHashFunction(B0));
-        gate1 = util::bitVecXOR(util::bitVecXOR(
-                util::bitVecXOR(
-                        util::bitVecXOR(qouteUnqouteHashFunction(A0),qouteUnqouteHashFunction(B1)),
-                        ciphertext),A0), globalDelta);
-        gate0 = util::bitVecXOR(
-                util::bitVecXOR(qouteUnqouteHashFunction(A1),qouteUnqouteHashFunction(B0)),
-                ciphertext);
-    }
-    else if(permuteBitA == 0 & permuteBitB == 1){
-        ciphertext = util::bitVecXOR(qouteUnqouteHashFunction(A0),qouteUnqouteHashFunction(B0));
-        gate1 = util::bitVecXOR(
-                util::bitVecXOR(
-                        util::bitVecXOR(qouteUnqouteHashFunction(A0),qouteUnqouteHashFunction(B1)),
-                        ciphertext),A0);
-        gate0 = util::bitVecXOR(util::bitVecXOR(
-                util::bitVecXOR(qouteUnqouteHashFunction(A1),qouteUnqouteHashFunction(B0)),
-                ciphertext), globalDelta);
-    }
-    else {
-        ciphertext = util::bitVecXOR(qouteUnqouteHashFunction(A0),qouteUnqouteHashFunction(B0));
-        gate1 = util::bitVecXOR(
-                util::bitVecXOR(
-                        util::bitVecXOR(qouteUnqouteHashFunction(A0),qouteUnqouteHashFunction(B1)),
-                        ciphertext),A0);
-        gate0 = util::bitVecXOR(
-                util::bitVecXOR(qouteUnqouteHashFunction(A1),qouteUnqouteHashFunction(B0)),
-                ciphertext);
+        ciphertext = util::bitVecXOR(ciphertext,globalDelta);
+        gate0 = util::bitVecXOR(gate0, globalDelta);
     }
     return make_tuple(ciphertext, gate0, gate1);
+}
+
+vector<::uint64_t> baseGarble::XORHashpart(vector<uint64_t> &labelA, vector<uint64_t> &labelB){
+    return util::bitVecXOR(qouteUnqouteHashFunction(labelA), qouteUnqouteHashFunction(labelB));
 }
 
 tuple<vector<int>, vector<int>, string> baseGarble::extractGate(const string &line) {

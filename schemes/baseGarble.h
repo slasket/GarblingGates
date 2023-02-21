@@ -19,10 +19,12 @@ public:
     static vector<uint64_t> qouteUnqouteHashFunction(vector<uint64_t> x);
 
     static tuple<vector<::uint64_t>, vector<::uint64_t>, vector<::uint64_t>>
-    foo(const vector<::uint64_t> &globalDelta, int permuteBitA, int permuteBitB, vector<uint64_t> &A0,
-        vector<uint64_t> &A1,
-        vector<uint64_t> &B0, vector<uint64_t> &B1, vector<::uint64_t> &ciphertext, vector<::uint64_t> &gate0,
-        vector<::uint64_t> &gate1);
+    andGate(const vector<::uint64_t> &globalDelta, int permuteBitA, int permuteBitB, vector<uint64_t> &A0,
+            vector<uint64_t> &A1,
+            vector<uint64_t> &B0, vector<uint64_t> &B1, vector<::uint64_t> &ciphertext, vector<::uint64_t> &gate0,
+            vector<::uint64_t> &gate1);
+
+    static vector<uint64_t> XORHashpart(vector<uint64_t> &labelA, vector<uint64_t> &labelB);
 };
 
 

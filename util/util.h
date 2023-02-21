@@ -76,7 +76,7 @@ public:
         if (permuteBit >= 2) permuteBit = dis(gen);
         vector<uint64_t> a0 = otUtil::genBitsNonCrypto(k);
         //add permute bit
-        a0[0] = a0[0] & -2; //1111 ... 1111 1110 THE COLOR BIT IS ON THE LEAST SIGNIFICANT BIT
+        a0[0] = a0[0] & -2; //1111 ... 1111 1110 THE COLOR BIT IS ON THE LEAST SIGNIFICANT BIT ON BLOCK ZERO
         a0[0] = a0[0] | permuteBit; //can be hardcoded as it is one block
         auto a1 = vector<uint64_t>(a0.size());
         for (int i = 0; i < a0.size(); ++i) {

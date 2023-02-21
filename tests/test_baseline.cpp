@@ -61,8 +61,8 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineCipher )
 
     BOOST_AUTO_TEST_CASE( test_inputWires )
     {
-        cout << "A0 " << otUtil::printBitsetofVectorofUints(get<0>(labels[0])) << endl;
-        cout << "B0 " << otUtil::printBitsetofVectorofUints(get<0>(labels[1])) << endl;
+        //cout << "A0 " << otUtil::printBitsetofVectorofUints(get<0>(labels[0])) << endl;
+        //cout << "B0 " << otUtil::printBitsetofVectorofUints(get<0>(labels[1])) << endl;
         if (permuteBitA == 1){
             A0 = (get<1>(labels[0]));
             A1 = (get<0>(labels[0]));
@@ -81,23 +81,53 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineCipher )
         vector<uint64_t> ciphertext;
         vector<uint64_t> gate0;
         vector<uint64_t> gate1;
-        auto res = baseGarble::foo(globalDelta, permuteBitA, permuteBitB, A0, A1, B0, B1, ciphertext, gate0, gate1);
+        auto res = baseGarble::andGate(globalDelta, permuteBitA, permuteBitB, A0, A1, B0, B1, ciphertext, gate0, gate1);
 
-        cout << "ciphertext: " << otUtil::printBitsetofVectorofUints(get<0>(res)) << endl;
-        cout << "gate0: " << otUtil::printBitsetofVectorofUints(get<1>(res)) << endl;
-        cout << "gate1: " << otUtil::printBitsetofVectorofUints(get<2>(res)) << endl;
-        cout << "delta: " << otUtil::printBitsetofVectorofUints(delta) << endl;
-        cout << "A0: " << otUtil::printBitsetofVectorofUints(A0) << endl;
-        cout << "A1: " << otUtil::printBitsetofVectorofUints(A1) << endl;
-        cout << "B0: " << otUtil::printBitsetofVectorofUints(B0) << endl;
-        cout << "B1: " << otUtil::printBitsetofVectorofUints(B1) << endl;
-        cout << "Permuted A: " << permuteBitA << endl;
-        cout << "Permuted B: " << permuteBitB << endl;
+        //cout << "ciphertext: " << otUtil::printBitsetofVectorofUints(get<0>(res)) << endl;
+        //cout << "gate0: " << otUtil::printBitsetofVectorofUints(get<1>(res)) << endl;
+        //cout << "gate1: " << otUtil::printBitsetofVectorofUints(get<2>(res)) << endl;
+        //cout << "delta: " << otUtil::printBitsetofVectorofUints(delta) << endl;
+        //cout << "A0: " << otUtil::printBitsetofVectorofUints(A0) << endl;
+        //cout << "A1: " << otUtil::printBitsetofVectorofUints(A1) << endl;
+        //cout << "B0: " << otUtil::printBitsetofVectorofUints(B0) << endl;
+        //cout << "B1: " << otUtil::printBitsetofVectorofUints(B1) << endl;
+        //cout << "Permuted A: " << permuteBitA << endl;
+        //cout << "Permuted B: " << permuteBitB << endl;
 
         if(permuteBitA == 0 | permuteBitB == 0) {
             BOOST_TEST(ciphertext == util::bitVecXOR(baseGarble::qouteUnqouteHashFunction(A0),
                                                      baseGarble::qouteUnqouteHashFunction(B0)));
-        } else BOOST_TEST(ciphertext == util::bitVecXOR(util::bitVecXOR(baseGarble::qouteUnqouteHashFunction(A0), baseGarble::qouteUnqouteHashFunction(B0)), delta));
+            if (permuteBitA == 0 & permuteBitB == 0){
+                BOOST_TEST(
+                        util::bitVecXOR(ciphertext, delta) ==
+                        util::bitVecXOR(baseGarble::qouteUnqouteHashFunction(A1),
+                                        util::bitVecXOR(
+                                                baseGarble::qouteUnqouteHashFunction(
+                                                        B1),
+                                                util::bitVecXOR(get<2>(res),
+                                                                util::bitVecXOR(
+                                                                        get<1>(res),
+                                                                        A1)))));
+            }
+            else {
+                BOOST_TEST(ciphertext ==
+                           util::bitVecXOR(baseGarble::qouteUnqouteHashFunction(A1),
+                                           util::bitVecXOR(baseGarble::qouteUnqouteHashFunction(B1),
+                                                           util::bitVecXOR(get<2>(res),
+                                                                           util::bitVecXOR(
+                                                                                   get<1>(res),
+                                                                                   A1)))));
+            }
+        } else {
+            BOOST_TEST(util::bitVecXOR(ciphertext, delta) ==
+            util::bitVecXOR(baseGarble::qouteUnqouteHashFunction(A0),
+                            baseGarble::qouteUnqouteHashFunction(B0)));
+            BOOST_TEST(ciphertext == util::bitVecXOR(baseGarble::qouteUnqouteHashFunction(A1),
+                                                     util::bitVecXOR(baseGarble::qouteUnqouteHashFunction(B1),
+                                                                     util::bitVecXOR(get<2>(res),
+                                                                                     util::bitVecXOR(get<1>(res),
+                                                                                                     A1)))));
+        }
 
 
     }
