@@ -27,7 +27,8 @@ set(SOURCES
 set(TESTS
         tests/test_class.cpp
         tests/circuitParserTest.cpp
-        tests/test_toyExample.cpp schemes/baseGarble.cpp schemes/baseGarble.h tests/test_baseline.cpp tests/test_util.cpp)
+        tests/test_toyExample.cpp schemes/baseGarble.cpp schemes/baseGarble.h tests/test_baseline.cpp tests/test_util.cpp
+        atecaGarbeling.cpp atecaGarbeling.h)
 
 
 add_executable(GarblingGates ${SOURCES} main.cpp)
