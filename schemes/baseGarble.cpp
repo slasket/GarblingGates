@@ -6,6 +6,7 @@
 #include "../util/util.h"
 
 
+
 //k is security parameter and f is the function to be garbled with 3 lines of metadata
 int baseGarble::garble(int k, vector<string> f) {
     string &metadata1 = f[0];
@@ -23,33 +24,91 @@ int baseGarble::garble(int k, vector<string> f) {
         ////////////////////////////// Garbling gate ///////////////////////////////////
         //garble gate
         //TODO needs delta/label generation
-        //vector<tuple<int, int>> inputWiresLabels = vector<tuple<int, int>>(inputWires.size());
-        //vector<tuple<int, int>> outputWiresLabels = vector<tuple<int, int>>(outputWires.size());
         vector<tuple<vector<uint64_t>, vector<uint64_t>>> inputWiresLabels = vector<tuple<vector<uint64_t>, vector<uint64_t>>>(inputWires.size());
         vector<tuple<vector<uint64_t>, vector<uint64_t>>> outputWiresLabels = vector<tuple<vector<uint64_t>, vector<uint64_t>>>(outputWires.size());
-        util::generateRandomLabels(k, globalDelta, inputWiresLabels, outputWiresLabels);
-        //TEMP generating random labels for input wires (todo: with length k)
-        //for (int j = 0; j < inputWires.size(); ++j) {
-        //    inputWiresLabels[j] = make_tuple(rand(), rand());
-        //}
-        //for (int j = 0; j < outputWires.size(); ++j) {
-        //    outputWiresLabels[j] = make_tuple(rand(), rand());
-        //}
+        auto deltaAndLabels = util::generateRandomLabels(k, globalDelta, inputWiresLabels);
+
         //TODO: permute gate truth table
 
-        hash<size_t> hashFunction; //TODO: change out hash function
-        //auto A0 = (size_t) (get<0>(inputWiresLabels[0]));
-        //auto B0 = (size_t) (get<1>(inputWiresLabels[0]));
-        //auto A1 = (size_t) (get<0>(inputWiresLabels[1]));
-        //auto B1 = (size_t) (get<1>(inputWiresLabels[1]));
-        //auto delta = (size_t) (rand());
-        //size_t cipherText = hashFunction(A0) ^ hashFunction(B0);
-        //size_t gate1 = hashFunction(A0) ^ hashFunction(B1) ^ cipherText ^ A0;
-        //size_t gate0 = hashFunction(A1) ^ hashFunction(B0) ^ cipherText ^ B0;
-
-
+        //TODO: change out hash function
+        //calculate permute bits
+        int permuteBitA = (get<0>(inputWiresLabels[0])[0]) & 1;
+        int permuteBitB = (get<0>(inputWiresLabels[1])[0]) & 1;
+        vector<uint64_t> A0;
+        vector<uint64_t> A1;
+        vector<uint64_t> B0;
+        vector<uint64_t> B1;
+        if(permuteBitA == 1){
+            A0 = (get<1>(inputWiresLabels[0]));
+            A1 = (get<0>(inputWiresLabels[0]));
+        } else {
+            A0 = (get<0>(inputWiresLabels[0]));
+            A1 = (get<1>(inputWiresLabels[0]));
+        }
+        if(permuteBitB == 1){
+            B0 = (get<1>(inputWiresLabels[1]));
+            B1 = (get<0>(inputWiresLabels[1]));
+        } else {
+            B0 = (get<0>(inputWiresLabels[1]));
+            B1 = (get<1>(inputWiresLabels[1]));
+        }
+        vector<::uint64_t> ciphertext;
+        vector<::uint64_t> gate0;
+        vector<::uint64_t> gate1;
+        foo(globalDelta, permuteBitA, permuteBitB, A0, A1, B0, B1, ciphertext, gate0, gate1);
     }
     return 0;
+}
+
+tuple<vector<::uint64_t>, vector<uint64_t>, vector<uint64_t>>
+baseGarble::foo(const vector<::uint64_t> &globalDelta, int permuteBitA, int permuteBitB, vector<uint64_t> &A0,
+                vector<uint64_t> &A1, vector<uint64_t> &B0, vector<uint64_t> &B1, vector<::uint64_t> &ciphertext,
+                vector<::uint64_t> &gate0, vector<::uint64_t> &gate1) {
+    if(permuteBitA == 1 & permuteBitB == 1){
+        ciphertext =
+                util::bitVecXOR(
+                        util::bitVecXOR(qouteUnqouteHashFunction(A0),qouteUnqouteHashFunction(B0)),
+                        globalDelta);
+        gate1 = util::bitVecXOR(
+                util::bitVecXOR(
+                        util::bitVecXOR(qouteUnqouteHashFunction(A0),qouteUnqouteHashFunction(B1)),
+                        ciphertext),A0);
+        gate0 = util::bitVecXOR(
+                        util::bitVecXOR(qouteUnqouteHashFunction(A1),qouteUnqouteHashFunction(B0)),
+                        ciphertext);
+
+    }
+    else if(permuteBitA == 1 & permuteBitB == 0){
+        ciphertext = util::bitVecXOR(qouteUnqouteHashFunction(A0),qouteUnqouteHashFunction(B0));
+        gate1 = util::bitVecXOR(util::bitVecXOR(
+                util::bitVecXOR(
+                        util::bitVecXOR(qouteUnqouteHashFunction(A0),qouteUnqouteHashFunction(B1)),
+                        ciphertext),A0), globalDelta);
+        gate0 = util::bitVecXOR(
+                util::bitVecXOR(qouteUnqouteHashFunction(A1),qouteUnqouteHashFunction(B0)),
+                ciphertext);
+    }
+    else if(permuteBitA == 0 & permuteBitB == 1){
+        ciphertext = util::bitVecXOR(qouteUnqouteHashFunction(A0),qouteUnqouteHashFunction(B0));
+        gate1 = util::bitVecXOR(
+                util::bitVecXOR(
+                        util::bitVecXOR(qouteUnqouteHashFunction(A0),qouteUnqouteHashFunction(B1)),
+                        ciphertext),A0);
+        gate0 = util::bitVecXOR(util::bitVecXOR(
+                util::bitVecXOR(qouteUnqouteHashFunction(A1),qouteUnqouteHashFunction(B0)),
+                ciphertext), globalDelta);
+    }
+    else {
+        ciphertext = util::bitVecXOR(qouteUnqouteHashFunction(A0),qouteUnqouteHashFunction(B0));
+        gate1 = util::bitVecXOR(
+                util::bitVecXOR(
+                        util::bitVecXOR(qouteUnqouteHashFunction(A0),qouteUnqouteHashFunction(B1)),
+                        ciphertext),A0);
+        gate0 = util::bitVecXOR(
+                util::bitVecXOR(qouteUnqouteHashFunction(A1),qouteUnqouteHashFunction(B0)),
+                ciphertext);
+    }
+    return make_tuple(ciphertext, gate0, gate1);
 }
 
 tuple<vector<int>, vector<int>, string> baseGarble::extractGate(const string &line) {
@@ -84,4 +143,8 @@ int baseGarble::eval(int F, int X) {
 
 int baseGarble::decode(int d, int Y) {
     return 0;
+}
+
+vector<uint64_t> baseGarble::qouteUnqouteHashFunction(vector<uint64_t> x) {
+    return x;
 }

@@ -17,7 +17,7 @@ vector <oc::u64> otUtil::genBitsNonCrypto(int bits) {
 
 string otUtil::printBitsetofVectorofUints(vector<uint64_t> uints){
     string res;
-    for (int i = 0; i < uints.size(); ++i) {
+    for (int i = uints.size()-1; i >= 0; --i) {
         res += bitset<64>(uints[i]).to_string();
     }
     return res;

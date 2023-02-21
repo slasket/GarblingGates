@@ -51,36 +51,33 @@ public:
     }
 
     static tuple<vector<uint64_t>,
-            vector<tuple<vector<uint64_t>, vector<uint64_t>>>,
             vector<tuple<vector<uint64_t>, vector<uint64_t>>>>
-            generateRandomLabels(int k, vector<uint64_t> globalDelta,
-                                     vector<tuple<vector<uint64_t>, vector<uint64_t>>> inputWiresLabels,
-                                     vector<tuple<vector<uint64_t>, vector<uint64_t>>> outputWiresLabels) {
+            generateRandomLabels(int k, vector<uint64_t>& globalDelta,
+                                     vector<tuple<vector<uint64_t>, vector<uint64_t>>>& wiresLabels) {
                 //generate new global delta if non is given
                 if(globalDelta[0]==0){
                     globalDelta = otUtil::genBitsNonCrypto(k);
-                    globalDelta[0] = globalDelta[0] | 281474976710655; //1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111
+                    globalDelta[0] = globalDelta[0] | 1;
                 }
                 //generate input labels
-                for(auto & inputWiresLabel : inputWiresLabels){
-                    labelPointAndPermute(k, inputWiresLabel, globalDelta);
+                for(auto & wiresLabel : wiresLabels){
+                    labelPointAndPermute(k, wiresLabel, globalDelta);
                 }
-                //generate output labels
-                for(auto & outputWiresLabel : outputWiresLabels){
-                    labelPointAndPermute(k, outputWiresLabel, globalDelta);
-                }
-                return make_tuple(globalDelta, inputWiresLabels, outputWiresLabels);
+                return make_tuple(globalDelta, wiresLabels);
     }
 
     static void labelPointAndPermute(int k,
                                      tuple<vector<uint64_t>, vector<uint64_t>> &wiresLabel,
                                         const vector<uint64_t>& globalDelta,
                                      int permuteBit = 2) {//generate random permute bit
-        if (permuteBit >= 2) permuteBit = rand() % 2;
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dis(0, 1);
+        if (permuteBit >= 2) permuteBit = dis(gen);
         vector<uint64_t> a0 = otUtil::genBitsNonCrypto(k);
         //add permute bit
-        a0[0] = a0[0] & 281474976710654; //1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1110
-        a0[0] = a0[0] | 281474976710654 + permuteBit; //can be hardcoded as it is one block
+        a0[0] = a0[0] & -2; //1111 ... 1111 1110 THE COLOR BIT IS ON THE LEAST SIGNIFICANT BIT
+        a0[0] = a0[0] | permuteBit; //can be hardcoded as it is one block
         auto a1 = vector<uint64_t>(a0.size());
         for (int i = 0; i < a0.size(); ++i) {
             a1[i] = a0[i] ^ globalDelta[i];

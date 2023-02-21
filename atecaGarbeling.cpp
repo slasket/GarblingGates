@@ -25,7 +25,7 @@ string atecaGarbeling::scheme::init(vector<std::string> circuit, int externalLen
         vector<oc::u64> lw1 = util::bitVecXOR(util::genBitsNonCrypto(externalLength), lw0);
         tuple<vector<oc::u64>,vector<oc::u64>> ew = {lw0,lw1};
 
-        e[i] = ew;
+        //e[i] = ew;
     }
 
 
