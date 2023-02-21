@@ -18,6 +18,10 @@ set(SOURCES
         util/otUtil/OT.h
         util/otUtil/otUtil.cpp
         util/otUtil/otUtil.h
+        HashFunctions.cpp
+        HashFunctions.h
+        atecaGarbeling.cpp
+        atecaGarbeling.h
         schemes/toyExample/toyGarblingScheme.cpp
         schemes/toyExample/toyGarblingScheme.h
         schemes/baseGarble.cpp
@@ -28,7 +32,10 @@ set(TESTS
         tests/test_class.cpp
         tests/circuitParserTest.cpp
         tests/test_toyExample.cpp schemes/baseGarble.cpp schemes/baseGarble.h tests/test_baseline.cpp tests/test_util.cpp
-        atecaGarbeling.cpp atecaGarbeling.h)
+        atecaGarbeling.cpp atecaGarbeling.h
+        HashFunctions.cpp
+        atecaGarbeling.cpp
+        )
 
 
 add_executable(GarblingGates ${SOURCES} main.cpp)
