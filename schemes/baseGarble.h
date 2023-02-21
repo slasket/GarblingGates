@@ -15,6 +15,7 @@ public:
     static int encode(int e, int x);
     static int eval(int F, int X);
     static int decode(int d, int Y);
+    static tuple<vector<int>, vector<int>, string> extractGate(const string &line);
 };
 
 

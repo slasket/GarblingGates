@@ -2,7 +2,7 @@
 // Created by svend on 017, 17-02-2023.
 //
 #include <boost/test/unit_test.hpp>
-#include "../toyExample/toyGarblingScheme.h"
+#include "../schemes/toyExample/toyGarblingScheme.h"
 
 using namespace boost::unit_test;
 
