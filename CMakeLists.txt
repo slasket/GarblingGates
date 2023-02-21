@@ -20,12 +20,12 @@ set(SOURCES
         util/otUtil/otUtil.h
         toyExample/toyGarblingScheme.cpp
         toyExample/toyGarblingScheme.h
-        )
+        HashFunctions.cpp HashFunctions.h)
 
 set(TESTS
         tests/test_class.cpp
         tests/circuitParserTest.cpp
-        tests/test_toyExample.cpp)
+        tests/test_toyExample.cpp HashFunctions.cpp HashFunctions.h)
 
 
 add_executable(GarblingGates ${SOURCES} main.cpp)
