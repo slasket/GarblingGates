@@ -101,26 +101,22 @@ string sha256(const string str){
     return ss.str();
 }
 
-string aes256(string str){
-
-
-    unsigned char *indata = reinterpret_cast<unsigned char *>(str.size());
-    unsigned char *outdata = reinterpret_cast<unsigned char *>(4*str.size());;
+string aes256(unsigned char *str){
+    unsigned char *indata = reinterpret_cast<unsigned char *>(sizeof(str));
+    unsigned char *outdata = reinterpret_cast<unsigned char *>(4*sizeof(str));;
     unsigned char ckey[] =  "thiskeyisverybad";
     unsigned char ivec[] = "dontusethisinput";
 
     //fread(indata,sizeof(char),fsize, ifp);//Read Entire File
-    int inlen=str.size();
+    int inlen=sizeof(str);
     int outLen1=0;
     int outLen2=0;
-    int outLen=4*str.size();
-    //indata = str.c_str();
-
+    int outLen=4*sizeof(str);
+    indata = reinterpret_cast<unsigned char *>(str);
     EVP_CIPHER_CTX *ctx;
     EVP_EncryptInit(ctx,EVP_aes_256_ctr(),ckey,ivec);
     EVP_EncryptUpdate(ctx,outdata,&outLen1,indata,inlen);
     cout<< outLen1 << " "<< outLen2<< endl;
-
     EVP_EncryptFinal(ctx,outdata + outLen1,&outLen2);
     return (string) reinterpret_cast<const char *const>(outdata);
 }
@@ -131,8 +127,8 @@ int main() {
     cout << sha256("1234567890_2") << endl;
     cout << sha256("1234567890_3") << endl;
     cout << sha256("1234567890_4") << endl;
-    //unsigned char xd[20] ="hello world";
-    //cout << aes256(reinterpret_cast<unsigned char>(xd)) << endl;
+    unsigned char xd[20] ="hello world";
+    cout << aes256(xd) << endl;
 
 
     return 0;
