@@ -8,16 +8,23 @@
 
 #include <vector>
 #include <string>
+#include <cryptoTools/Common/Defines.h>
 
 using namespace std;
 class atecaGarbeling {
 
 public:
     class scheme {
-        static string garble(int secParam, vector<std::string> circuit, vector<::uint64_t> input);
+        static string garble(int secParam, const vector<std::string>& circuit);
         static vector<::uint64_t> encode(string randomness, vector<::uint64_t> input);
     private:
-        static string init(vector<std::string> circuit, int externalLength);
+        static vector<tuple<vector<oc::u64>,vector<oc::u64>>> generateLabels(vector<std::string> circuit, int externalLength);
+        static vector<string> garbleCircuit(int externalParam, vector<std::string> circuit, vector<tuple<vector<oc::u64>,vector<oc::u64>>> inputLabels);
+
+        //single gate garble
+        static tuple<int,int,int> gate(tuple<vector<oc::u64>, vector<oc::u64>>in0,tuple<vector<oc::u64>, vector<oc::u64>>in1,string type, int gateNo, int externalParam);
+        //projection method
+
     };
 
 };

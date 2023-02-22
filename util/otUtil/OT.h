@@ -7,7 +7,7 @@
 
 
 #include <cstdint>
-#include <cryptoTools/Common/Defines.h>
+//#include <cryptoTools/Common/Defines.h>
 #include <cryptopp/elgamal.h>
 
 using namespace CryptoPP;
@@ -41,7 +41,7 @@ public:
         string* receivePKArray(tuple<Integer, Integer,Integer> pkArray[]);
     };
 
-    oc::u64 a;
+    ::uint64_t a;
 
     static vector<uint64_t> OT1out2(int keySize, const Integer& mod, const Integer& g, int choicebit, const vector<uint64_t>& string0, const vector<uint64_t>& string1);
 
@@ -49,7 +49,7 @@ public:
 
     static vector<uint64_t>* BaseOTTest(const int elgamalkeysize, int amountOfOTs, vector<tuple<vector<uint64_t>, vector<uint64_t>>> recPairs, vector<uint64_t> choiceBits);
 
-    static vector<tuple<vector<oc::u64>,vector<oc::u64>>>
+    static vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>
     genKAmountOfSelectionStrings(int keysize, int bitAmount);
 };
 

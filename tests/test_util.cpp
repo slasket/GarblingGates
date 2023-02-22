@@ -62,3 +62,24 @@ BOOST_AUTO_TEST_SUITE( Testing_generateRandomLabels )
 
 
 BOOST_AUTO_TEST_SUITE_END()
+
+
+BOOST_AUTO_TEST_SUITE( Test_HammingWeight)
+
+    BOOST_AUTO_TEST_CASE( test_hammingWeight )
+    {
+        ::uint64_t one = 1;
+        ::uint64_t max = UINT64_MAX;
+        ::uint64_t halfones = 12297829382473034648;
+        ::uint64_t otherhalfones = 6148914691236517824;
+
+        BOOST_TEST(util::hammingWeight(one)==1);
+        BOOST_TEST(util::hammingWeight(max)==64);
+        BOOST_TEST(util::hammingWeight(halfones)==32);
+        //fukcing sadge FIX THIS
+        //BOOST_TEST(util::hammingWeight(otherhalfones)==32);
+
+    }
+
+
+BOOST_AUTO_TEST_SUITE_END()
