@@ -55,7 +55,7 @@ int baseGarble::garble(int k, vector<string> f) {
         vector<::uint64_t> ciphertext;
         vector<::uint64_t> gate0;
         vector<::uint64_t> gate1;
-        andGate(globalDelta, permuteBitA, permuteBitB, A0, A1, B0, B1, ciphertext, gate0, gate1);
+        andGate(globalDelta, permuteBitA, permuteBitB, A0, A1, B0, B1, ciphertext, gate0, gate1, k);
     }
     return 0;
 }
@@ -63,10 +63,10 @@ int baseGarble::garble(int k, vector<string> f) {
 tuple<vector<::uint64_t>, vector<uint64_t>, vector<uint64_t>>
 baseGarble::andGate(const vector<::uint64_t> &globalDelta, int permuteBitA, int permuteBitB, vector<uint64_t> &A0,
                     vector<uint64_t> &A1, vector<uint64_t> &B0, vector<uint64_t> &B1, vector<::uint64_t> &ciphertext,
-                    vector<::uint64_t> &gate0, vector<::uint64_t> &gate1) {
-    ciphertext = XORHashpart(A0, B0);
-    gate1 = util::bitVecXOR(util::bitVecXOR(XORHashpart(A0, B1),ciphertext),A0);
-    gate0 = util::bitVecXOR(XORHashpart(A1, B0),ciphertext);
+                    vector<::uint64_t> &gate0, vector<::uint64_t> &gate1, int k) {
+    ciphertext = XORHashpart(A0, B0, k);
+    gate1 = util::bitVecXOR(util::bitVecXOR(XORHashpart(A0, B1, k),ciphertext),A0);
+    gate0 = util::bitVecXOR(XORHashpart(A1, B0, k),ciphertext);
     if(permuteBitA == 1){
         gate1 = util::bitVecXOR(gate1, globalDelta);
     } else if(permuteBitB == 1){
@@ -79,8 +79,8 @@ baseGarble::andGate(const vector<::uint64_t> &globalDelta, int permuteBitA, int 
     return make_tuple(ciphertext, gate0, gate1);
 }
 
-vector<::uint64_t> baseGarble::XORHashpart(vector<uint64_t> &labelA, vector<uint64_t> &labelB){
-    return util::bitVecXOR(qouteUnqouteHashFunction(labelA), qouteUnqouteHashFunction(labelB));
+vector<::uint64_t> baseGarble::XORHashpart(vector<uint64_t> &labelA, vector<uint64_t> &labelB, int k){
+    return util::bitVecXOR(qouteUnqouteHashFunction(labelA, k), qouteUnqouteHashFunction(labelB, k));
 }
 
 tuple<vector<int>, vector<int>, string> baseGarble::extractGate(const string &line) {
@@ -117,6 +117,9 @@ int baseGarble::decode(int d, int Y) {
     return 0;
 }
 
-vector<uint64_t> baseGarble::qouteUnqouteHashFunction(vector<uint64_t> x) {
-    return x;
+vector<uint64_t> baseGarble::qouteUnqouteHashFunction(vector<uint64_t> x, int k) {
+    auto xstring = otUtil::printBitsetofVectorofUints(x);
+    return util::hash_variable(xstring, k);
 }
+
+

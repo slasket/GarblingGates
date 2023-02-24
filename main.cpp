@@ -174,13 +174,13 @@ int mainAES();
 void test_hash_variable();
 
 //perform variable output length hash
-vector<uint64_t> hash_variable(const std::string& input, int output_length_bits = 128)
+vector<uint64_t> hash_variable(const string& input, int output_length_bits = 128)
 {
     size_t output_length_bytes = output_length_bits / 8;
     EVP_MD_CTX* ctx = EVP_MD_CTX_create();
     EVP_DigestInit_ex(ctx, EVP_shake256(), NULL);
     EVP_DigestUpdate(ctx, input.c_str(), input.size());
-    std::string output(output_length_bytes, '\0');
+    string output(output_length_bytes, '\0');
     EVP_DigestFinalXOF(ctx, reinterpret_cast<unsigned char *>(&output[0]), output_length_bytes);
     EVP_MD_CTX_destroy(ctx);
     //convert output to vector<uint64_t>

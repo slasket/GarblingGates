@@ -13,6 +13,9 @@
 #include <bitset>
 #include <random>
 #include "otUtil/otUtil.h"
+#include <openssl/sha.h>
+#include <openssl/aes.h>
+#include <openssl/evp.h>
 using namespace std;
 
 class util {
@@ -141,6 +144,28 @@ public:
         x = (x & m16) + ((x >> 16) & m16); //put count of each 32 bits into those 32 bits
         x = (x & m32) + ((x >> 32) & m32); //put count of each 64 bits into those 64 bits
         return x;
+    }
+
+    //perform variable output length hash
+    static vector<uint64_t> hash_variable(const std::string& input, int output_length_bits = 128)
+    {
+        size_t output_length_bytes = output_length_bits / 8;
+        EVP_MD_CTX* ctx = EVP_MD_CTX_create();
+        EVP_DigestInit_ex(ctx, EVP_shake256(), NULL);
+        EVP_DigestUpdate(ctx, input.c_str(), input.size());
+        std::string output(output_length_bytes, '\0');
+        EVP_DigestFinalXOF(ctx, reinterpret_cast<unsigned char *>(&output[0]), output_length_bytes);
+        EVP_MD_CTX_destroy(ctx);
+        //convert output to vector<uint64_t>
+        vector<uint64_t> output_vector;
+        for (int i = 0; i < output_length_bytes; i+=8) {
+            uint64_t temp = 0;
+            for (int j = 0; j < 8; ++j) {
+                temp += (uint64_t)output[i+j] << (j*8);
+            }
+            output_vector.push_back(temp);
+        }
+        return output_vector;
     }
 
 
