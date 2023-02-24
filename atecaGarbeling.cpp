@@ -19,17 +19,17 @@ string atecaGarbeling::scheme::garble(int secParam, const vector<std::string>& c
 
 
 
-vector<tuple<vector<oc::u64>,vector<oc::u64>>> atecaGarbeling::scheme::generateLabels(vector<std::string> circuit, int externalLength) {
+vector<tuple<vector<::uint64_t>,vector<::uint64_t>>> atecaGarbeling::scheme::generateLabels(vector<std::string> circuit, int externalLength) {
     auto inputs = util::split(circuit[1], ' ');
     int inputWires = 0;
     for (int i = 1; i < inputs.size(); ++i) {
         inputWires+= stoi(inputs[i]);
     }
-    vector<tuple<vector<oc::u64>,vector<oc::u64>>> e =vector<tuple<vector<oc::u64>,vector<oc::u64>>>(inputWires);
+    vector<tuple<vector<::uint64_t>,vector<::uint64_t>>> e =vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>(inputWires);
     for (int i = 0; i < inputWires; ++i) {
-        vector<oc::u64> lw0 = util::genBitsNonCrypto(externalLength);
-        vector<oc::u64> lw1 = util::bitVecXOR(util::genBitsNonCrypto(externalLength), lw0);
-        tuple<vector<oc::u64>,vector<oc::u64>> ew = {lw0,lw1};
+        vector<::uint64_t> lw0 = util::genBitsNonCrypto(externalLength);
+        vector<::uint64_t> lw1 = util::bitVecXOR(util::genBitsNonCrypto(externalLength), lw0);
+        tuple<vector<::uint64_t>,vector<::uint64_t>> ew = {lw0,lw1};
         e[i] = ew;
     }
 
@@ -37,7 +37,7 @@ vector<tuple<vector<oc::u64>,vector<oc::u64>>> atecaGarbeling::scheme::generateL
 }
 
 vector<string> atecaGarbeling::scheme::garbleCircuit(int externalParam, vector<std::string> circuit,
-                                                     vector<tuple<vector<oc::u64>, vector<oc::u64>>> inputLabels) {
+                                                     vector<tuple<vector<::uint64_t>, vector<::uint64_t>>> inputLabels) {
     //internal param is 8x external param
 
     //random oracle instantiation
@@ -54,9 +54,9 @@ vector<string> atecaGarbeling::scheme::garbleCircuit(int externalParam, vector<s
     wires.resize(amountOfWires);
 
     //gabled vector
-    auto F = vector<tuple<vector<int>,vector<oc::u64>>>(amountOfWires);
+    auto F = vector<tuple<vector<int>,vector<::uint64_t>>>(amountOfWires);
     //decoding vector
-    auto D= vector<tuple<vector<oc::u64>,vector<oc::u64>>>(outputBits);
+    auto D= vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>(outputBits);
 
     //output bits are defined as the last k wires, where k is the amount of output bits
     int firstOutputBit = amountOfWires - outputBits;
@@ -91,13 +91,13 @@ vector<string> atecaGarbeling::scheme::garbleCircuit(int externalParam, vector<s
 }
 
 tuple<int, int, int>
-atecaGarbeling::scheme::gate(tuple<vector<oc::u64>, vector<oc::u64>> in0, tuple<vector<oc::u64>, vector<oc::u64>> in1,
+atecaGarbeling::scheme::gate(tuple<vector<::uint64_t>, vector<::uint64_t>> in0, tuple<vector<::uint64_t>, vector<::uint64_t>> in1,
                              string type, int gateNo, int externalParam) {
     int internalParam= externalParam*8;
     //the random oracles lol
 
     //make internal param length zer0 string
-    auto Delta = vector<oc::u64>((internalParam+64-1)/64);
+    auto Delta = vector<::uint64_t>((internalParam+64-1)/64);
 
 
 

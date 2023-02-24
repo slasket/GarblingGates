@@ -12,7 +12,6 @@
 #include "circuitParser.h"
 #include <bitset>
 #include <random>
-#include <cryptoTools/Common/Defines.h>
 #include "otUtil/otUtil.h"
 using namespace std;
 
@@ -86,8 +85,8 @@ public:
         wiresLabel = make_pair(a0, a1);
     }
 
-    static vector <oc::u64> genBitsNonCrypto(int bits) {
-        auto res = vector<oc::u64>((bits+64-1)/64);
+    static vector <::uint64_t> genBitsNonCrypto(int bits) {
+        auto res = vector<::uint64_t>((bits+64-1)/64);
         for (int blockNum = 0; blockNum <(bits+64-1)/64; ++blockNum) {
             res[blockNum] = random_bitset<64>().to_ullong();
             //for (int i = 0; i < 64; ++i) {bitset[i]=(prng.GenerateBit());}
@@ -96,7 +95,7 @@ public:
         return res;
     }
 
-    static vector<oc::u64> bitVecXOR(vector<oc::u64>left, const vector<oc::u64>& right){
+    static vector<::uint64_t> bitVecXOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
         for (int i = 0; i < left.size(); ++i) {
             left[i] = left[i] ^right[i];
         }

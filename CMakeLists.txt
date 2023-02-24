@@ -46,10 +46,11 @@ find_package(Boost REQUIRED)
 target_link_libraries(GarblingGates ${Boost_LIBRARIES})
 include_directories(${Boost_INCLUDE_DIR})
 
-#cryptotool
-find_package(cryptoTools REQUIRED HINTS "C:/Program Files/cryptotools/lib")
-target_link_libraries(GarblingGates PRIVATE oc::cryptoTools)
-target_link_libraries(Tests PRIVATE oc::cryptoTools)
+##cryptotool
+#find_package(cryptoTools REQUIRED HINTS "C:/Program Files/cryptotools/lib")
+#target_link_libraries(GarblingGates PRIVATE oc::cryptoTools)
+#target_link_libraries(Tests PRIVATE oc::cryptoTools)
+
 #cryptoPP
 find_package(cryptopp REQUIRED)
 target_link_libraries(GarblingGates PRIVATE cryptopp::cryptopp)
@@ -57,6 +58,6 @@ target_link_libraries(Tests PRIVATE cryptopp::cryptopp)
 
 
 #openSSL
-find_package(OpenSSL 3 REQUIRED)
+find_package(OpenSSL REQUIRED)
 target_link_libraries(GarblingGates PRIVATE OpenSSL::Crypto)
 target_link_libraries(Tests PRIVATE OpenSSL::Crypto)
