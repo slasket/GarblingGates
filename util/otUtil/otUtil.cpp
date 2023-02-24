@@ -5,8 +5,8 @@
 #include "otUtil.h"
 //#include "relic_rand.h"
 
-vector <oc::u64> otUtil::genBitsNonCrypto(int bits) {
-    auto res = vector<oc::u64>((bits+64-1)/64);
+vector <::uint64_t> otUtil::genBitsNonCrypto(int bits) {
+    auto res = vector<::uint64_t>((bits+64-1)/64);
     for (int blockNum = 0; blockNum <(bits+64-1)/64; ++blockNum) {
         res[blockNum] = random_bitset<64>().to_ullong();
         //for (int i = 0; i < 64; ++i) {bitset[i]=(prng.GenerateBit());}

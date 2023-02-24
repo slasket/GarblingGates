@@ -9,14 +9,13 @@
 #include <bitset>
 #include <random>
 
-#include <cryptoTools/Common/Defines.h>
 using namespace std;
 
 class otUtil {
 
 public:
     static int findithBit(vector<uint64_t> ui, int i);
-    static vector<oc::u64> genBitsNonCrypto(int bits);
+    static vector<::uint64_t> genBitsNonCrypto(int bits);
 
     //taken from https://www.appsloveworld.com/cplus/100/112/c-efficient-way-to-generate-random-bitset-with-configurable-mean-1s-to-0s-r
     template< size_t size>

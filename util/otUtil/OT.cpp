@@ -44,8 +44,8 @@ vector<uint64_t> OT::Alice::receiveCipherArr(std::string* cpArr) {
     return res;
 
 }
-vector<tuple<vector<oc::u64>,vector<oc::u64>>> OT::genKAmountOfSelectionStrings(int k,int bitAmount){
-    auto receiverPairs = vector<tuple<vector<oc::u64>,vector<oc::u64>>>(k);
+vector<tuple<vector<::uint64_t>,vector<::uint64_t>>> OT::genKAmountOfSelectionStrings(int k,int bitAmount){
+    auto receiverPairs = vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>(k);
     for (int i = 0; i < k; ++i) {
         auto leftVal = otUtil::genBitsNonCrypto(bitAmount);
         auto rightVal = otUtil::genBitsNonCrypto(bitAmount);
@@ -107,6 +107,6 @@ int OT::findUIntBit(int idx, const vector<uint64_t>& uint) {
     auto theInt= idx / 64;
     auto smallerIdx = idx % 64;
 
-    oc::u64 theInteger = uint[theInt];
+    ::uint64_t theInteger = uint[theInt];
     return bitset<64>(theInteger)[smallerIdx];
 }

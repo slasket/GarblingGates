@@ -2,7 +2,6 @@
 
 #include <boost/lambda/lambda.hpp>
 #include <iostream>
-#include <cryptoTools/Common/Defines.h>
 #include "bloodcompatibility.h"
 #include "util/otUtil/otUtil.h"
 #include "util/OTUtil/OT.h"
@@ -28,8 +27,8 @@ void testBaseOT(int v, int k ,int l, int elgamalKeySize){
     cout<< "#Testing baseOTs from "<< v << " to " << k<< " Amount of OTs"<<endl;
 
     for (int j = v; j <= k; j=j*2) {
-        vector<tuple<vector<oc::u64>,vector<oc::u64>>> senderPairs(j);
-        vector<oc::u64> selectionBits(j);
+        vector<tuple<vector<::uint64_t>,vector<::uint64_t>>> senderPairs(j);
+        vector<::uint64_t> selectionBits(j);
         senderPairs = OT::genKAmountOfSelectionStrings(j, 128);
 
         selectionBits = otUtil::genBitsNonCrypto(j);
