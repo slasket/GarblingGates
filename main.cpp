@@ -170,13 +170,47 @@ unsigned char *aes_decrypt(EVP_CIPHER_CTX *e, unsigned char *ciphertext, int *le
     return plaintext;
 }
 
+int mainAES();
+
+void test_hash_variable();
+
+//perform variable output length hash
+std::string hash_variable(const std::string& input, size_t output_length = 32)
+{
+    EVP_MD_CTX* ctx = EVP_MD_CTX_create();
+    EVP_DigestInit_ex(ctx, EVP_shake256(), NULL);
+    EVP_DigestUpdate(ctx, input.c_str(), input.size());
+    std::string output(output_length, '\0');
+    EVP_DigestFinalXOF(ctx, reinterpret_cast<unsigned char *>(&output[0]), output_length);
+    EVP_MD_CTX_destroy(ctx);
+    return output;
+}
+
 int main() {
+    //cout << sha256("1234567890_1") << endl;
+    //cout << sha256("1234567890_2") << endl;
+    //cout << sha256("1234567890_3") << endl;
+    //cout << sha256("1234567890_4") << endl;
 
-    cout << sha256("1234567890_1") << endl;
-    cout << sha256("1234567890_2") << endl;
-    cout << sha256("1234567890_3") << endl;
-    cout << sha256("1234567890_4") << endl;
+    //int aes =  mainAES();
 
+    //test hash_variable with size 32, 64, 128, 256, 512, 1024
+    test_hash_variable();
+    return 0;
+
+
+}
+
+void test_hash_variable() {
+    string input = "1234567890_1";
+    for (int i = 0; i < 6; i++) {
+        string output = hash_variable(input, pow(2, i) * 32);
+        cout << "output size: " << output.size() << endl;
+        cout << endl;
+    }
+}
+
+int mainAES() {
     unsigned char xd[20] ="hello world";
     /* "opaque" encryption, decryption ctx structures that libcrypto uses to record
         status of enc/dec operations */
@@ -235,7 +269,6 @@ int main() {
 
     EVP_CIPHER_CTX_free(en);
     EVP_CIPHER_CTX_free(de);
-
     return 0;
 }
 
