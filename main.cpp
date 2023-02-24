@@ -175,15 +175,25 @@ int mainAES();
 void test_hash_variable();
 
 //perform variable output length hash
-std::string hash_variable(const std::string& input, size_t output_length = 32)
+vector<uint64_t> hash_variable(const std::string& input, int output_length_bits = 128)
 {
+    size_t output_length_bytes = output_length_bits / 8;
     EVP_MD_CTX* ctx = EVP_MD_CTX_create();
     EVP_DigestInit_ex(ctx, EVP_shake256(), NULL);
     EVP_DigestUpdate(ctx, input.c_str(), input.size());
-    std::string output(output_length, '\0');
-    EVP_DigestFinalXOF(ctx, reinterpret_cast<unsigned char *>(&output[0]), output_length);
+    std::string output(output_length_bytes, '\0');
+    EVP_DigestFinalXOF(ctx, reinterpret_cast<unsigned char *>(&output[0]), output_length_bytes);
     EVP_MD_CTX_destroy(ctx);
-    return output;
+    //convert output to vector<uint64_t>
+    vector<uint64_t> output_vector;
+    for (int i = 0; i < output_length_bytes; i+=8) {
+        uint64_t temp = 0;
+        for (int j = 0; j < 8; ++j) {
+            temp += (uint64_t)output[i+j] << (j*8);
+        }
+        output_vector.push_back(temp);
+    }
+    return output_vector;
 }
 
 int main() {
@@ -196,16 +206,26 @@ int main() {
 
     //test hash_variable with size 32, 64, 128, 256, 512, 1024
     test_hash_variable();
+
+    //string input = "1234567890_1";
+    //vector<uint64_t> output = hash_variable(input);
+    //cout << "output size: " << output.size() * 64 << endl;
+    //for (int i = 0; i < output.size(); ++i) {
+    //    cout << output[i] << " ";
+    //}
+    //cout << endl;
+
     return 0;
-
-
 }
 
 void test_hash_variable() {
     string input = "1234567890_1";
     for (int i = 0; i < 6; i++) {
-        string output = hash_variable(input, pow(2, i) * 32);
-        cout << "output size: " << output.size() << endl;
+        vector<uint64_t> output = hash_variable(input, ::pow(2, i+7));
+        cout << "output size: " << output.size() * 64 << endl;
+        for (int i = 0; i < output.size(); ++i) {
+            cout << output[i] << " ";
+        }
         cout << endl;
     }
 }
