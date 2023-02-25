@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_SUITE( Testing_generateRandomLabels )
             //test color bit
             BOOST_TEST((get<0>(wiresLabels)[0] & 1) == 0);
             BOOST_TEST((get<1>(wiresLabels)[0] & 1) == 1);
-            BOOST_TEST(util::bitVecXOR(get<0>(wiresLabels), get<1>(wiresLabels)) == output0);
+            BOOST_TEST(util::VecXOR(get<0>(wiresLabels), get<1>(wiresLabels)) == output0);
 
         }
         for (int i = 0; i < 10; ++i) {
@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_SUITE( Testing_generateRandomLabels )
             //test color bit
             BOOST_TEST((get<0>(wiresLabels)[0] & 1) == 1);
             BOOST_TEST((get<1>(wiresLabels)[0] & 1) == 0);
-            BOOST_TEST(util::bitVecXOR(get<0>(wiresLabels), get<1>(wiresLabels)) == output0);
+            BOOST_TEST(util::VecXOR(get<0>(wiresLabels), get<1>(wiresLabels)) == output0);
 
         }
     }
@@ -63,6 +63,20 @@ BOOST_AUTO_TEST_SUITE( Testing_generateRandomLabels )
 
 BOOST_AUTO_TEST_SUITE_END()
 
+
+BOOST_AUTO_TEST_SUITE( Nor_operation)
+
+    BOOST_AUTO_TEST_CASE( test_all_nor_input )
+    {
+        uint64_t max = UINT64_MAX;
+        BOOST_TEST(util::norOP(0,0)==max);
+        BOOST_TEST(util::norOP(max,max)==0);
+        BOOST_TEST(util::norOP(max,0)==0);
+        BOOST_TEST(util::norOP(0,max)==0);
+    }
+
+
+BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( Test_HammingWeight)
 

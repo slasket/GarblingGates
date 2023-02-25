@@ -58,6 +58,6 @@ target_link_libraries(Tests PRIVATE cryptopp::cryptopp)
 
 
 #openSSL
-find_package(OpenSSL REQUIRED)
+find_package(OpenSSL 3 REQUIRED)
 target_link_libraries(GarblingGates PRIVATE OpenSSL::Crypto)
 target_link_libraries(Tests PRIVATE OpenSSL::Crypto)

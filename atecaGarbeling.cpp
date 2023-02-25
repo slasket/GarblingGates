@@ -28,7 +28,7 @@ vector<tuple<vector<::uint64_t>,vector<::uint64_t>>> atecaGarbeling::scheme::gen
     vector<tuple<vector<::uint64_t>,vector<::uint64_t>>> e =vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>(inputWires);
     for (int i = 0; i < inputWires; ++i) {
         vector<::uint64_t> lw0 = util::genBitsNonCrypto(externalLength);
-        vector<::uint64_t> lw1 = util::bitVecXOR(util::genBitsNonCrypto(externalLength), lw0);
+        vector<::uint64_t> lw1 = util::VecXOR(util::genBitsNonCrypto(externalLength), lw0);
         tuple<vector<::uint64_t>,vector<::uint64_t>> ew = {lw0,lw1};
         e[i] = ew;
     }
@@ -38,10 +38,6 @@ vector<tuple<vector<::uint64_t>,vector<::uint64_t>>> atecaGarbeling::scheme::gen
 
 vector<string> atecaGarbeling::scheme::garbleCircuit(int externalParam, vector<std::string> circuit,
                                                      vector<tuple<vector<::uint64_t>, vector<::uint64_t>>> inputLabels) {
-    //internal param is 8x external param
-
-    //random oracle instantiation
-    //lol i didnt do :)
     //get amount of gates and wires
     auto gatesAndWires=util::split(circuit[0],' ');
     //get amount of output bits
@@ -50,7 +46,7 @@ vector<string> atecaGarbeling::scheme::garbleCircuit(int externalParam, vector<s
     int amountOfWires = stoi(gatesAndWires[1]);
 
     //set inputwires in W
-    auto wires = inputLabels;
+    auto wires = std::move(inputLabels);
     wires.resize(amountOfWires);
 
     //gabled vector
@@ -76,31 +72,112 @@ vector<string> atecaGarbeling::scheme::garbleCircuit(int externalParam, vector<s
 
             //calculate garble
             auto garbledGate = gate(wires[in0],wires[in1], type, gateNo, externalParam);
+            //add Delta to F set for a gate + its inputs and outputs
 
 
             //make output labels
-
-            //add Delta to F set for a gate + its inputs and outputs
             //add output labels if outputgates
+
         }
 
     }
 
-
-    return vector<string>();
+    return {};
 }
 
-tuple<int, int, int>
-atecaGarbeling::scheme::gate(tuple<vector<::uint64_t>, vector<::uint64_t>> in0, tuple<vector<::uint64_t>, vector<::uint64_t>> in1,
-                             string type, int gateNo, int externalParam) {
+vector<vector<uint64_t>>
+atecaGarbeling::scheme::gate(const tuple<vector<::uint64_t>, vector<::uint64_t>>& in0, const tuple<vector<::uint64_t>, vector<::uint64_t>>& in1,
+                             const string& typ, int gateNo, int externalParam) {
     int internalParam= externalParam*8;
     //the random oracles lol
+    //THIS IS THE WRONG WAY OF TWEAKING!=!=!?!??!!
+    auto l00 = get<0>(in0);
+    l00.insert(l00.end(), get<0>(in1).begin(), get<0>(in1).end());
+    l00.push_back(gateNo);
+    auto l01 = get<0>(in0);
+    l01.insert(l01.end(), get<1>(in1).begin(), get<1>(in1).end());
+    l01.push_back(gateNo);
+    auto l10 = get<1>(in0);
+    l10.insert(l10.end(), get<0>(in1).begin(), get<0>(in1).end());
+    l10.push_back(gateNo);
+    auto l11 = get<1>(in0);
+    l11.insert(l11.end(), get<1>(in1).begin(), get<1>(in1).end());
+    l11.push_back(gateNo);
+    //actually compute the hashes
+    vector<::uint64_t> X_00 = util::hash_variable(util::uintVec2Str(l00), internalParam);
+    vector<::uint64_t> X_01 = util::hash_variable(util::uintVec2Str(l01), internalParam);
+    vector<::uint64_t> X_10 = util::hash_variable(util::uintVec2Str(l10), internalParam);
+    vector<::uint64_t> X_11 = util::hash_variable(util::uintVec2Str(l11), internalParam);
+
+    //and all labels with 0 and uint_max
+    //l00a0 is l00 nored with 0 and l00a1 is l00 anded with 1
+    auto l00a0 = util::vecNorStatic(X_00, 0);//NOR operation lol
+    auto l00a1 = util::vecAndStatic(X_00, UINT64_MAX);
+    //l01a0 and l01a1
+    auto l01a0 = util::vecNorStatic(X_01, 0);
+    auto l01a1 = util::vecAndStatic(X_01, UINT64_MAX);
+    //l01a0 and l01a1
+    auto l10a0 = util::vecNorStatic(X_10, 0);
+    auto l10a1 = util::vecAndStatic(X_10, UINT64_MAX);
+    //l11a0 and l11a1
+    auto l11a0 = util::vecNorStatic(X_11, 0);
+    auto l11a1 = util::vecAndStatic(X_11, UINT64_MAX);
+
+
+    //now that you have vectors with 1 for each 0 and 1 for each 1
+    //compute mask 0000 =  l00a0 ^ l01a0 ^ l10a0 ^ l11a0
+    //masks that and, xor share
+    auto mask0000 =  util::vecAND(util::vecAND(util::vecAND(l00a0, l01a0), l10a0), l11a0);
+    auto mask1111 =  util::vecAND(util::vecAND(util::vecAND(l00a1, l01a1), l10a1), l11a1);
+    //and specific masks
+    auto mask0001 =  util::vecAND(util::vecAND(util::vecAND(l00a0, l01a0), l10a0), l11a1);
+    auto mask1110 =  util::vecAND(util::vecAND(util::vecAND(l00a1, l01a1), l10a1), l11a0);
+    //xor specific masks
+    auto mask1001 =  util::vecAND(util::vecAND(util::vecAND(l00a1, l01a0), l10a0), l11a1);
+    auto mask0110 =  util::vecAND(util::vecAND(util::vecAND(l00a0, l01a1), l10a1), l11a0);
 
     //make internal param length zer0 string
-    auto Delta = vector<::uint64_t>((internalParam+64-1)/64);
+    auto delta = vector<::uint64_t>((internalParam+64-1)/64);
+    auto deltaHW =0;
+    int j =0;
+    do {
+        if (typ == "AND"){
+            //and with 0000 0001 1110 or 1111
+            //check the ith bit of the corresponding masks
+            bool m0000bit = util::findithBit(mask0000,j);
+            bool m0001bit = util::findithBit(mask0001,j);
+            bool m1110bit = util::findithBit(mask1110,j);
+            bool m1111bit = util::findithBit(mask1111,j);
+            //if true
+            if (m0000bit || m0001bit || m1110bit || m1111bit){
+                //update j'th bit of delta to 1
+                //just shift
+                deltaHW ++;
+            }
+        }else if(typ == "XOR"){
+            //and with 0000 1001 0110 1111
+
+            //if true
+            if (true){
+                //update j'th bit of delta to 1
+
+                deltaHW ++;
+            }
+        }
+        j++;
+    } while (deltaHW < externalParam);
+
+    vector<::uint64_t> L0; vector<::uint64_t>L1;
+
+    if (typ=="AND"){
+        //L0 = projection(Label00, delta)
+        //L1 = projection(l11,delta)
+    }else if (typ=="XOR"){
+        //L0 = projection(Label00, delta)
+        //L1 = projection(l01,delta)
+    }
 
 
-
-    return tuple<int, int, int>();
+    return {L0, L1, delta};
 }
 

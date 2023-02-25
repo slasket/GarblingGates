@@ -21,7 +21,7 @@ public:
         static vector<string> garbleCircuit(int externalParam, vector<std::string> circuit, vector<tuple<vector<::uint64_t>,vector<::uint64_t>>> inputLabels);
 
         //single gate garble
-        static tuple<int,int,int> gate(tuple<vector<::uint64_t>, vector<::uint64_t>>in0,tuple<vector<::uint64_t>, vector<::uint64_t>>in1,string type, int gateNo, int externalParam);
+        static vector<vector<uint64_t>> gate(const tuple<vector<::uint64_t>, vector<::uint64_t>>&in0, const tuple<vector<::uint64_t>, vector<::uint64_t>>&in1, const string& typ, int gateNo, int externalParam);
         //projection method
 
     };
