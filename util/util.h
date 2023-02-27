@@ -135,19 +135,19 @@ public:
 
     static vector<::uint64_t> VecXOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
         for (int i = 0; i < left.size(); ++i) {
-            left[i] = left[i] ^right[i];
+            left[i] = left[i] ^ right[i];
         }
         return left;
     }
     static vector<::uint64_t> vecAND(vector<::uint64_t>left, const vector<::uint64_t>& right){
         for (int i = 0; i < left.size(); ++i) {
-            left[i] = left[i] ^right[i];
+            left[i] = left[i] & right[i];
         }
         return left;
     }
     static vector<::uint64_t> vecOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
         for (int i = 0; i < left.size(); ++i) {
-            left[i] = left[i] || right[i];
+            left[i] = left[i] | right[i];
         }
         return left;
     }
@@ -186,6 +186,7 @@ public:
 
         return bits;
     }
+
     //taken from https://helloacm.com/c-coding-exercise-number-of-1-bits-revisited/
     static inline int hammingWeight(uint64_t x) {
         x -= (x >> 1) & 0x5555555555555555;             //put count of each 2 bits into those 2 bits
@@ -197,7 +198,7 @@ public:
     static inline int vecHW(vector<uint64_t> x) {
         int hw = 0;
         for (int i = 0; i < x.size(); ++i) {
-            hammingWeight(x[i]);
+            hw += hammingWeight(x[i]);
         }
         return hw;
     }
@@ -227,7 +228,12 @@ public:
     static ::uint64_t leftShiftFill1(::uint64_t x){
         return ~((~x)<<1);
     }
-
+    static vector<bitset<64>> insertBitVecBitset(vector<bitset<64>> vec, int bit, int i){
+        int block = i/64;
+        int pos = 63-(i%64);
+        vec[block][pos] = bit;
+        return vec;
+    }
 
 };
 

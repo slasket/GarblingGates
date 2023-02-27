@@ -22,7 +22,7 @@ int baseGarble::garble(int k, vector<string> f) {
         auto outputWires = get<1>(gateInfo);
         auto gateType = get<2>(gateInfo);
         ////////////////////////////// Garbling gate ///////////////////////////////////
-        //garble gate
+        //Gb gate
         //TODO needs delta/label generation
         vector<tuple<vector<uint64_t>, vector<uint64_t>>> inputWiresLabels = vector<tuple<vector<uint64_t>, vector<uint64_t>>>(inputWires.size());
         vector<tuple<vector<uint64_t>, vector<uint64_t>>> outputWiresLabels = vector<tuple<vector<uint64_t>, vector<uint64_t>>>(outputWires.size());

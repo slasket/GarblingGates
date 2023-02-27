@@ -90,24 +90,29 @@ void testBaseOT(int v, int k ,int l, int elgamalKeySize){
 
 
 int main() {
-
-
-    //cout << sha256("1234567890_1") << endl;
-    //cout << sha256("1234567890_2") << endl;
-    //cout << sha256("1234567890_3") << endl;
-    //cout << sha256("1234567890_4") << endl;
     cout<<"xd"<<endl;
-    //int aes =  mainAES();
     auto bloodCircuit = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
-    atecaGarbeling::scheme::garble(64,bloodCircuit);
+    auto feds = atecaGarbeling::scheme::Gb(64, bloodCircuit);
+    auto finput = vector<int>{0,0,0,0,0,0,1};
+    auto encodedInput = atecaGarbeling::scheme::encode(get<1>(feds),finput);
+    auto Y = atecaGarbeling::scheme::evaluate(get<0>(feds),encodedInput,bloodCircuit,get<3>(feds));
+    auto y = atecaGarbeling::scheme::De(Y,get<2>(feds));
 
-    string input = "123+0uf892ujf984j9f8jds98afuq348+ju fs890_1";
-    vector<uint64_t> output = util::hash_variable(input,64);
-    cout << "output size: " << output.size() * 64 << endl;
-    for (int i = 0; i < output.size(); ++i) {
-        cout << output[i] << " ";
+    cout<< "size: " << y.size()<< " contains: " <<  endl;
+    for (int i = 0; i < y.size(); ++i) {
+        cout <<y[i]<< endl;
     }
-    cout << endl;
+
+
+    //string input = "123+0uf892ujf984j9f8jds98afuq348+ju fs890_1";
+    //vector<uint64_t> output = util::hash_variable(input,64);
+    //cout << "output size: " << output.size() * 64 << endl;
+    //for (int i = 0; i < output.size(); ++i) {
+    //    cout << output[i] << " ";
+    //}
+    //cout << endl;
+
+
 
     return 0;
 }
