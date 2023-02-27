@@ -20,8 +20,8 @@ set(SOURCES
         util/otUtil/otUtil.h
         HashFunctions.cpp
         HashFunctions.h
-        atecaGarbeling.cpp
-        atecaGarbeling.h
+        schemes/atecaGarble.cpp
+        schemes/atecaGarble.h
         schemes/toyExample/toyGarblingScheme.cpp
         schemes/toyExample/toyGarblingScheme.h
         schemes/baseGarble.cpp
@@ -32,9 +32,9 @@ set(TESTS
         tests/test_class.cpp
         tests/circuitParserTest.cpp
         tests/test_toyExample.cpp schemes/baseGarble.cpp schemes/baseGarble.h tests/test_baseline.cpp tests/test_util.cpp
-        atecaGarbeling.cpp atecaGarbeling.h
+        schemes/atecaGarble.cpp schemes/atecaGarble.h
         HashFunctions.cpp
-        atecaGarbeling.cpp
+        schemes/atecaGarble.cpp
         )
 
 

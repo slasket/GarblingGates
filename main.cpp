@@ -7,7 +7,7 @@
 #include "util/OTUtil/OT.h"
 #include "util/circuitParser.h"
 #include "util/util.h"
-#include "atecaGarbeling.h"
+#include "schemes/atecaGarble.h"
 #include <bitset>
 #include <cstdio>
 
@@ -92,11 +92,11 @@ void testBaseOT(int v, int k ,int l, int elgamalKeySize){
 int main() {
     cout<<"xd"<<endl;
     auto bloodCircuit = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
-    auto feds = atecaGarbeling::scheme::Gb(64, bloodCircuit);
+    auto feds = atecaGarble::Gb(64, bloodCircuit);
     auto finput = vector<int>{0,0,0,0,0,0,1};
-    auto encodedInput = atecaGarbeling::scheme::encode(get<1>(feds),finput);
-    auto Y = atecaGarbeling::scheme::evaluate(get<0>(feds),encodedInput,bloodCircuit,get<3>(feds));
-    auto y = atecaGarbeling::scheme::De(Y,get<2>(feds));
+    auto encodedInput = atecaGarble::En(get<1>(feds), finput);
+    auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, bloodCircuit, get<3>(feds));
+    auto y = atecaGarble::De(Y, get<2>(feds));
 
     cout<< "size: " << y.size()<< " contains: " <<  endl;
     for (int i = 0; i < y.size(); ++i) {

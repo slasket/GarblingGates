@@ -13,22 +13,22 @@ int baseGarble::garble(int k, vector<string> f) {
     string &metadata2 = f[1];
     string &metadata3 = f[2];
     vector<::uint64_t> globalDelta = vector<::uint64_t>(k);
-    //perform gate by gate garbling
+    //perform gate by Gate garbling
     for (int i = 3; i < f.size(); ++i) {
-        ////////////////////////////// Getting out gate from string ////////////////////
+        ////////////////////////////// Getting out Gate from string ////////////////////
         string &line = f[i];
         auto gateInfo = extractGate(line);
         auto inputWires = get<0>(gateInfo);
         auto outputWires = get<1>(gateInfo);
         auto gateType = get<2>(gateInfo);
-        ////////////////////////////// Garbling gate ///////////////////////////////////
-        //Gb gate
+        ////////////////////////////// Garbling Gate ///////////////////////////////////
+        //Gb Gate
         //TODO needs delta/label generation
         vector<tuple<vector<uint64_t>, vector<uint64_t>>> inputWiresLabels = vector<tuple<vector<uint64_t>, vector<uint64_t>>>(inputWires.size());
         vector<tuple<vector<uint64_t>, vector<uint64_t>>> outputWiresLabels = vector<tuple<vector<uint64_t>, vector<uint64_t>>>(outputWires.size());
         auto deltaAndLabels = util::generateRandomLabels(k, globalDelta, inputWiresLabels);
 
-        //TODO: permute gate truth table
+        //TODO: permute Gate truth table
 
         //TODO: change out hash function
         //calculate permute bits
@@ -100,7 +100,7 @@ tuple<vector<int>, vector<int>, string> baseGarble::extractGate(const string &li
         //get next output wire label/index
         outputWires.push_back(stoi(lineSplit[j]));
     }
-    //handle gate type
+    //handle Gate type
     string gateType = lineSplit[numInputWires + numOutputWires + 2];
     return make_tuple(inputWires, outputWires, gateType);
 }
