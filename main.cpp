@@ -7,6 +7,7 @@
 #include "util/OTUtil/OT.h"
 #include "util/circuitParser.h"
 #include "util/util.h"
+#include "atecaGarbeling.h"
 #include <bitset>
 #include <cstdio>
 
@@ -97,6 +98,9 @@ int main() {
     //cout << sha256("1234567890_4") << endl;
     cout<<"xd"<<endl;
     //int aes =  mainAES();
+    auto bloodCircuit = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
+    atecaGarbeling::scheme::garble(64,bloodCircuit);
+
     string input = "123+0uf892ujf984j9f8jds98afuq348+ju fs890_1";
     vector<uint64_t> output = util::hash_variable(input,64);
     cout << "output size: " << output.size() * 64 << endl;

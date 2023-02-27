@@ -7,15 +7,16 @@
 #include <utility>
 #include "util/util.h"
 
-string atecaGarbeling::scheme::garble(int secParam, const vector<std::string>& circuit) {
+tuple<vector<vector<::uint64_t>>,vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>,vector<vector<uint64_t>>>
+    atecaGarbeling::scheme::garble(int secParam, const vector<std::string>& circuit) {
     int externalLength = secParam;
     int internalLengh = 8 * secParam;
 
     auto encodingInfo = generateLabels(circuit,externalLength);
-    auto GarbledFAndD = garbleCircuit(externalLength,circuit,encodingInfo);
-    auto DecodingInfo = decodingInfo(get<1>(GarbledFAndD),externalLength);
+    auto garbledFAndD = garbleCircuit(externalLength,circuit,encodingInfo);
+    auto decoding = decodingInfo(get<1>(garbledFAndD),externalLength);
 
-    return {};
+    return {get<0>(garbledFAndD),encodingInfo,decoding};
 }
 
 

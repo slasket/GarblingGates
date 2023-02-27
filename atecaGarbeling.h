@@ -14,7 +14,9 @@ class atecaGarbeling {
 
 public:
     class scheme {
-        static string garble(int secParam, const vector<std::string>& circuit);
+    public:
+        static tuple<vector<vector<::uint64_t>>,vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>,vector<vector<uint64_t>>>
+                garble(int secParam, const vector<std::string>& circuit);
         static vector<::uint64_t> encode(string randomness, vector<::uint64_t> input);
     private:
         static vector<tuple<vector<::uint64_t>,vector<::uint64_t>>> generateLabels(vector<std::string> circuit, int externalLength);
