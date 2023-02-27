@@ -5,7 +5,6 @@
 #include "atecaGarbeling.h"
 
 #include <utility>
-#include <boost/dynamic_bitset.hpp>
 #include "util/util.h"
 
 string atecaGarbeling::scheme::garble(int secParam, const vector<std::string>& circuit) {
@@ -14,8 +13,9 @@ string atecaGarbeling::scheme::garble(int secParam, const vector<std::string>& c
 
     auto encodingInfo = generateLabels(circuit,externalLength);
     auto GarbledFAndD = garbleCircuit(externalLength,circuit,encodingInfo);
-    //auto DecodingInfo = decodingInfo(D,externalLength);
-    return std::string();
+    auto DecodingInfo = decodingInfo(get<1>(GarbledFAndD),externalLength);
+
+    return {};
 }
 
 
@@ -37,7 +37,7 @@ vector<tuple<vector<::uint64_t>,vector<::uint64_t>>> atecaGarbeling::scheme::gen
     return e;
 }
 
-vector<string> atecaGarbeling::scheme::garbleCircuit(int externalParam, vector<std::string> circuit,
+tuple<vector<vector<::uint64_t>>,vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>> atecaGarbeling::scheme::garbleCircuit(int externalParam, vector<std::string> circuit,
                                                      vector<tuple<vector<::uint64_t>, vector<::uint64_t>>> inputLabels) {
     //get amount of gates, wires and output bits
     auto gatesAndWires=util::split(circuit[0],' ');
@@ -49,9 +49,9 @@ vector<string> atecaGarbeling::scheme::garbleCircuit(int externalParam, vector<s
     wires.resize(amountOfWires);
 
     //gabled vector
-    auto F = vector<tuple<vector<int>,vector<::uint64_t>>>(amountOfWires);
+    auto F = vector<vector<::uint64_t>>(amountOfWires);
     //decoding vector
-    auto D= vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>(outputBits);
+    auto D = vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>(outputBits);
 
     //output bits are defined as the last k wires, where k is the amount of output bits
     int firstOutputBit = amountOfWires - outputBits;
@@ -71,18 +71,22 @@ vector<string> atecaGarbeling::scheme::garbleCircuit(int externalParam, vector<s
 
             //calculate garble
             auto garbledGate = gate(wires[in0],wires[in1], type, gateNo, externalParam);
-            //add Delta to F set for a gate + its inputs and outputs
+            //add Delta to F set for a gate
+            F[gateNo]= garbledGate[2];
+            //the gates output labels
+            wires[out] = {garbledGate[0],garbledGate[1]};
 
-
-            //make output labels
-            //add output labels if outputgates
+            //if g is an output gate, add it to D
+            if (out >= firstOutputBit){
+             //add the label to D
+             D[out-firstOutputBit] = {garbledGate[0],garbledGate[1]};
+            }
 
         }
-
     }
-
-    return {};
+    return {F,D};
 }
+
 
 vector<vector<uint64_t>>
 atecaGarbeling::scheme::gate(const tuple<vector<::uint64_t>, vector<::uint64_t>>& in0, const tuple<vector<::uint64_t>, vector<::uint64_t>>& in1,
@@ -169,29 +173,63 @@ atecaGarbeling::scheme::gate(const tuple<vector<::uint64_t>, vector<::uint64_t>>
     vector<::uint64_t> L0; vector<::uint64_t>L1;
 
     if (typ=="AND"){
-        //L0 = projection(Label00, delta)
-        //L1 = projection(l11,delta)
+        L0 = projection(X_00, delta);
+        L1 = projection(X_11,delta);
     }else if (typ=="XOR"){
-        //L0 = projection(Label00, delta)
-        //L1 = projection(l01,delta)
+        L0 = projection(X_00, delta);
+        L1 = projection(X_01,delta);
     }
 
     return {L0, L1, delta};
 }
 
-vector<::uint64_t> projection(vector<::uint64_t> a,vector<::uint64_t> b){
+vector<uint64_t> atecaGarbeling::scheme::projection(const vector<::uint64_t>& a, const vector<::uint64_t>& b) {
     //projection A o B means take the bit A[i] if B[i]=1
     int l = util::vecHW(b);
-    boost::dynamic_bitset<> projection(l);
-    int bitsProjected=0; int j;
+    int blocksNeeded = l/64 + (l % 64 != 0);
+    vector<::uint64_t> res (blocksNeeded);
+    bitset<64> projection;
+    int bitsProjected=0; int j=0;int blockNum=0;
+
     while (bitsProjected<l){
         if (util::ithBitL2R(b,j)){
             //copy the bit of a
+            projection[l-1-j]=util::ithBitL2R(a,j);
+            bitsProjected++;
+        }
+        if (j%64==0 && j!=0){
+            res[blockNum] = projection.to_ullong();
+            projection = bitset<64>();
         }
         //do nothing
         j++;
     }
-
-    return {};
+    return res;
 }
 
+vector<vector<uint64_t>> atecaGarbeling::scheme::decodingInfo(const vector<tuple<vector<::uint64_t>, vector<::uint64_t>>>& D, int l) {
+    //RO from 2l->1
+    vector<vector<::uint64_t>> d(l);
+    for (int i = 0; i < D.size(); ++i) {
+        auto L0 = get<0>(D[i]);
+        auto L1 = get<1>(D[i]);
+        vector<::uint64_t> L0wdi;
+        vector<::uint64_t> L1wdi;
+        vector<::uint64_t> di;
+        vector<::uint64_t> hashL0;
+        vector<::uint64_t> hashL1;
+        do {
+            di = util::genBitsNonCrypto(l);
+
+            L0wdi.insert(L0wdi.begin(), L0.begin(), L0.end());
+            L0wdi.insert(L0wdi.end(), di.begin(), di.end());
+
+            L1wdi.insert(L1wdi.begin(), L1.begin(), L1.end());
+            L1wdi.insert(L1wdi.end(), di.begin(), di.end());
+            hashL0 = util::hash_variable(util::uintVec2Str(L0wdi),64);
+            hashL1 = util::hash_variable(util::uintVec2Str(L1wdi),64);
+        } while (util::checkBit(hashL0[0],0) != 0 && util::checkBit(hashL1[0],0)!=1);
+        d[i] = di;
+    }
+    return d;
+}

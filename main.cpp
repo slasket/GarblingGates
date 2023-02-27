@@ -20,8 +20,6 @@
 using namespace std;
 
 #include <openssl/sha.h>
-#include <openssl/aes.h>
-#include <openssl/evp.h>
 
 
 void testBaseOT(int v, int k ,int l, int elgamalKeySize){
@@ -99,16 +97,13 @@ int main() {
     //cout << sha256("1234567890_4") << endl;
     cout<<"xd"<<endl;
     //int aes =  mainAES();
-    auto res = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
-    util::printStrVec(res);
-
-    //string input = "1234567890_1";
-    //vector<uint64_t> output = hash_variable(input);
-    //cout << "output size: " << output.size() * 64 << endl;
-    //for (int i = 0; i < output.size(); ++i) {
-    //    cout << output[i] << " ";
-    //}
-    //cout << endl;
+    string input = "123+0uf892ujf984j9f8jds98afuq348+ju fs890_1";
+    vector<uint64_t> output = util::hash_variable(input,64);
+    cout << "output size: " << output.size() * 64 << endl;
+    for (int i = 0; i < output.size(); ++i) {
+        cout << output[i] << " ";
+    }
+    cout << endl;
 
     return 0;
 }

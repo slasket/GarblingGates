@@ -112,6 +112,9 @@ public:
         string blockStr = bitset<64>(ui[block]).to_string();
         return blockStr[bit] - '0';
     }
+    static int checkBit(::uint64_t num, int i){  //# From https://stackoverflow.com/questions/18111488/convert-integer-to-binary-in-python-and-compare-the-bits
+        return (num >> i) & 1;
+    }
 
     static int ithBitL2R(vector<uint64_t> v, int i){
         int block = i / 64;
@@ -122,6 +125,7 @@ public:
     static int checkBitL2R(::uint64_t num, int i){  //# From https://stackoverflow.com/questions/18111488/convert-integer-to-binary-in-python-and-compare-the-bits
         return (num >> 63-(i%64)) & 1;
     }
+
 
     static vector<::uint64_t> setIthBitTo1L2R(vector<::uint64_t> vec, int pos){
         int block = pos / 64;
