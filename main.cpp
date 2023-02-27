@@ -6,6 +6,7 @@
 #include "util/otUtil/otUtil.h"
 #include "util/OTUtil/OT.h"
 #include "util/circuitParser.h"
+#include "util/util.h"
 #include <bitset>
 #include <cstdio>
 
@@ -90,13 +91,16 @@ void testBaseOT(int v, int k ,int l, int elgamalKeySize){
 
 
 int main() {
+
+
     //cout << sha256("1234567890_1") << endl;
     //cout << sha256("1234567890_2") << endl;
     //cout << sha256("1234567890_3") << endl;
     //cout << sha256("1234567890_4") << endl;
-
+    cout<<"xd"<<endl;
     //int aes =  mainAES();
-
+    auto res = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
+    util::printStrVec(res);
 
     //string input = "1234567890_1";
     //vector<uint64_t> output = hash_variable(input);

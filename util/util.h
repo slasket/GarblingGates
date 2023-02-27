@@ -1,7 +1,6 @@
 //
 // Created by a on 17/02/2023.
 //
-
 #ifndef GARBLINGGATES_UTIL_H
 #define GARBLINGGATES_UTIL_H
 #include <string>
@@ -36,6 +35,7 @@ public:
         split(s, delim, std::back_inserter(elems));
         return elems;
     }
+
     static void printUintVec(const std::vector<uint64_t>& vec){
         for (auto const& i: vec) {
         std::cout<< i << ' ';
@@ -103,13 +103,30 @@ public:
         return res;
     }
     //ith bit of vector might have fucked up indexing, nice (:
+    //checks right to left
     static int findithBit(vector<uint64_t> ui, int i) {
         //ith bit
-        int bit = i % 64;
+        int bit = i%64;
         //find block
         int block = i / 64;
         string blockStr = bitset<64>(ui[block]).to_string();
         return blockStr[bit] - '0';
+    }
+
+    static int ithBitL2R(vector<uint64_t> v, int i){
+        int block = i / 64;
+        return  checkBitL2R(v[block],i);
+    }
+    //this has reverse index, will check from the left most bit
+    //checks left to right
+    static int checkBitL2R(::uint64_t num, int i){  //# From https://stackoverflow.com/questions/18111488/convert-integer-to-binary-in-python-and-compare-the-bits
+        return (num >> 63-(i%64)) & 1;
+    }
+
+    static vector<::uint64_t> setIthBitTo1L2R(vector<::uint64_t> vec, int pos){
+        int block = pos / 64;
+        vec[block] |= ((uint64_t)1) << (63-(pos%64));
+        return vec;
     }
 
     static vector<::uint64_t> VecXOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
@@ -121,6 +138,12 @@ public:
     static vector<::uint64_t> vecAND(vector<::uint64_t>left, const vector<::uint64_t>& right){
         for (int i = 0; i < left.size(); ++i) {
             left[i] = left[i] ^right[i];
+        }
+        return left;
+    }
+    static vector<::uint64_t> vecOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
+        for (int i = 0; i < left.size(); ++i) {
+            left[i] = left[i] || right[i];
         }
         return left;
     }
@@ -196,6 +219,11 @@ public:
         }
         return output_vector;
     }
+
+    static ::uint64_t leftShiftFill1(::uint64_t x){
+        return ~((~x)<<1);
+    }
+
 
 };
 

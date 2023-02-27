@@ -5,6 +5,7 @@
 #include "atecaGarbeling.h"
 
 #include <utility>
+#include <boost/dynamic_bitset.hpp>
 #include "util/util.h"
 
 string atecaGarbeling::scheme::garble(int secParam, const vector<std::string>& circuit) {
@@ -38,14 +39,12 @@ vector<tuple<vector<::uint64_t>,vector<::uint64_t>>> atecaGarbeling::scheme::gen
 
 vector<string> atecaGarbeling::scheme::garbleCircuit(int externalParam, vector<std::string> circuit,
                                                      vector<tuple<vector<::uint64_t>, vector<::uint64_t>>> inputLabels) {
-    //get amount of gates and wires
+    //get amount of gates, wires and output bits
     auto gatesAndWires=util::split(circuit[0],' ');
-    //get amount of output bits
     int outputBits =stoi( util::split(circuit[2],' ')[1]);
-
     int amountOfWires = stoi(gatesAndWires[1]);
 
-    //set inputwires in W
+    //set the input wires, as in resize the input labels vector to have room for all wires
     auto wires = std::move(inputLabels);
     wires.resize(amountOfWires);
 
@@ -136,31 +135,31 @@ atecaGarbeling::scheme::gate(const tuple<vector<::uint64_t>, vector<::uint64_t>>
     auto mask1001 =  util::vecAND(util::vecAND(util::vecAND(l00a1, l01a0), l10a0), l11a1);
     auto mask0110 =  util::vecAND(util::vecAND(util::vecAND(l00a0, l01a1), l10a1), l11a0);
 
+    vector<::uint64_t> masksORed;
+    //or with 0000 0001 1110 or 1111
+    //if theres a one in this vector one of the masks had an 1 in the ith bit
+    if (typ=="AND"){
+        masksORed = util::vecOR(util::vecOR(util::vecOR(mask0000,mask1111),mask0001),mask1110);
+    //or with 0000 1001 0110 1111
+    }else if (typ=="XOR"){
+        masksORed =util::vecOR(util::vecOR(util::vecOR(mask0000,mask1111),mask1001),mask0110);
+    }
     //make internal param length zer0 string
     auto delta = vector<::uint64_t>((internalParam+64-1)/64);
     auto deltaHW =0;
     int j =0;
     do {
         if (typ == "AND"){
-            //and with 0000 0001 1110 or 1111
-            //check the ith bit of the corresponding masks
-            bool m0000bit = util::findithBit(mask0000,j);
-            bool m0001bit = util::findithBit(mask0001,j);
-            bool m1110bit = util::findithBit(mask1110,j);
-            bool m1111bit = util::findithBit(mask1111,j);
-            //if true
-            if (m0000bit || m0001bit || m1110bit || m1111bit){
-                //update j'th bit of delta to 1
-                //just shift
+            if (util::ithBitL2R(masksORed,j)){
+                //or the ith bit with 1
+                delta= util::setIthBitTo1L2R(delta,j);
                 deltaHW ++;
             }
         }else if(typ == "XOR"){
-            //and with 0000 1001 0110 1111
-
             //if true
-            if (true){
+            if (util::ithBitL2R(masksORed,j)){
                 //update j'th bit of delta to 1
-
+                delta= util::setIthBitTo1L2R(delta,j);
                 deltaHW ++;
             }
         }
@@ -177,7 +176,22 @@ atecaGarbeling::scheme::gate(const tuple<vector<::uint64_t>, vector<::uint64_t>>
         //L1 = projection(l01,delta)
     }
 
-
     return {L0, L1, delta};
+}
+
+vector<::uint64_t> projection(vector<::uint64_t> a,vector<::uint64_t> b){
+    //projection A o B means take the bit A[i] if B[i]=1
+    int l = util::vecHW(b);
+    boost::dynamic_bitset<> projection(l);
+    int bitsProjected=0; int j;
+    while (bitsProjected<l){
+        if (util::ithBitL2R(b,j)){
+            //copy the bit of a
+        }
+        //do nothing
+        j++;
+    }
+
+    return {};
 }
 

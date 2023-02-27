@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_SUITE( Testing_generateRandomLabels )
 BOOST_AUTO_TEST_SUITE_END()
 
 
-BOOST_AUTO_TEST_SUITE( Nor_operation)
+BOOST_AUTO_TEST_SUITE( Test_misc_util)
 
     BOOST_AUTO_TEST_CASE( test_all_nor_input )
     {
@@ -74,13 +74,30 @@ BOOST_AUTO_TEST_SUITE( Nor_operation)
         BOOST_TEST(util::norOP(max,0)==0);
         BOOST_TEST(util::norOP(0,max)==0);
     }
+    BOOST_AUTO_TEST_CASE( test_ith_bit_L2R )
+    {
+        ::uint64_t one = 1;
+        ::uint64_t max = UINT64_MAX;
+        ::uint64_t halfones = 12297829382473034648;
+        ::uint64_t onezerozero = 9223372036854776000;
+        ::uint64_t twentyisone = 8796093022208;
+        ::uint64_t otherhalfones = 6148914691236517824;
+        vector<::uint64_t> vec ={9223372036854775809,9223372036854775809,9223372036854775809};
 
+        BOOST_TEST(util::checkBitL2R(one, 63) == 1);
+        BOOST_TEST(util::checkBitL2R(onezerozero, 0) == 1);
+        BOOST_TEST(util::checkBitL2R(twentyisone,20)==1);
+        BOOST_TEST(util::checkBitL2R(halfones,1)==0);
+        BOOST_TEST(util::checkBitL2R(halfones,1)==0);
+        BOOST_TEST(util::ithBitL2R(vec,0)==1);
+        BOOST_TEST(util::ithBitL2R(vec,63)==1);
+        BOOST_TEST(util::ithBitL2R(vec,64)==1);
+        BOOST_TEST(util::ithBitL2R(vec,127)==1);
+        BOOST_TEST(util::ithBitL2R(vec,128)==1);
+        BOOST_TEST(util::ithBitL2R(vec,191)==1);
 
-BOOST_AUTO_TEST_SUITE_END()
-
-BOOST_AUTO_TEST_SUITE( Test_HammingWeight)
-
-    BOOST_AUTO_TEST_CASE( test_hammingWeight )
+    }
+    BOOST_AUTO_TEST_CASE(test_hammingWeight)
     {
         ::uint64_t one = 1;
         ::uint64_t max = UINT64_MAX;
@@ -97,3 +114,4 @@ BOOST_AUTO_TEST_SUITE( Test_HammingWeight)
 
 
 BOOST_AUTO_TEST_SUITE_END()
+
