@@ -132,3 +132,28 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineCipher )
 
     }
 BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE( Testing_BaseLineOutput )
+    vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 XOR"};
+    int k = 128;
+    auto smallCircuit = baseGarble::garble(128, smalltest);
+    auto garbledCircuit = get<0>(smallCircuit);
+
+    BOOST_AUTO_TEST_CASE( test_garbledCircuit )
+    {
+        BOOST_TEST(garbledCircuit.size() == 1); //one gate
+        BOOST_TEST(get<0>(garbledCircuit[0]).size() == 2); //2 input wires
+        BOOST_TEST(get<1>(garbledCircuit[0]).size() == 2); //128 bit gate
+    }
+
+    vector<string> bigtest = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
+    auto bigCircuit = baseGarble::garble(128, bigtest);
+    auto bigGarbledCircuit = get<0>(bigCircuit);
+
+    BOOST_AUTO_TEST_CASE( test_bigGarbledCircuit )
+    {
+        BOOST_TEST(bigGarbledCircuit.size() == 64); //64 gates
+        BOOST_TEST(get<0>(bigGarbledCircuit[0]).size() == 2); //2 input wires
+        BOOST_TEST(get<1>(bigGarbledCircuit[0]).size() == 2); //128 bit gate
+    }
+BOOST_AUTO_TEST_SUITE_END()
