@@ -95,16 +95,16 @@ baseGarble::andGate(const vector<uint64_t> &globalDelta, int permuteBitA, int pe
                     vector<uint64_t> &A1, vector<uint64_t> &B0, vector<uint64_t> &B1, vector<uint64_t> &ciphertext,
                     vector<uint64_t> &gate0, vector<uint64_t> &gate1, int k) {
     ciphertext = XORHashpart(A0, B0, k);
-    gate1 = util::bitVecXOR(util::bitVecXOR(XORHashpart(A0, B1, k),ciphertext),A0);
-    gate0 = util::bitVecXOR(XORHashpart(A1, B0, k),ciphertext);
+    gate1 = util::VecXOR(util::VecXOR(XORHashpart(A0, B1, k), ciphertext), A0);
+    gate0 = util::VecXOR(XORHashpart(A1, B0, k), ciphertext);
     if(permuteBitA == 1){
-        gate1 = util::bitVecXOR(gate1, globalDelta);
+        gate1 = util::VecXOR(gate1, globalDelta);
     } else if(permuteBitB == 1){
-        gate0 = util::bitVecXOR(gate0, globalDelta);
+        gate0 = util::VecXOR(gate0, globalDelta);
     }
     if(permuteBitA == 1 & permuteBitB == 1){
-        ciphertext = util::bitVecXOR(ciphertext,globalDelta);
-        gate0 = util::bitVecXOR(gate0, globalDelta);
+        ciphertext = util::VecXOR(ciphertext, globalDelta);
+        gate0 = util::VecXOR(gate0, globalDelta);
     }
     return make_tuple(ciphertext, gate0, gate1);
 }

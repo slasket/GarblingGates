@@ -35,6 +35,9 @@ vector<string> circuitParser::parseCircuit(const string &circuitPath) {
         std::getline(file, line);
         int i = 3;
         while (std::getline(file, line)) {
+            if (line.empty()){
+                break;
+            }
             circuit[i] = line;
             //printf("%s", line.c_str(),"\n");
             i++;

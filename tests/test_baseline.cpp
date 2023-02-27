@@ -95,38 +95,38 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineCipher )
         //cout << "Permuted B: " << permuteBitB << endl;
 
         if(permuteBitA == 0 | permuteBitB == 0) {
-            BOOST_TEST(ciphertext == util::bitVecXOR(baseGarble::qouteUnqouteHashFunction(A0, k),
-                                                     baseGarble::qouteUnqouteHashFunction(B0, k)));
+            BOOST_TEST(ciphertext == util::VecXOR(baseGarble::qouteUnqouteHashFunction(A0, k),
+                                                  baseGarble::qouteUnqouteHashFunction(B0, k)));
             if (permuteBitA == 0 & permuteBitB == 0){
                 BOOST_TEST(
-                        util::bitVecXOR(ciphertext, delta) ==
-                        util::bitVecXOR(baseGarble::qouteUnqouteHashFunction(A1, k),
-                                        util::bitVecXOR(
-                                                baseGarble::qouteUnqouteHashFunction(
-                                                        B1, k),
-                                                util::bitVecXOR(get<2>(res),
-                                                                util::bitVecXOR(
-                                                                        get<1>(res),
-                                                                        A1)))));
+                        util::VecXOR(ciphertext, delta) ==
+                        util::VecXOR(baseGarble::qouteUnqouteHashFunction(A1, k),
+                                             util::VecXOR(
+                                                     baseGarble::qouteUnqouteHashFunction(
+                                                             B1, k),
+                                                     util::VecXOR(get<2>(res),
+                                                                  util::VecXOR(
+                                                                          get<1>(res),
+                                                                          A1)))));
             }
             else {
                 BOOST_TEST(ciphertext ==
-                           util::bitVecXOR(baseGarble::qouteUnqouteHashFunction(A1, k),
-                                           util::bitVecXOR(baseGarble::qouteUnqouteHashFunction(B1, k),
-                                                           util::bitVecXOR(get<2>(res),
-                                                                           util::bitVecXOR(
-                                                                                   get<1>(res),
-                                                                                   A1)))));
+                                   util::VecXOR(baseGarble::qouteUnqouteHashFunction(A1, k),
+                                                util::VecXOR(baseGarble::qouteUnqouteHashFunction(B1, k),
+                                                             util::VecXOR(get<2>(res),
+                                                                          util::VecXOR(
+                                                                                  get<1>(res),
+                                                                                  A1)))));
             }
         } else {
-            BOOST_TEST(util::bitVecXOR(ciphertext, delta) ==
-            util::bitVecXOR(baseGarble::qouteUnqouteHashFunction(A0, k),
-                            baseGarble::qouteUnqouteHashFunction(B0, k)));
-            BOOST_TEST(ciphertext == util::bitVecXOR(baseGarble::qouteUnqouteHashFunction(A1, k),
-                                                     util::bitVecXOR(baseGarble::qouteUnqouteHashFunction(B1, k),
-                                                                     util::bitVecXOR(get<2>(res),
-                                                                                     util::bitVecXOR(get<1>(res),
-                                                                                                     A1)))));
+            BOOST_TEST(util::VecXOR(ciphertext, delta) ==
+                       util::VecXOR(baseGarble::qouteUnqouteHashFunction(A0, k),
+                                            baseGarble::qouteUnqouteHashFunction(B0, k)));
+            BOOST_TEST(ciphertext == util::VecXOR(baseGarble::qouteUnqouteHashFunction(A1, k),
+                                                  util::VecXOR(baseGarble::qouteUnqouteHashFunction(B1, k),
+                                                               util::VecXOR(get<2>(res),
+                                                                            util::VecXOR(get<1>(res),
+                                                                                         A1)))));
         }
 
 

@@ -1,7 +1,6 @@
 //
 // Created by a on 17/02/2023.
 //
-
 #ifndef GARBLINGGATES_UTIL_H
 #define GARBLINGGATES_UTIL_H
 #include <string>
@@ -36,6 +35,7 @@ public:
         split(s, delim, std::back_inserter(elems));
         return elems;
     }
+
     static void printUintVec(const std::vector<uint64_t>& vec){
         for (auto const& i: vec) {
         std::cout<< i << ' ';
@@ -46,6 +46,11 @@ public:
         for (auto const& i: vec) {
             std::cout<< i << std::endl;
         }
+    }
+    static string uintVec2Str(vector<::uint64_t>vec){
+        stringstream res;
+        copy(vec.begin(),vec.end(),ostream_iterator<::uint64_t>(res));
+        return res.str();
     }
 
     static void printCircuit(const std::string& path){
@@ -97,13 +102,71 @@ public:
         }
         return res;
     }
+    //ith bit of vector might have fucked up indexing, nice (:
+    //checks right to left
+    static int findithBit(vector<uint64_t> ui, int i) {
+        //ith bit
+        int bit = i%64;
+        //find block
+        int block = i / 64;
+        string blockStr = bitset<64>(ui[block]).to_string();
+        return blockStr[bit] - '0';
+    }
 
-    static vector<::uint64_t> bitVecXOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
+    static int ithBitL2R(vector<uint64_t> v, int i){
+        int block = i / 64;
+        return  checkBitL2R(v[block],i);
+    }
+    //this has reverse index, will check from the left most bit
+    //checks left to right
+    static int checkBitL2R(::uint64_t num, int i){  //# From https://stackoverflow.com/questions/18111488/convert-integer-to-binary-in-python-and-compare-the-bits
+        return (num >> 63-(i%64)) & 1;
+    }
+
+    static vector<::uint64_t> setIthBitTo1L2R(vector<::uint64_t> vec, int pos){
+        int block = pos / 64;
+        vec[block] |= ((uint64_t)1) << (63-(pos%64));
+        return vec;
+    }
+
+    static vector<::uint64_t> VecXOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
         for (int i = 0; i < left.size(); ++i) {
             left[i] = left[i] ^right[i];
         }
         return left;
     }
+    static vector<::uint64_t> vecAND(vector<::uint64_t>left, const vector<::uint64_t>& right){
+        for (int i = 0; i < left.size(); ++i) {
+            left[i] = left[i] ^right[i];
+        }
+        return left;
+    }
+    static vector<::uint64_t> vecOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
+        for (int i = 0; i < left.size(); ++i) {
+            left[i] = left[i] || right[i];
+        }
+        return left;
+    }
+
+    static inline vector<::uint64_t> vecAndStatic(vector<::uint64_t> v, ::uint64_t s){
+        for (int i = 0; i < v.size(); ++i) {
+            v[i] = v[i] & s;
+        }
+        return v;
+    }
+    //computes the nor operation
+    static uint64_t norOP(uint64_t a, uint64_t b){
+        return ~(~(~(a) & ~(b)));
+    }
+
+    static inline vector<::uint64_t> vecNorStatic(vector<::uint64_t> v, ::uint64_t s){
+        for (int i = 0; i <v.size(); ++i) {
+            v[i] = norOP(v[i],s);
+        }
+        return v;
+    }
+
+
     //taken from https://www.appsloveworld.com/cplus/100/112/c-efficient-way-to-generate-random-bitset-with-configurable-mean-1s-to-0s-r
     template< size_t size>
     static typename std::bitset<size> random_bitset( double p = 0.5) {
@@ -120,30 +183,19 @@ public:
         return bits;
     }
     //taken from https://helloacm.com/c-coding-exercise-number-of-1-bits-revisited/
-    static int hammingWeight(uint64_t x) {
+    static inline int hammingWeight(uint64_t x) {
         x -= (x >> 1) & 0x5555555555555555;             //put count of each 2 bits into those 2 bits
         x = (x & 0x3333333333333333) + ((x >> 2) & 0x3333333333333333); //put count of each 4 bits into those 4 bits
         x = (x + (x >> 4)) & 0x0f0f0f0f0f0f0f0f;        //put count of each 8 bits into those 8 bits
         return (x * 0x0101010101010101) >> 56;  //returns left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ...
     }
 
-    static inline int bitCount2(::uint64_t x) {
-
-        const uint64_t m1  = 0x5555555555555555; //binary: 0101...
-        const uint64_t m2  = 0x3333333333333333; //binary: 00110011..
-        const uint64_t m4  = 0x0f0f0f0f0f0f0f0f; //binary:  4 zeros,  4 ones ...
-        const uint64_t m8  = 0x00ff00ff00ff00ff; //binary:  8 zeros,  8 ones ...
-        const uint64_t m16 = 0x0000ffff0000ffff; //binary: 16 zeros, 16 ones ...
-        const uint64_t m32 = 0x00000000ffffffff; //binary: 32 zeros, 32 ones
-        const uint64_t h01 = 0x0101010101010101; //the sum of 256 to the power of 0,1,2,3...
-
-        x = (x & m1 ) + ((x >>  1) & m1 ); //put count of each  2 bits into those  2 bits
-        x = (x & m2 ) + ((x >>  2) & m2 ); //put count of each  4 bits into those  4 bits
-        x = (x & m4 ) + ((x >>  4) & m4 ); //put count of each  8 bits into those  8 bits
-        x = (x & m8 ) + ((x >>  8) & m8 ); //put count of each 16 bits into those 16 bits
-        x = (x & m16) + ((x >> 16) & m16); //put count of each 32 bits into those 32 bits
-        x = (x & m32) + ((x >> 32) & m32); //put count of each 64 bits into those 64 bits
-        return x;
+    static inline int vecHW(vector<uint64_t> x) {
+        int hw = 0;
+        for (int i = 0; i < x.size(); ++i) {
+            hammingWeight(x[i]);
+        }
+        return hw;
     }
 
     //perform variable output length hash
@@ -166,6 +218,10 @@ public:
             output_vector.push_back(temp);
         }
         return output_vector;
+    }
+
+    static ::uint64_t leftShiftFill1(::uint64_t x){
+        return ~((~x)<<1);
     }
 
 
