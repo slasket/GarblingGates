@@ -9,7 +9,7 @@
 class bloodcompatibility {
 
     int protocol(int i, int j);
-
+public:
     int bloodCompLookup(int i, int j);
 
 public:
