@@ -47,8 +47,8 @@ baseGarble::garble(int k, vector<string> f) {
         //auto deltaAndLabels = util::generateRandomLabels(k, globalDelta, inputWiresLabels);
 
         //calculate permute bits
-        cout << "inputWires[0]: " << inputWires[0] << endl;
-        cout << "inputWires[1]: " << inputWires[1] << endl;
+        //cout << "inputWires[0]: " << inputWires[0] << endl;
+        //cout << "inputWires[1]: " << inputWires[1] << endl;
         int permuteBitA = (get<0>(wireLabels[inputWires[0]])[0]) & 1;
         int permuteBitB = (get<0>(wireLabels[inputWires[1]])[0]) & 1;
         vector<uint64_t> A0;
@@ -77,7 +77,7 @@ baseGarble::garble(int k, vector<string> f) {
         else if (gateType == "XOR")  //free XOR should make this unnecessary
             xorGate(globalDelta, permuteBitA, permuteBitB, A0, A1, B0, B1, ciphertext, gate0, gate1, k);
 
-        wireLabels[outputWires[0]] = make_tuple(ciphertext, util::VecXOR(ciphertext, globalDelta));
+        wireLabels[outputWires[0]] = make_tuple(ciphertext, util::vecXOR(ciphertext, globalDelta));
 
         //create output F
         //wire labels
@@ -144,16 +144,16 @@ baseGarble::xorGate(const vector<uint64_t> &globalDelta, int permuteBitA, int pe
 //
     //gate1 = util::VecXOR(gate1, globalDelta);
     //gate0 = util::VecXOR(gate0, globalDelta);
-    ciphertext = util::VecXOR(A0, B0);
+    ciphertext = util::vecXOR(A0, B0);
 
     if((permuteBitA == 0 & permuteBitB == 1) | (permuteBitA == 1 & permuteBitB == 0) ){
-        ciphertext = util::VecXOR(ciphertext,globalDelta);
+        ciphertext = util::vecXOR(ciphertext,globalDelta);
     }
     return make_tuple(ciphertext, gate0, gate1);
 }
 
 vector<uint64_t> baseGarble::XORHashpart(vector<uint64_t> &labelA, vector<uint64_t> &labelB, int k){
-    return util::VecXOR(HashFunction(labelA, k), HashFunction(labelB, k));
+    return util::vecXOR(HashFunction(labelA, k), HashFunction(labelB, k));
 }
 
 tuple<vector<int>, vector<int>, string> baseGarble::extractGate(const string &line) {
@@ -251,7 +251,7 @@ vector<vector<uint64_t>> baseGarble::eval(
             //cout << "colorBitA = " << colorBitA << endl;
             //cout << "colorBitB = " << colorBitB << endl;
             //cipher = XORHashpart(wireValues[inputWires[0]], wireValues[inputWires[1]], 128);
-            cipher = util::VecXOR(A, B);
+            cipher = util::vecXOR(A, B);
         } else { //AND CASE
             //vector<int> inputWires = get<0>(garbledCircuit[i]);
             vector<uint64_t> gate0 = get<1>(garbledCircuit[i]);
@@ -260,11 +260,11 @@ vector<vector<uint64_t>> baseGarble::eval(
             if (colorBitA == 0 && colorBitB == 0) {
                 cipher = XORHashpart(A, B, 128);
             } else if (colorBitA == 0 && colorBitB == 1) {
-                cipher = util::VecXOR(util::VecXOR(XORHashpart(B, A, 128), gate1), A);
+                cipher = util::vecXOR(util::vecXOR(XORHashpart(B, A, 128), gate1), A);
             } else if (colorBitA == 1 && colorBitB == 0) {
-                cipher = util::VecXOR(XORHashpart(B, A, 128), gate0);
+                cipher = util::vecXOR(XORHashpart(B, A, 128), gate0);
             } else if (colorBitA == 1 && colorBitB == 1) {
-                cipher = util::VecXOR(util::VecXOR(util::VecXOR(XORHashpart(B, A, 128), gate0), gate1), A);
+                cipher = util::vecXOR(util::vecXOR(util::vecXOR(XORHashpart(B, A, 128), gate0), gate1), A);
             }
         }
         wireValues[outputWires[0]] = cipher;

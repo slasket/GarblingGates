@@ -95,37 +95,37 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineCipher )
         //cout << "Permuted B: " << permuteBitB << endl;
 
         if(permuteBitA == 0 | permuteBitB == 0) {
-            BOOST_TEST(ciphertext == util::VecXOR(baseGarble::HashFunction(A0, k),
+            BOOST_TEST(ciphertext == util::vecXOR(baseGarble::HashFunction(A0, k),
                                                   baseGarble::HashFunction(B0, k)));
             if (permuteBitA == 0 & permuteBitB == 0){
                 BOOST_TEST(
-                        util::VecXOR(ciphertext, delta) ==
-                        util::VecXOR(baseGarble::HashFunction(A1, k),
-                                             util::VecXOR(
+                        util::vecXOR(ciphertext, delta) ==
+                        util::vecXOR(baseGarble::HashFunction(A1, k),
+                                             util::vecXOR(
                                                      baseGarble::HashFunction(
                                                              B1, k),
-                                                     util::VecXOR(get<2>(res),
-                                                                  util::VecXOR(
+                                                     util::vecXOR(get<2>(res),
+                                                                  util::vecXOR(
                                                                           get<1>(res),
                                                                           A1)))));
             }
             else {
                 BOOST_TEST(ciphertext ==
-                                   util::VecXOR(baseGarble::HashFunction(A1, k),
-                                                util::VecXOR(baseGarble::HashFunction(B1, k),
-                                                             util::VecXOR(get<2>(res),
-                                                                          util::VecXOR(
+                                   util::vecXOR(baseGarble::HashFunction(A1, k),
+                                                util::vecXOR(baseGarble::HashFunction(B1, k),
+                                                             util::vecXOR(get<2>(res),
+                                                                          util::vecXOR(
                                                                                   get<1>(res),
                                                                                   A1)))));
             }
         } else {
-            BOOST_TEST(util::VecXOR(ciphertext, delta) ==
-                       util::VecXOR(baseGarble::HashFunction(A0, k),
+            BOOST_TEST(util::vecXOR(ciphertext, delta) ==
+                       util::vecXOR(baseGarble::HashFunction(A0, k),
                                     baseGarble::HashFunction(B0, k)));
-            BOOST_TEST(ciphertext == util::VecXOR(baseGarble::HashFunction(A1, k),
-                                                  util::VecXOR(baseGarble::HashFunction(B1, k),
-                                                               util::VecXOR(get<2>(res),
-                                                                            util::VecXOR(get<1>(res),
+            BOOST_TEST(ciphertext == util::vecXOR(baseGarble::HashFunction(A1, k),
+                                                  util::vecXOR(baseGarble::HashFunction(B1, k),
+                                                               util::vecXOR(get<2>(res),
+                                                                            util::vecXOR(get<1>(res),
                                                                                          A1)))));
         }
 
@@ -366,11 +366,12 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalBig )
 
     BOOST_AUTO_TEST_CASE( test_encode_big_ones )
     {
-        BOOST_TEST(yBig.size() == 64); //64 output wires
-        for (int i = 0; i < 63; i++) {
-            BOOST_TEST(yBig[i] == 1);
-        }
-        BOOST_TEST(yBig[63] == 0);
+        //BOOST_TEST(yBig.size() == 64); //64 output wires
+        //for (int i = 0; i < 63; i++) {
+        //    BOOST_TEST(yBig[i] == 1);
+        //}
+        //BOOST_TEST(yBig[63] == 0);
+        BOOST_TEST(1=0);
     }
     vector<int> inputLabelsBig_zeroes = {
                                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //16
@@ -388,12 +389,14 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalBig )
     BOOST_AUTO_TEST_CASE( test_encode_big_zeroes )
     {
         BOOST_TEST(yBig_zeroes.size() == 64); //64 output wires
-        for (int i = 0; i < 64; i++) {
-            if (i == 1 | i == 63) {
-                BOOST_TEST(yBig_zeroes[i] == 1);
-            } else
-            BOOST_TEST(yBig_zeroes[i] == 0);
-        }
+        //for (int i = 0; i < 64; i++) {
+        //    if (i == 1 | i == 63) {
+        //        BOOST_TEST(yBig_zeroes[i] == 1);
+        //    } else
+        //    BOOST_TEST(yBig_zeroes[i] == 0);
+        //}
+        BOOST_TEST(1=0);
+
     }
 
 BOOST_AUTO_TEST_SUITE_END()
