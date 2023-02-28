@@ -132,7 +132,7 @@ public:
     //this has reverse index, will check from the left most bit
     //checks left to right
     static int checkBitL2R(::uint64_t num, int i){  //# From https://stackoverflow.com/questions/18111488/convert-integer-to-binary-in-python-and-compare-the-bits
-        return (num >> 63-(i%64)) & 1;
+        return (num >> (63-(i%64))) & 1;
     }
 
 
@@ -177,6 +177,13 @@ public:
     static inline vector<::uint64_t> vecNorStatic(vector<::uint64_t> v, ::uint64_t s){
         for (int i = 0; i <v.size(); ++i) {
             v[i] = norOP(v[i],s);
+        }
+        return v;
+    }
+
+    static inline vector<::uint64_t> vecInvert(vector<::uint64_t> v){
+        for (int i = 0; i <v.size(); ++i) {
+            v[i] = ~v[i];
         }
         return v;
     }
@@ -249,8 +256,17 @@ public:
         vec[block][i%64] = bit;
         return vec;
     }
-};
 
+    static string
+    sliceVecL2R(vector<uint64_t> X_00, vector<uint64_t> X_01, vector<uint64_t> X_10, vector<uint64_t> X_11,
+                int j) {
+        int x00j = ithBitL2R(X_00,j);
+        int x01j = ithBitL2R(X_01,j);
+        int x10j = ithBitL2R(X_10,j);
+        int x11j = ithBitL2R(X_11,j);
+        return to_string(x00j).append(to_string(x01j)).append(to_string(x10j)).append(to_string(x11j));
+    }
+};
 
 
 #endif //GARBLINGGATES_UTIL_H

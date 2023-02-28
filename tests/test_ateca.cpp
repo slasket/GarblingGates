@@ -45,6 +45,44 @@ BOOST_AUTO_TEST_SUITE( Testing_garbling_values )
     }
 BOOST_AUTO_TEST_SUITE_END()
 
+BOOST_AUTO_TEST_SUITE( Test_projection )
+
+    auto a = vector<::uint64_t>{1,1};
+    auto b = vector<::uint64_t>{1,1};
+
+    BOOST_AUTO_TEST_CASE( simpleProjection )
+    {
+        auto res = atecaGarble::projection(a,b);
+        BOOST_TEST(res.size()==1);
+        BOOST_TEST(res[0]==3);
+    }
+
+BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE( Test_large_projection )
+    auto a = vector<::uint64_t>{2459528346497712128,0};
+    auto b = vector<::uint64_t>{153685337284018176,0};
+
+    BOOST_AUTO_TEST_CASE( largerVec )
+    {
+        auto res = atecaGarble::projection(a,b);
+        BOOST_TEST(res.size()==1);
+        BOOST_TEST(res[0]==3);
+    }
+BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE( Test_proj2 )
+    auto a = vector<::uint64_t>{2455024746870341632,0};
+    auto b = vector<::uint64_t>{2310346608841064448,0};
+
+    BOOST_AUTO_TEST_CASE( largetest2 )
+    {
+        auto res = atecaGarble::projection(a,b);
+        BOOST_TEST(res.size()==1);
+        BOOST_TEST(res[0]==5);
+    }
+BOOST_AUTO_TEST_SUITE_END()
+
 BOOST_AUTO_TEST_SUITE( Testing_input_encoding_choice )
     auto finput = vector<int>{0,0,0,0,0,0,1};
     auto C = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
@@ -161,6 +199,8 @@ BOOST_AUTO_TEST_SUITE( andTest )
     }
 BOOST_AUTO_TEST_SUITE_END()
 
+
+
 BOOST_AUTO_TEST_SUITE( Testing_BloodComp_Alternate )
     int lInput =6; int rInput = 1;
     auto finput = vector<int>{1,1,0,0,0,1,1};
@@ -176,23 +216,4 @@ BOOST_AUTO_TEST_SUITE( Testing_BloodComp_Alternate )
         BOOST_TEST(y.size()==1);
         //BOOST_TEST(y[0]==bloodCompAns);
     }
-BOOST_AUTO_TEST_SUITE_END()
-
-
-BOOST_AUTO_TEST_SUITE( adder64bit )
-
-    BOOST_AUTO_TEST_CASE( adder64Adding1And1 )
-    {
-
-        auto finput = vector<int>{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,};
-        auto bloodCircuit = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
-        auto feds = atecaGarble::Gb(64, bloodCircuit);
-        auto encodedInput = atecaGarble::En(get<1>(feds), finput);
-        auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, bloodCircuit, get<3>(feds));
-        auto y = atecaGarble::De(Y, get<2>(feds));
-
-        BOOST_TEST(y.size()==64);
-        //BOOST_TEST(y[0]==2);
-    }
-
 BOOST_AUTO_TEST_SUITE_END()

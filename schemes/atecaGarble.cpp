@@ -90,7 +90,6 @@ tuple<vector<vector<::uint64_t>>,vector<tuple<vector<::uint64_t>,vector<::uint64
              //add the label to D
              D[out-firstOutputBit] = {garbledGate[0],garbledGate[1]};
             }
-
         }
     }
     return {F,D};
@@ -103,7 +102,7 @@ atecaGarble::Gate(const tuple<vector<::uint64_t>, vector<::uint64_t>>& in0, cons
     int internalParam= l * 8;
     //the random oracles lol
     //THIS IS THE WRONG WAY OF TWEAKING!=!=!?!??!!
-    auto l00 = get<0>(in0);
+    vector<::uint64_t> l00 = get<0>(in0);
     l00.insert(l00.end(), get<0>(in1).begin(), get<0>(in1).end());
     l00.push_back(gateNo);
     auto l01 = get<0>(in0);
@@ -120,57 +119,35 @@ atecaGarble::Gate(const tuple<vector<::uint64_t>, vector<::uint64_t>>& in0, cons
     vector<::uint64_t> X_01 = util::hash_variable(util::uintVec2Str(l01), internalParam);
     vector<::uint64_t> X_10 = util::hash_variable(util::uintVec2Str(l10), internalParam);
     vector<::uint64_t> X_11 = util::hash_variable(util::uintVec2Str(l11), internalParam);
-
-    //and all labels with 0 and uint_max
-    //l00a0 is l00 nored with 0 and l00a1 is l00 anded with 1
-    auto l00a0 = util::vecNorStatic(X_00, 0);//NOR operation lol
-    auto l00a1 = util::vecAndStatic(X_00, UINT64_MAX);
-    //l01a0 and l01a1
-    auto l01a0 = util::vecNorStatic(X_01, 0);
-    auto l01a1 = util::vecAndStatic(X_01, UINT64_MAX);
-    //l01a0 and l01a1
-    auto l10a0 = util::vecNorStatic(X_10, 0);
-    auto l10a1 = util::vecAndStatic(X_10, UINT64_MAX);
-    //l11a0 and l11a1
-    auto l11a0 = util::vecNorStatic(X_11, 0);
-    auto l11a1 = util::vecAndStatic(X_11, UINT64_MAX);
-
-
-    //now that you have vectors with 1 for each 0 and 1 for each 1
-    //compute mask 0000 =  l00a0 ^ l01a0 ^ l10a0 ^ l11a0
-    //masks that and, xor share
-    auto mask0000 =  util::vecAND(util::vecAND(util::vecAND(l00a0, l01a0), l10a0), l11a0);
-    auto mask1111 =  util::vecAND(util::vecAND(util::vecAND(l00a1, l01a1), l10a1), l11a1);
-    //and specific masks
-    auto mask0001 =  util::vecAND(util::vecAND(util::vecAND(l00a0, l01a0), l10a0), l11a1);
-    auto mask1110 =  util::vecAND(util::vecAND(util::vecAND(l00a1, l01a1), l10a1), l11a0);
-    //xor specific masks
-    auto mask1001 =  util::vecAND(util::vecAND(util::vecAND(l00a1, l01a0), l10a0), l11a1);
-    auto mask0110 =  util::vecAND(util::vecAND(util::vecAND(l00a0, l01a1), l10a1), l11a0);
-
-    vector<::uint64_t> masksORed;
-    //or with 0000 0001 1110 or 1111
-    //if theres a one in this vector one of the masks had an 1 in the ith bit
-    if (typ=="AND"){
-        masksORed = util::vecOR(util::vecOR(util::vecOR(mask0000,mask1111),mask0001),mask1110);
-    //or with 0000 1001 0110 1111
-    }else if (typ=="XOR"){
-        masksORed =util::vecOR(util::vecOR(util::vecOR(mask0000,mask1111),mask1001),mask0110);
-    }
-    //make internal param length zer0 string
+    cout<< "garble hashes" <<endl;
+    util::printUintVec(X_00);
+    util::printUintVec(X_01);
+    util::printUintVec(X_10);
+    util::printUintVec(X_11);
     auto delta = vector<::uint64_t>((internalParam+64-1)/64);
     auto deltaHW =0;
+
+    ///0000
+    ///1111
+    ///0001
+    ///1110
+    //make internal param length zer0 string
     int j =0;
     do {
+        string slice = util::sliceVecL2R(X_00,X_01,X_10,X_11,j);
         if (typ == "AND"){
-            if (util::ithBitL2R(masksORed,j)){
+            //util::ithBitL2R(masksORed,j)
+            if (slice =="0000"|| slice =="0001"||slice=="1110"||slice=="1111"){
                 //or the ith bit with 1
+
                 delta= util::setIthBitTo1L2R(delta,j);
                 deltaHW ++;
             }
         }else if(typ == "XOR"){
             //if true
-            if (util::ithBitL2R(masksORed,j)){
+            ///1001
+            ///0110
+            if (slice =="0000"|| slice =="1001"||slice=="0110"||slice=="1111"){
                 //update j'th bit of delta to 1
                 delta= util::setIthBitTo1L2R(delta,j);
                 deltaHW ++;
@@ -185,40 +162,52 @@ atecaGarble::Gate(const tuple<vector<::uint64_t>, vector<::uint64_t>>& in0, cons
 
     if (typ=="AND"){
         L0 = projection(X_00, delta);
-        L1 = projection(X_11,delta);
+        L1 = projection(X_11, delta);
     }else if (typ=="XOR"){
         L0 = projection(X_00, delta);
         L1 = projection(X_01,delta);
     }
+    cout<< "garble delta ";
+    util::printUintVec(delta);
+    cout<< "garble projections " <<endl;
+    util::printUintVec(L0);
+    util::printUintVec(L1);
+    cout<<endl;
+
+
 
     return {L0, L1, delta};
 }
 
+
+
 vector<uint64_t> atecaGarble::projection(const vector<::uint64_t>& a, const vector<::uint64_t>& b) {
     //projection A o B means take the bit A[i] if B[i]=1
     int l = util::vecHW(b);
-    int blocksNeeded = l/64 + (l % 64 != 0);
-    vector<::uint64_t> res (blocksNeeded);
-    bitset<64> projection;
-    int bitsProjected=0; int j=0;int blockNum=0;
-
-    while (bitsProjected<l){
-        if (j%64==0 && j!=0){
-            res[blockNum] = projection.to_ullong();
-            projection = bitset<64>();
-        }
-        if (util::ithBitL2R(b,j)){
-            //copy the bit of a
-            int index =l-1-(bitsProjected %64);
-            projection[index]=util::ithBitL2R(a,j);
+    int uintsNeeded = l/64 + ((l%64!=0) ? 1 : 0);
+    auto projection = bitset<64>(0);
+    auto res = vector<::uint64_t>(uintsNeeded);
+    int bitsProjected =0; int j =0; int blockNum =0;
+    do {
+        if (util::ithBitL2R(b,j)==1){
+            auto ithBitA = util::ithBitL2R(a,j);
+            projection[bitsProjected]= ithBitA;
             bitsProjected++;
         }
-
-        //do nothing
         j++;
-    }
+
+        if (bitsProjected%64==0 && bitsProjected !=0|| bitsProjected==l){
+            ::uint64_t projUint = projection.to_ullong();
+            res[blockNum] = projUint;
+            blockNum++;
+        }
+    }while(bitsProjected!=l);
+
     return res;
 }
+
+
+
 
 vector<vector<uint64_t>> atecaGarble::DecodingInfo(const vector<tuple<vector<::uint64_t>, vector<::uint64_t>>>& D, int l) {
     //RO from 2l->1
@@ -294,7 +283,17 @@ atecaGarble::Ev(const vector<vector<::uint64_t>>& F, const vector<vector<::uint6
             labelA.insert(labelA.end(), labelB.begin(), labelB.end());
             labelA.push_back(gateNo);
             auto hashInputLabel = util::uintVec2Str(labelA);
-            auto gateOut = projection(util::hash_variable(hashInputLabel,8*internalSecParam), F[gateNo]);
+            auto hashOut = util::hash_variable(hashInputLabel,internalSecParam);
+            //cout<< "ev hash" <<endl;
+            //util::printUintVec(hashOut);
+            auto delta = F[gateNo];
+            auto gateOut = projection(hashOut, delta);
+            cout<< "ev hash ";
+            util::printUintVec(hashOut);
+            cout<< "ev delta ";
+            util::printUintVec(delta);
+            cout << "ev projection ";
+            util::printUintVec(gateOut);
             wires[out] = gateOut;
             if (out >= firstOutputBit){
                 outputY[out - firstOutputBit] = gateOut;
