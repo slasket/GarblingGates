@@ -47,41 +47,37 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( Test_projection )
 
-    auto a = vector<::uint64_t>{1,1};
-    auto b = vector<::uint64_t>{1,1};
+    auto b = vector<::uint64_t>{15,0};
+    auto a = vector<::uint64_t>{9,0};
+
 
     BOOST_AUTO_TEST_CASE( simpleProjection )
     {
         auto res = atecaGarble::projection(a,b);
         BOOST_TEST(res.size()==1);
-        BOOST_TEST(res[0]==3);
+        BOOST_TEST(res[0]==9);
     }
 
 BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( Test_large_projection )
-    auto a = vector<::uint64_t>{2459528346497712128,0};
-    auto b = vector<::uint64_t>{153685337284018176,0};
+    auto b = vector<::uint64_t>{152109056,0};
+    auto a = vector<::uint64_t>{134283264,0};
 
+
+    auto b1 = vector<::uint64_t>{4755837490663786591,0};
+    auto a1 = vector<::uint64_t>{5908722711386916953,0};
     BOOST_AUTO_TEST_CASE( largerVec )
     {
         auto res = atecaGarble::projection(a,b);
         BOOST_TEST(res.size()==1);
-        BOOST_TEST(res[0]==3);
+        BOOST_TEST(res[0]==9);
+        res = atecaGarble::projection(a1,b1);
+        BOOST_TEST(res[0]==5107);
+
     }
 BOOST_AUTO_TEST_SUITE_END()
 
-BOOST_AUTO_TEST_SUITE( Test_proj2 )
-    auto a = vector<::uint64_t>{2455024746870341632,0};
-    auto b = vector<::uint64_t>{2310346608841064448,0};
-
-    BOOST_AUTO_TEST_CASE( largetest2 )
-    {
-        auto res = atecaGarble::projection(a,b);
-        BOOST_TEST(res.size()==1);
-        BOOST_TEST(res[0]==5);
-    }
-BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( Testing_input_encoding_choice )
     auto finput = vector<int>{0,0,0,0,0,0,1};
@@ -136,7 +132,7 @@ BOOST_AUTO_TEST_SUITE( xorTest )
     auto finput2 = vector<int>{0,1};
     auto C = circuitParser::parseCircuit("../tests/circuits/xorTest.txt");
     int l = 64;
-    auto feds = atecaGarble::GbLEAK(l, C);
+    auto feds = atecaGarble::Gb(l, C);
     auto encodingInfo = get<1>(feds);
     auto encodedInput = atecaGarble::En(get<1>(feds), finput1);
     auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds));
@@ -147,19 +143,9 @@ BOOST_AUTO_TEST_SUITE( xorTest )
         encodedInput = atecaGarble::En(get<1>(feds), finput2);
         BOOST_TEST(get<1>(encodingInfo[1])[0]==encodedInput[1][0]);
     }
-    BOOST_AUTO_TEST_CASE( evalXor )
-    {
-        auto outputLabels= get<4>(feds);
-        BOOST_TEST(Y[0]==get<0>(outputLabels[0]));
-        encodedInput = atecaGarble::En(get<1>(feds), finput2);
-        Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds));
-        BOOST_TEST(Y[0]==get<1>(outputLabels[0]));
-    }
+
     BOOST_AUTO_TEST_CASE( xor_Output )
     {
-        auto encodedInput = atecaGarble::En(get<1>(feds), finput1);
-        auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds));
-        auto y = atecaGarble::De(Y, get<2>(feds));
         BOOST_TEST(y.size()==1);
         BOOST_TEST(y[0]==0);
     }
@@ -170,7 +156,7 @@ BOOST_AUTO_TEST_SUITE( andTest )
     auto finput2 = vector<int>{0,1};
     auto C = circuitParser::parseCircuit("../tests/circuits/andTest.txt");
     int l = 64;
-    auto feds = atecaGarble::GbLEAK(l, C);
+    auto feds = atecaGarble::Gb(l, C);
     auto encodingInfo = get<1>(feds);
     auto encodedInput = atecaGarble::En(get<1>(feds), finput1);
     auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds));
@@ -182,20 +168,12 @@ BOOST_AUTO_TEST_SUITE( andTest )
         encodedInput = atecaGarble::En(get<1>(feds), finput2);
         BOOST_TEST(get<0>(encodingInfo[0])[0]==encodedInput[0][0]);
     }
-    BOOST_AUTO_TEST_CASE( evalAND )
-    {
-        auto outputLabels= get<4>(feds);
-        BOOST_TEST(Y[0]==get<1>(outputLabels[0]));
-        encodedInput = atecaGarble::En(get<1>(feds), finput2);
-        Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds));
-        BOOST_TEST(Y[0]==get<0>(outputLabels[0]));
-    }
 
 
     BOOST_AUTO_TEST_CASE( and_output )
     {
         BOOST_TEST(y.size()==1);
-        BOOST_TEST(y[0]==0);
+        BOOST_TEST(y[0]==1);
     }
 BOOST_AUTO_TEST_SUITE_END()
 

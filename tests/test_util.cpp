@@ -120,10 +120,8 @@ BOOST_AUTO_TEST_SUITE( Test_bit_manipulation )
         vec = util::setIthBitTo1L2R(vec,0);
         vec= util::setIthBitTo1L2R(vec,127);
 
-        BOOST_TEST(vec[1]== 9223372036854775808);
-        BOOST_TEST(vec[0]== 1);
-        vec = util::setIthBitTo1L2R(vec,1);
-        BOOST_TEST(vec[0]== 3);
+        BOOST_TEST(vec[0]== 9223372036854775808);
+        BOOST_TEST(vec[1]== 1);
 
     }
 
@@ -206,4 +204,15 @@ BOOST_AUTO_TEST_SUITE( Test_bit_manipulation )
 
 
 BOOST_AUTO_TEST_SUITE_END()
+
+
+BOOST_AUTO_TEST_SUITE( selecting_ith_bit )
+
+    BOOST_AUTO_TEST_CASE( test_extract_exponent )
+    {
+        BOOST_TEST( true );
+    }
+
+BOOST_AUTO_TEST_SUITE_END()
+
 

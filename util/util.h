@@ -138,8 +138,7 @@ public:
 
     static vector<::uint64_t> setIthBitTo1L2R(vector<::uint64_t> vec, int pos){
         int block = pos / 64;
-        auto oneshifted = ((uint64_t)1) << (pos%64);
-
+        auto oneshifted = ((uint64_t)1) << (63-(pos%64));
         vec[block] |= oneshifted;
         return vec;
     }

@@ -91,85 +91,20 @@ void testBaseOT(int v, int k ,int l, int elgamalKeySize){
 
 
 int main() {
-    bitset<64> val ("0001000100010001");
-    bitset<64> val2 ("000100000001");
 
-    auto a = vector<::uint64_t>{val2.to_ullong(),0};
-    auto b = vector<::uint64_t>{val.to_ullong(),0};
+   cout << "and"<<endl;
 
-    auto res = atecaGarble::projection(a,b);
-    util::printUintVec(res);
+   auto finput1 = vector<int>{1,0};
+   auto C = circuitParser::parseCircuit("../tests/circuits/xorTest.txt");
+   int l = 64;
+   auto feds = atecaGarble::Gb(l, C);
+   auto encodingInfo = get<1>(feds);
+   auto encodedInput = atecaGarble::En(get<1>(feds), finput1);
 
-
-    cout << "and"<<endl;
-    for (int i = 0; i < 2; ++i) {
-        auto finput1 = vector<int>{0,1};
-        auto C = circuitParser::parseCircuit("../tests/circuits/andTest.txt");
-        int l = 64;
-        auto feds = atecaGarble::GbLEAK(l, C);
-        auto encodingInfo = get<1>(feds);
-        auto encodedInput = atecaGarble::En(get<1>(feds), finput1);
-
-        auto outwires = get<4>(feds);
-        auto outwires0 = get<0>(outwires[0]);
-        auto outwires1 = get<1>(outwires[0]);
-        auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds));
-        auto y = atecaGarble::De(Y, get<2>(feds));
-        //cout<< "ow0: " << outwires0[0] << " ow1: " <<outwires1[0] <<endl;
-        //cout<< "  Y: " << Y[0][0] <<endl;
-        cout <<endl;
-    }
-    cout << "xor"<<endl;
-    for (int i = 0; i < 2; ++i) {
-        auto finput1 = vector<int>{1,1};
-        auto C = circuitParser::parseCircuit("../tests/circuits/xorTest.txt");
-        int l = 64;
-        auto feds = atecaGarble::GbLEAK(l, C);
-        auto encodingInfo = get<1>(feds);
-        auto encodedInput = atecaGarble::En(get<1>(feds), finput1);
-
-        auto outwires = get<4>(feds);
-        auto outwires0 = get<0>(outwires[0]);
-        auto outwires1 = get<1>(outwires[0]);
-        auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds));
-        auto y = atecaGarble::De(Y, get<2>(feds));
-        //cout<< "ow0: " << outwires0[0] << " ow1: " <<outwires1[0] <<endl;
-        //cout<< "  Y: " << Y[0][0] <<endl;
-        cout <<endl;
-
-    }
-
-
-    //string input = "123+0uf892ujf984j9f8jds98afuq348+ju fs890_1";
-    //vector<uint64_t> output = util::hash_variable(input,64);
-    //cout << sha256("1234567890_1") << endl;
-    //cout << sha256("1234567890_2") << endl;
-    //cout << sha256("1234567890_3") << endl;
-    //cout << sha256("1234567890_4") << endl;
-    cout<<"xd"<<endl;
-    //int aes =  mainAES();
-    //auto res = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
-    //util::printStrVec(res);
-
-    vector<string> smalltest = {"2 4", "2 1 1", "1 1", "2 1 0 1 2 XOR", "2 1 0 1 3 XOR"};
-    auto circuit = baseGarble::garble(128, smalltest);
-    vector<int> inputLabels = {0, 0};
-    auto X = baseGarble::encode(get<1>(circuit), inputLabels);
-    auto Y = baseGarble::eval(circuit, X, smalltest);
-    auto y = baseGarble::decode(get<2>(circuit), Y);
-    cout << (y.size()) << endl;
-    cout << y[0] << endl;
-
-
-    //string input = "1234567890_1";
-    //vector<uint64_t> output = hash_variable(input);
-    //cout << "output size: " << output.size() * 64 << endl;
-    //for (int i = 0; i < output.size(); ++i) {
-    //    cout << output[i] << " ";
-    //}
-    //cout << endl;
-
-
+   auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds));
+   auto y = atecaGarble::De(Y, get<2>(feds));
+   cout<< "  y: " << y[0] <<endl;
+   cout <<endl;
 
     return 0;
 }
