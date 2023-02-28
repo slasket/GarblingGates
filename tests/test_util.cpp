@@ -104,6 +104,7 @@ BOOST_AUTO_TEST_SUITE( Test_bit_manipulation )
         BOOST_TEST(util::checkBitL2R(halfones,1)==0);
         BOOST_TEST(util::checkBitL2R(halfones,1)==0);
         BOOST_TEST(util::ithBitL2R(vec,0)==1);
+        BOOST_TEST(util::ithBitL2R(vec,2)==0);
         BOOST_TEST(util::ithBitL2R(vec,63)==1);
         BOOST_TEST(util::ithBitL2R(vec,64)==1);
         BOOST_TEST(util::ithBitL2R(vec,127)==1);
