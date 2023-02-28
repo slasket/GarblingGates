@@ -92,6 +92,19 @@ void testBaseOT(int v, int k ,int l, int elgamalKeySize){
 
 int main() {
 
+
+    auto finput = vector<int>{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                              0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                              1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                              0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
+    auto bloodCircuit = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
+    auto feds = atecaGarble::Gb(64, bloodCircuit);
+    auto encodedInput = atecaGarble::En(get<1>(feds), finput);
+    auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, bloodCircuit, get<3>(feds));
+    auto y = atecaGarble::De(Y, get<2>(feds));
+
+    util::printUintVec(y);
+    if (true){
    cout << "and"<<endl;
 
    auto finput1 = vector<int>{1,0};
@@ -105,7 +118,7 @@ int main() {
    auto y = atecaGarble::De(Y, get<2>(feds));
    cout<< "  y: " << y[0] <<endl;
    cout <<endl;
-
+    }
     return 0;
 }
 

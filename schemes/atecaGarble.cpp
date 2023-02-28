@@ -279,10 +279,11 @@ atecaGarble::Ev(const vector<vector<::uint64_t>>& F, const vector<vector<::uint6
 }
 
 vector<::uint64_t> atecaGarble::De(vector<vector<::uint64_t>> outputY, vector<vector<uint64_t>> d) {
-    auto outputBits = outputY.size();
-    auto outputSets =  vector<bitset<64>>((outputBits+64-1)/64);
+    auto outbits = outputY.size();
+    auto unit64sNeeded = outbits/64 + ((outbits%64!=0) ? 1 : 0);
+    auto outputSets =  vector<bitset<64>>(unit64sNeeded);
 
-    for (int i = 0; i < outputBits; ++i) {
+    for (int i = 0; i < outbits; ++i) {
         //get the lsb of the hash shit
         outputY[i].insert(outputY[i].end(), d[i].begin(), d[i].end());
         auto hash = util::hash_variable(util::uintVec2Str(outputY[i]), 64);
@@ -291,8 +292,8 @@ vector<::uint64_t> atecaGarble::De(vector<vector<::uint64_t>> outputY, vector<ve
         int lsbHash=util::checkBit(hash[0],0);
         outputSets = util::insertBitVecBitset(outputSets,lsbHash,i);
     }
-    auto y = vector<::uint64_t>(outputY.size());
-    for (int i = 0; i < outputSets.size(); ++i) {
+    auto y = vector<::uint64_t>(unit64sNeeded);
+    for (int i = 0; i < unit64sNeeded; ++i) {
         y[i] = outputSets[i].to_ullong();
     }
 
