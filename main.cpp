@@ -7,6 +7,7 @@
 #include "util/OTUtil/OT.h"
 #include "util/circuitParser.h"
 #include "util/util.h"
+#include "schemes/baseGarble.h"
 #include "schemes/atecaGarble.h"
 #include <bitset>
 #include <cstdio>
@@ -141,6 +142,27 @@ int main() {
 
     //string input = "123+0uf892ujf984j9f8jds98afuq348+ju fs890_1";
     //vector<uint64_t> output = util::hash_variable(input,64);
+    //cout << sha256("1234567890_1") << endl;
+    //cout << sha256("1234567890_2") << endl;
+    //cout << sha256("1234567890_3") << endl;
+    //cout << sha256("1234567890_4") << endl;
+    cout<<"xd"<<endl;
+    //int aes =  mainAES();
+    //auto res = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
+    //util::printStrVec(res);
+
+    vector<string> smalltest = {"2 4", "2 1 1", "1 1", "2 1 0 1 2 XOR", "2 1 0 1 3 XOR"};
+    auto circuit = baseGarble::garble(128, smalltest);
+    vector<int> inputLabels = {0, 0};
+    auto X = baseGarble::encode(get<1>(circuit), inputLabels);
+    auto Y = baseGarble::eval(circuit, X, smalltest);
+    auto y = baseGarble::decode(get<2>(circuit), Y);
+    cout << (y.size()) << endl;
+    cout << y[0] << endl;
+
+
+    //string input = "1234567890_1";
+    //vector<uint64_t> output = hash_variable(input);
     //cout << "output size: " << output.size() * 64 << endl;
     //for (int i = 0; i < output.size(); ++i) {
     //    cout << output[i] << " ";
