@@ -35,7 +35,7 @@ set(TESTS
         schemes/atecaGarble.cpp schemes/atecaGarble.h
         HashFunctions.cpp
         schemes/atecaGarble.cpp
-        )
+        tests/test_ateca.cpp)
 
 
 add_executable(GarblingGates ${SOURCES} main.cpp)

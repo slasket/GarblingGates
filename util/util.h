@@ -104,14 +104,23 @@ public:
     }
     //ith bit of vector might have fucked up indexing, nice (:
     //checks right to left
-    static int findithBit(vector<uint64_t> ui, int i) {
+    static int checkIthBit(vector<uint64_t> ui, int i) {
         //ith bit
         int bit = i%64;
         //find block
         int block = i / 64;
-        string blockStr = bitset<64>(ui[block]).to_string();
-        return blockStr[bit] - '0';
+        return checkBit(ui[block],bit);
     }
+    //find ith bit the slow way
+    //static int findIthBit(vector<::uint64_t> ui, int i){
+    //    //ith bit
+    //    int bit = i%64;
+    //    //find block
+    //    int block = i / 64;
+    //    string blockStr = bitset<64>(ui[block]).to_string();
+    //    return blockStr[bit] - '0';
+    //}
+
     static int checkBit(::uint64_t num, int i){  //# From https://stackoverflow.com/questions/18111488/convert-integer-to-binary-in-python-and-compare-the-bits
         return (num >> i) & 1;
     }
@@ -129,11 +138,13 @@ public:
 
     static vector<::uint64_t> setIthBitTo1L2R(vector<::uint64_t> vec, int pos){
         int block = pos / 64;
-        vec[block] |= ((uint64_t)1) << (63-(pos%64));
+        auto oneshifted = ((uint64_t)1) << (pos%64);
+
+        vec[block] |= oneshifted;
         return vec;
     }
 
-    static vector<::uint64_t> VecXOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
+    static vector<::uint64_t> vecXOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
         for (int i = 0; i < left.size(); ++i) {
             left[i] = left[i] ^ right[i];
         }
@@ -229,12 +240,15 @@ public:
         return ~((~x)<<1);
     }
     static vector<bitset<64>> insertBitVecBitset(vector<bitset<64>> vec, int bit, int i){
+
         int block = i/64;
-        int pos = 63-(i%64);
-        vec[block][pos] = bit;
+        //for left to right insertion
+        //int pos = 63-(i%64);
+        //vec[block][pos] = bit;
+        //for left to right uint but right to left index
+        vec[block][i%64] = bit;
         return vec;
     }
-
 };
 
 

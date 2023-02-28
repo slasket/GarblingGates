@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_SUITE( Testing_generateRandomLabels )
             //test color bit
             BOOST_TEST((get<0>(wiresLabels)[0] & 1) == 0);
             BOOST_TEST((get<1>(wiresLabels)[0] & 1) == 1);
-            BOOST_TEST(util::VecXOR(get<0>(wiresLabels), get<1>(wiresLabels)) == output0);
+            BOOST_TEST(util::vecXOR(get<0>(wiresLabels), get<1>(wiresLabels)) == output0);
 
         }
         for (int i = 0; i < 10; ++i) {
@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_SUITE( Testing_generateRandomLabels )
             //test color bit
             BOOST_TEST((get<0>(wiresLabels)[0] & 1) == 1);
             BOOST_TEST((get<1>(wiresLabels)[0] & 1) == 0);
-            BOOST_TEST(util::VecXOR(get<0>(wiresLabels), get<1>(wiresLabels)) == output0);
+            BOOST_TEST(util::vecXOR(get<0>(wiresLabels), get<1>(wiresLabels)) == output0);
 
         }
     }
@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_SUITE( Testing_generateRandomLabels )
 BOOST_AUTO_TEST_SUITE_END()
 
 
-BOOST_AUTO_TEST_SUITE( Test_misc_util)
+BOOST_AUTO_TEST_SUITE( Test_bit_manipulation )
 
     BOOST_AUTO_TEST_CASE( test_all_nor_input )
     {
@@ -73,6 +73,20 @@ BOOST_AUTO_TEST_SUITE( Test_misc_util)
         BOOST_TEST(util::norOP(max,max)==0);
         BOOST_TEST(util::norOP(max,0)==0);
         BOOST_TEST(util::norOP(0,max)==0);
+    }
+    BOOST_AUTO_TEST_CASE( test_hammingWeight )
+    {
+        ::uint64_t one = 1;
+        ::uint64_t max = UINT64_MAX;
+        ::uint64_t halfones = 12297829382473034648;
+        ::uint64_t otherhalfones = 6148914691236517824;
+
+        BOOST_TEST(util::hammingWeight(one)==1);
+        BOOST_TEST(util::hammingWeight(max)==64);
+        BOOST_TEST(util::hammingWeight(halfones)==32);
+        //fukcing sadge FIX THIS
+        //BOOST_TEST(util::hammingWeight(otherhalfones)==32);
+
     }
     BOOST_AUTO_TEST_CASE( test_ith_bit_L2R )
     {
@@ -97,19 +111,96 @@ BOOST_AUTO_TEST_SUITE( Test_misc_util)
         BOOST_TEST(util::ithBitL2R(vec,191)==1);
 
     }
-    BOOST_AUTO_TEST_CASE(test_hammingWeight)
+
+
+    BOOST_AUTO_TEST_CASE( set_ith_bit_L2R )
+    {
+        vector<uint64_t> vec = {0,0};
+        vec = util::setIthBitTo1L2R(vec,0);
+        vec= util::setIthBitTo1L2R(vec,127);
+
+        BOOST_TEST(vec[1]== 9223372036854775808);
+        BOOST_TEST(vec[0]== 1);
+        vec = util::setIthBitTo1L2R(vec,1);
+        BOOST_TEST(vec[0]== 3);
+
+    }
+
+
+
+    BOOST_AUTO_TEST_CASE( findIthBit )
     {
         ::uint64_t one = 1;
         ::uint64_t max = UINT64_MAX;
         ::uint64_t halfones = 12297829382473034648;
-        ::uint64_t otherhalfones = 6148914691236517824;
+        ::uint64_t fortythreeisone = 8796093022208;
+        vector<::uint64_t> vec ={9223372036854775808,9223372036854775808,9223372036854775809};
 
-        BOOST_TEST(util::hammingWeight(one)==1);
-        BOOST_TEST(util::hammingWeight(max)==64);
-        BOOST_TEST(util::hammingWeight(halfones)==32);
-        //fukcing sadge FIX THIS
-        //BOOST_TEST(util::hammingWeight(otherhalfones)==32);
+        BOOST_TEST(util::checkIthBit(vec,63)==1);
+        BOOST_TEST(util::checkIthBit(vec,128)==1);
+        BOOST_TEST(util::checkIthBit(vec,129)==0);
+        BOOST_TEST(util::checkIthBit(vec,56)==0);
+        BOOST_TEST(util::checkIthBit(vec,174)==0);
+        BOOST_TEST(util::checkIthBit(vec,191)==1);
 
+    }
+
+    BOOST_AUTO_TEST_CASE( vectorXOR )
+    {
+        ::uint64_t one = 1;
+        ::uint64_t max = UINT64_MAX;
+        ::uint64_t num1 = 2315136083672760336;
+        ::uint64_t num2 = 2315136083672760327;
+        auto vec1 = {num1,one};
+        auto vec2 = {num2,max};
+        auto res = util::vecXOR(vec1,vec2);
+        BOOST_TEST(res[0]==23);
+        BOOST_TEST(res[1]==(max-1));
+
+
+    }
+
+    BOOST_AUTO_TEST_CASE( vectorAND )
+    {
+        ::uint64_t one = 1;
+        ::uint64_t max = UINT64_MAX;
+        ::uint64_t num1 = 2315136083672760336;
+        ::uint64_t num2 = 2315136083672760327;
+        auto vec1 = {num1,one};
+        auto vec2 = {num2,max};
+        auto res = util::vecAND(vec1,vec2);
+        BOOST_TEST(res[0]==2315136083672760320);
+        BOOST_TEST(res[1]==1);
+        res = util::vecAND({num1},{num1});
+        BOOST_TEST(res[0]==num1);
+
+    }
+    BOOST_AUTO_TEST_CASE( vectorOR )
+    {
+        ::uint64_t one = 1;
+        ::uint64_t max = UINT64_MAX;
+        ::uint64_t num1 = 2603366459824472086;
+        ::uint64_t num2 = 2315136633428574231;
+        auto vec1 = {num1,one};
+        auto vec2 = {num2,max};
+        auto res = util::vecOR(vec1,vec2);
+        BOOST_TEST(res[0]==2603367009580285975);
+        BOOST_TEST(res[1]==max);
+        res = util::vecOR({num1},{num1});
+        BOOST_TEST(res[0]==num1);
+
+    }
+
+    BOOST_AUTO_TEST_CASE( insert_bit_in_vecOfBitset )
+    {
+        vector<bitset<64>> vec ={bitset<64>(1),bitset<64>(1),bitset<64>(1)};
+        vec = util::insertBitVecBitset(vec,1,63);
+        vec = util::insertBitVecBitset(vec,0,0);
+        BOOST_TEST(vec[0].to_ullong()==9223372036854775808);
+        vec = util::insertBitVecBitset(vec,0,64);
+        BOOST_TEST(vec[1].to_ullong()==0);
+        vec = util::insertBitVecBitset(vec,1,147);
+        BOOST_TEST(vec[2].to_ullong()==524289);
     }
 
 

@@ -90,18 +90,6 @@ void testBaseOT(int v, int k ,int l, int elgamalKeySize){
 
 
 int main() {
-    cout<<"xd"<<endl;
-    auto bloodCircuit = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
-    auto feds = atecaGarble::Gb(64, bloodCircuit);
-    auto finput = vector<int>{0,0,0,0,0,0,1};
-    auto encodedInput = atecaGarble::En(get<1>(feds), finput);
-    auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, bloodCircuit, get<3>(feds));
-    auto y = atecaGarble::De(Y, get<2>(feds));
-
-    cout<< "size: " << y.size()<< " contains: " <<  endl;
-    for (int i = 0; i < y.size(); ++i) {
-        cout <<y[i]<< endl;
-    }
 
 
     //string input = "123+0uf892ujf984j9f8jds98afuq348+ju fs890_1";
