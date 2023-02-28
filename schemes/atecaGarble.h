@@ -19,6 +19,9 @@ public:
     //garbler public function
     static tuple<vector<vector<::uint64_t>>,vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>,vector<vector<uint64_t>>,int>
             Gb(int l, const vector<std::string>& C);
+
+    static tuple<vector<vector<::uint64_t>>,vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>,vector<vector<uint64_t>>,int,vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>>
+    GbLEAK(int l, const vector<std::string>& C);
     //Evaluator functions
     static vector<vector<::uint64_t>> En(vector<tuple<vector<::uint64_t>,vector<::uint64_t>>> encoding, vector<int> input);
     static vector<vector<::uint64_t>> Ev(const vector<vector<::uint64_t>>& F, const vector<vector<::uint64_t>>& X, vector<string>C, int l);
