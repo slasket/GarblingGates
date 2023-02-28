@@ -106,11 +106,14 @@ int main() {
 
     vector<string> smalltest = {"1 2", "1 1", "1 1", "1 1 0 1 INV"};
     int k = 128;
-    auto smallCircuit = baseGarble::garble(128, smalltest);
-    auto X00 = baseGarble::encode(get<1>(smallCircuit), {1});
-    auto Y00 = baseGarble::eval(smallCircuit, X00, smalltest, 128);
-    auto y00 = baseGarble::decode(get<2>(smallCircuit), Y00);
-    cout << "y00[0]: " << y00[0] << endl;
+    for (int i = 0; i < 100; ++i) {
+        auto smallCircuit = baseGarble::garble(128, smalltest);
+        auto X00 = baseGarble::encode(get<1>(smallCircuit), {0});
+        auto Y00 = baseGarble::eval(smallCircuit, X00, smalltest, 128);
+        auto y00 = baseGarble::decode(get<2>(smallCircuit), Y00);
+        cout << "y00.size: " << y00.size() << endl;
+        cout << "y00[0]: " << y00[0] << endl;
+    }
 
 
 

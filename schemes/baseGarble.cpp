@@ -84,8 +84,17 @@ baseGarble::garble(int k, vector<string> f) {
             andGate(globalDelta, permuteBitA, permuteBitB, A0, A1, B0, B1, ciphertext, gate0, gate1, k);
         else if (gateType == "XOR")  //free XOR
             xorGate(globalDelta, permuteBitA, permuteBitB, A0, A1, B0, B1, ciphertext, gate0, gate1, k);
-        else if (gateType == "INV") //HANDLE INV AS AND WITH DOUBLE A INPUT /todo!!!! NOT SECURE !!!!
-            invGate(globalDelta, permuteBitA, permuteBitB, A0, A1, B0, B1, ciphertext, gate0, gate1, k);
+        else if (gateType == "INV") //HANDLE INV AS AND WITH DOUBLE A INPUT //todo!!!! NOT SECURE !!!!
+             invGate(globalDelta, permuteBitA, permuteBitB, A0, A1, B0, B1, ciphertext, gate0, gate1, k);
+
+        if(gateType == "INV"){
+            if(globalDelta == util::vecXOR(gate0, gate1) ||
+               globalDelta == util::vecXOR(gate0, ciphertext) ||
+               globalDelta == util::vecXOR(gate1, ciphertext)){
+                cout << "Hit shit the fan" << endl;
+                exit(1);
+            }
+        }
 
         wireLabels[outputWires[0]] = make_tuple(ciphertext, util::vecXOR(ciphertext, globalDelta));
 
@@ -152,12 +161,12 @@ tuple<vector<::uint64_t>, vector<uint64_t>, vector<uint64_t>>
 baseGarble::invGate(const vector<uint64_t> &globalDelta, int permuteBitA, int permuteBitB, vector<uint64_t> &A0,
                     vector<uint64_t> &A1, vector<uint64_t> &B0, vector<uint64_t> &B1, vector<uint64_t> &ciphertext,
                     vector<uint64_t> &gate0, vector<uint64_t> &gate1, int k) {
-    ciphertext = XORHashpart(A0, B0, k);
-    gate1 = util::vecXOR(util::vecXOR(XORHashpart(A0, B1, k), ciphertext), A0);
-    gate0 = util::vecXOR(XORHashpart(A1, B0, k), ciphertext);
-    if(permuteBitA == 0){
-        ciphertext = util::vecXOR(ciphertext, globalDelta);
+    gate0 = otUtil::genBitsNonCrypto(k);
+    ciphertext = util::vecXOR(HashFunction(A0, k), gate0);
+    gate1 = util::vecXOR(HashFunction(A1, k), ciphertext);
+    if(permuteBitA == 0){ // ==== 0
         gate0 = util::vecXOR(gate0, globalDelta);
+    }else if(permuteBitA == 1){ // ==== 1
         gate1 = util::vecXOR(gate1, globalDelta);
     }
     return make_tuple(ciphertext, gate0, gate1);
@@ -241,7 +250,7 @@ vector<vector<uint64_t>> baseGarble::eval(tuple<vector<tuple<vector<uint64_t>, v
 
     if(garbledCircuit.size() != f.size()-3 & f.size()-3 != numberOfGates){
         cout << "garbledCircuit.size() != f.size()-3 != " << numberOfGates  << " != " << garbledCircuit.size() << " != " << f.size()-3 << endl;
-        exit(1);
+        //exit(1);
     }
 
     for (int i = 0; i < garbledCircuit.size(); ++i) {
@@ -256,7 +265,7 @@ vector<vector<uint64_t>> baseGarble::eval(tuple<vector<tuple<vector<uint64_t>, v
         for (int j = 0; j < inputWires.size(); ++j) { //check if input for gate is calculated
             if(wireValues[inputWires[j]].empty()){
                 cout << "wireValues[inputWires[" << inputWires[j] << "]].empty()" << endl;
-                exit(1);
+                //exit(1);
             }
         }
 
@@ -281,10 +290,16 @@ vector<vector<uint64_t>> baseGarble::eval(tuple<vector<tuple<vector<uint64_t>, v
         if (gateType == "XOR"){
             cipher = util::vecXOR(A, B);
         } else
-        //if(gateType == "INV"){
-        //    cipher = XORHashpart(A, B, 128);
-        //} else
-            //if(gateType == "AND")
+        if(gateType == "INV"){ //todo!!!! NOT SECURE !!!!
+            vector<uint64_t> gate0 = get<0>(garbledCircuit[i]);
+            vector<uint64_t> gate1 = get<1>(garbledCircuit[i]);
+            if (colorBitA == 0) {
+                cipher = util::vecXOR(HashFunction(A, 128), gate0);
+            } else if (colorBitA == 1) {
+                cipher = util::vecXOR(HashFunction(A, 128), gate1);
+            }
+        } else
+            if(gateType == "AND")
             { //AND/INV CASE
             vector<uint64_t> gate0 = get<0>(garbledCircuit[i]);
             vector<uint64_t> gate1 = get<1>(garbledCircuit[i]);
@@ -317,8 +332,8 @@ vector<int> baseGarble::decode(vector<tuple<vector<uint64_t>, vector<uint64_t>>>
             y.push_back(1);
         } else {
             cout << "Could not decode as encrypted output was invalid" << endl;
-            //y.push_back(2);
-            exit(1);
+             //y.push_back(2);
+            //exit(1);
         }
     }
     return y;
