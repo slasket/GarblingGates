@@ -22,7 +22,7 @@ baseGarble::garble(int k, vector<string> f) {
     vector<::uint64_t> globalDelta = vector<uint64_t>(k);
     vector<tuple<vector<int>, vector<uint64_t>, vector<uint64_t>>> garbledCircuit = vector<tuple<vector<int>, vector<uint64_t>, vector<uint64_t>>>();
     vector<tuple<vector<uint64_t >, vector<uint64_t >>> encInputLabels = vector<tuple<vector<uint64_t >, vector<uint64_t >>>(numberOfInputBits);
-    vector<tuple<vector<uint64_t >, vector<uint64_t >>> encOutputLabels = vector<tuple<vector<uint64_t >, vector<uint64_t >>>(numberOfOutputBits);
+    vector<tuple<vector<uint64_t >, vector<uint64_t >>> encOutputLabels = vector<tuple<vector<uint64_t >, vector<uint64_t >>>();
     //set<int> includedGates = set<int>();
     //vector<int> includedGates = vector<int>();
     //perform gate by gate garbling
@@ -43,7 +43,7 @@ baseGarble::garble(int k, vector<string> f) {
         ////////////////////////////// Garbling gate ///////////////////////////////////
         //garble gate
         //vector<tuple<vector<uint64_t>, vector<uint64_t>>> inputWiresLabels = vector<tuple<vector<uint64_t>, vector<uint64_t>>>(inputWires.size());
-        vector<tuple<vector<uint64_t>, vector<uint64_t>>> outputWiresLabels = vector<tuple<vector<uint64_t>, vector<uint64_t>>>(outputWires.size());
+        vector<tuple<vector<uint64_t>, vector<uint64_t>>> outputWiresLabels = vector<tuple<vector<uint64_t>, vector<uint64_t>>>();
         //auto deltaAndLabels = util::generateRandomLabels(k, globalDelta, inputWiresLabels);
 
         //calculate permute bits
@@ -95,7 +95,10 @@ baseGarble::garble(int k, vector<string> f) {
         //create output d
         if(outputWires[0] >= numberOfWires - numberOfOutputBits){
             auto outputLabel = wireLabels[outputWires[0]];
-            encOutputLabels[outputWires[0] - (numberOfWires - numberOfOutputBits)] = outputLabel;
+            cout << "outputWires[0]: " << outputWires[0] << endl;
+            //encOutputLabels[outputWires[0] - (numberOfWires - numberOfOutputBits)] = outputLabel;
+            //cout << "outputWires[0] - (numberOfWires - numberOfOutputBits): " << outputWires[0] - (numberOfWires - numberOfOutputBits) << endl;
+            encOutputLabels.emplace_back(outputLabel);
         }
 
     }
@@ -285,6 +288,7 @@ vector<int> baseGarble::decode(vector<tuple<vector<uint64_t>, vector<uint64_t>>>
             y.push_back(1);
         } else {
             cout << "Could not decode as encrypted output was invalid" << endl;
+            y.push_back(2);
             //exit(1);
         }
     }

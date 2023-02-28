@@ -366,22 +366,21 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalBig )
 
     BOOST_AUTO_TEST_CASE( test_encode_big_ones )
     {
-        //BOOST_TEST(yBig.size() == 64); //64 output wires
-        //for (int i = 0; i < 63; i++) {
-        //    BOOST_TEST(yBig[i] == 1);
-        //}
-        //BOOST_TEST(yBig[63] == 0);
-        BOOST_TEST(1=0);
+        BOOST_TEST(yBig.size() == 64); //64 output wires
+        for (int i = 1; i < 64; i++) {
+            BOOST_TEST(yBig[i] == 1);
+        }
+        BOOST_TEST(yBig[0] == 0);
     }
     vector<int> inputLabelsBig_zeroes = {
                                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //16
                                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,};
+                                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}; //000...000 + 100...000
     auto XBig_zeroes = baseGarble::encode(get<1>(bigCircuit), inputLabelsBig_zeroes);
     auto YBig_zeroes = baseGarble::eval(bigCircuit, XBig_zeroes, bigtest);
     auto yBig_zeroes = baseGarble::decode(get<2>(bigCircuit), YBig_zeroes);
@@ -389,13 +388,14 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalBig )
     BOOST_AUTO_TEST_CASE( test_encode_big_zeroes )
     {
         BOOST_TEST(yBig_zeroes.size() == 64); //64 output wires
-        //for (int i = 0; i < 64; i++) {
-        //    if (i == 1 | i == 63) {
-        //        BOOST_TEST(yBig_zeroes[i] == 1);
-        //    } else
-        //    BOOST_TEST(yBig_zeroes[i] == 0);
-        //}
-        BOOST_TEST(1=0);
+        for (int i = 0; i < 64; i++) {
+            if ( i == 63) {
+                BOOST_TEST(yBig_zeroes[i] == 1); // 100...000
+            } else
+            BOOST_TEST(yBig_zeroes[i] == 0);
+            cout << i << endl;
+            cout << yBig_zeroes[i] << endl;
+        }
 
     }
 
