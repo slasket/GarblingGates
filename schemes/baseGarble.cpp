@@ -87,14 +87,14 @@ baseGarble::garble(int k, vector<string> f) {
         else if (gateType == "INV") //HANDLE INV AS AND WITH DOUBLE A INPUT //todo!!!! NOT SECURE !!!!
              invGate(globalDelta, permuteBitA, permuteBitB, A0, A1, B0, B1, ciphertext, gate0, gate1, k);
 
-        if(gateType == "INV"){
-            if(globalDelta == util::vecXOR(gate0, gate1) ||
-               globalDelta == util::vecXOR(gate0, ciphertext) ||
-               globalDelta == util::vecXOR(gate1, ciphertext)){
-                cout << "Hit shit the fan" << endl;
-                exit(1);
-            }
-        }
+        //if(gateType == "INV"){
+        //    if(globalDelta == util::vecXOR(gate0, gate1) ||
+        //       globalDelta == util::vecXOR(gate0, ciphertext) ||
+        //       globalDelta == util::vecXOR(gate1, ciphertext)){
+        //        cout << "Hit shit the fan" << endl;
+        //        exit(1);
+        //    }
+        //}
 
         wireLabels[outputWires[0]] = make_tuple(ciphertext, util::vecXOR(ciphertext, globalDelta));
 
@@ -161,13 +161,18 @@ tuple<vector<::uint64_t>, vector<uint64_t>, vector<uint64_t>>
 baseGarble::invGate(const vector<uint64_t> &globalDelta, int permuteBitA, int permuteBitB, vector<uint64_t> &A0,
                     vector<uint64_t> &A1, vector<uint64_t> &B0, vector<uint64_t> &B1, vector<uint64_t> &ciphertext,
                     vector<uint64_t> &gate0, vector<uint64_t> &gate1, int k) {
-    gate0 = otUtil::genBitsNonCrypto(k);
-    ciphertext = util::vecXOR(HashFunction(A0, k), gate0);
-    gate1 = util::vecXOR(HashFunction(A1, k), ciphertext);
-    if(permuteBitA == 0){ // ==== 0
-        gate0 = util::vecXOR(gate0, globalDelta);
-    }else if(permuteBitA == 1){ // ==== 1
-        gate1 = util::vecXOR(gate1, globalDelta);
+    auto bWire = vector<tuple<vector<uint64_t>, vector<uint64_t>>>(1);
+    auto res = util::generateRandomLabels(k, const_cast<vector<uint64_t> &>(globalDelta), bWire);
+    bWire = get<1>(res);
+    B0 = get<0>(bWire[0]);
+    B1 = get<1>(bWire[0]);
+
+    if(permuteBitA == 0){
+        ciphertext = util::vecXOR(A1, B1);
+        gate0 = B1;
+    }   else{
+        ciphertext = util::vecXOR(A0, B0);
+        gate0 = B0;
     }
     return make_tuple(ciphertext, gate0, gate1);
 }
@@ -292,12 +297,7 @@ vector<vector<uint64_t>> baseGarble::eval(tuple<vector<tuple<vector<uint64_t>, v
         } else
         if(gateType == "INV"){ //todo!!!! NOT SECURE !!!!
             vector<uint64_t> gate0 = get<0>(garbledCircuit[i]);
-            vector<uint64_t> gate1 = get<1>(garbledCircuit[i]);
-            if (colorBitA == 0) {
-                cipher = util::vecXOR(HashFunction(A, 128), gate0);
-            } else if (colorBitA == 1) {
-                cipher = util::vecXOR(HashFunction(A, 128), gate1);
-            }
+            cipher = util::vecXOR(A, gate0);
         } else
             if(gateType == "AND")
             { //AND/INV CASE
