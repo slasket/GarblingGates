@@ -7,7 +7,9 @@
 #include "../util/util.h"
 
 //k is security parameter and f is the function to be garbled with 3 lines of metadata
-tuple<vector<tuple<vector<int>, vector<uint64_t>, vector<uint64_t>>>, vector<tuple<vector<uint64_t >, vector<uint64_t >>>, vector<tuple<vector<uint64_t >, vector<uint64_t >>>>
+tuple<vector<tuple<vector<uint64_t>, vector<uint64_t>>>,
+        vector<tuple<vector<uint64_t >, vector<uint64_t >>>,
+                vector<tuple<vector<uint64_t >, vector<uint64_t >>>>
 baseGarble::garble(int k, vector<string> f) {
     string &wireAndGates = f[0]; //number of wires and gates
     auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
@@ -20,11 +22,10 @@ baseGarble::garble(int k, vector<string> f) {
     int numberOfOutputBits;
     getBits(f[2], numberOfOutputBits);
     vector<::uint64_t> globalDelta = vector<uint64_t>(k);
-    vector<tuple<vector<int>, vector<uint64_t>, vector<uint64_t>>> garbledCircuit = vector<tuple<vector<int>, vector<uint64_t>, vector<uint64_t>>>();
+    vector<tuple< vector<uint64_t>, vector<uint64_t>>> garbledCircuit = vector<tuple< vector<uint64_t>, vector<uint64_t>>>();
     vector<tuple<vector<uint64_t >, vector<uint64_t >>> encInputLabels = vector<tuple<vector<uint64_t >, vector<uint64_t >>>(numberOfInputBits);
     vector<tuple<vector<uint64_t >, vector<uint64_t >>> encOutputLabels = vector<tuple<vector<uint64_t >, vector<uint64_t >>>();
-    //set<int> includedGates = set<int>();
-    //vector<int> includedGates = vector<int>();
+
     //perform gate by gate garbling
     vector<tuple<vector<uint64_t>, vector<uint64_t>>> inputWiresLabels = vector<tuple<vector<uint64_t>, vector<uint64_t>>>(numberOfInputBits);
     auto deltaAndLabels = util::generateRandomLabels(k, globalDelta, inputWiresLabels);
@@ -42,68 +43,77 @@ baseGarble::garble(int k, vector<string> f) {
         auto gateType = get<2>(gateInfo);               // "XOR"
         ////////////////////////////// Garbling gate ///////////////////////////////////
         //garble gate
-        //vector<tuple<vector<uint64_t>, vector<uint64_t>>> inputWiresLabels = vector<tuple<vector<uint64_t>, vector<uint64_t>>>(inputWires.size());
         vector<tuple<vector<uint64_t>, vector<uint64_t>>> outputWiresLabels = vector<tuple<vector<uint64_t>, vector<uint64_t>>>();
-        //auto deltaAndLabels = util::generateRandomLabels(k, globalDelta, inputWiresLabels);
+        int input0;
+        int input1;
+        if(inputWires.size() == 1){
+            input0 = inputWires[0];
+            input1 = inputWires[0];
+        }
+        else{
+            input0 = inputWires[0];
+            input1 = inputWires[1];
+        }
+
 
         //calculate permute bits
-        //cout << "inputWires[0]: " << inputWires[0] << endl;
-        //cout << "inputWires[1]: " << inputWires[1] << endl;
-        int permuteBitA = (get<0>(wireLabels[inputWires[0]])[0]) & 1;
-        int permuteBitB = (get<0>(wireLabels[inputWires[1]])[0]) & 1;
+        int permuteBitA = (get<0>(wireLabels[input0])[0]) & 1;
+        int permuteBitB = (get<0>(wireLabels[input1])[0]) & 1;
         vector<uint64_t> A0;
         vector<uint64_t> A1;
         vector<uint64_t> B0;
         vector<uint64_t> B1;
         if(permuteBitA == 1){
-            A0 = (get<1>(wireLabels[inputWires[0]]));
-            A1 = (get<0>(wireLabels[inputWires[0]]));
+            A0 = (get<1>(wireLabels[input0]));
+            A1 = (get<0>(wireLabels[input0]));
         } else {
-            A0 = (get<0>(wireLabels[inputWires[0]]));
-            A1 = (get<1>(wireLabels[inputWires[0]]));
+            A0 = (get<0>(wireLabels[input0]));
+            A1 = (get<1>(wireLabels[input0]));
         }
         if(permuteBitB == 1){
-            B0 = (get<1>(wireLabels[inputWires[1]]));
-            B1 = (get<0>(wireLabels[inputWires[1]]));
+            B0 = (get<1>(wireLabels[input1]));
+            B1 = (get<0>(wireLabels[input1]));
         } else {
-            B0 = (get<0>(wireLabels[inputWires[1]]));
-            B1 = (get<1>(wireLabels[inputWires[1]]));
+            B0 = (get<0>(wireLabels[input1]));
+            B1 = (get<1>(wireLabels[input1]));
         }
         vector<::uint64_t> ciphertext;
         vector<::uint64_t> gate0;
         vector<::uint64_t> gate1;
         if (gateType == "AND")
             andGate(globalDelta, permuteBitA, permuteBitB, A0, A1, B0, B1, ciphertext, gate0, gate1, k);
-        else if (gateType == "XOR")  //free XOR should make this unnecessary
+        else if (gateType == "XOR")  //free XOR
             xorGate(globalDelta, permuteBitA, permuteBitB, A0, A1, B0, B1, ciphertext, gate0, gate1, k);
+        else if (gateType == "INV") //HANDLE INV AS AND WITH DOUBLE A INPUT /todo!!!! NOT SECURE !!!!
+            invGate(globalDelta, permuteBitA, permuteBitB, A0, A1, B0, B1, ciphertext, gate0, gate1, k);
 
         wireLabels[outputWires[0]] = make_tuple(ciphertext, util::vecXOR(ciphertext, globalDelta));
 
         //create output F
         //wire labels
-        auto gate = make_tuple(inputWires, gate0, gate1);
+        auto gate = make_tuple(gate0, gate1);
         garbledCircuit.emplace_back(gate);
 
         //create output e
-        if((inputWires[0] <= numberOfInputBits -1)){ //& includedGates.find(inputWires[0]) == includedGates.end() ){
-            encInputLabels[inputWires[0]] = inputWiresLabels[inputWires[0]];
+        if((input0 <= numberOfInputBits -1)){
+            encInputLabels[input0] = inputWiresLabels[input0];
         }
-        if((inputWires[1] <= numberOfInputBits -1)){// & includedGates.find(inputWires[1]) == includedGates.end()){
-            encInputLabels[inputWires[1]] = inputWiresLabels[inputWires[1]];
+        if((input1 <= numberOfInputBits -1)){
+            encInputLabels[input1] = inputWiresLabels[input1];
         }
 
         //create output d
         if(outputWires[0] >= numberOfWires - numberOfOutputBits){
             auto outputLabel = wireLabels[outputWires[0]];
-            cout << "outputWires[0]: " << outputWires[0] << endl;
-            //encOutputLabels[outputWires[0] - (numberOfWires - numberOfOutputBits)] = outputLabel;
-            //cout << "outputWires[0] - (numberOfWires - numberOfOutputBits): " << outputWires[0] - (numberOfWires - numberOfOutputBits) << endl;
             encOutputLabels.emplace_back(outputLabel);
         }
 
     }
-    //tuple<vector<tuple<vector<int>, vector<uint64_t>, vector<uint64_t>>>, vector<tuple<vector<uint64_t >, vector<uint64_t >>>, vector<tuple<vector<uint64_t >, vector<uint64_t >>>>
-    tuple<vector<tuple<vector<int>, vector<uint64_t>, vector<uint64_t>>>, vector<tuple<vector<uint64_t >, vector<uint64_t >>>, vector<tuple<vector<uint64_t >, vector<uint64_t >>>>
+    //type tuple<vector<tuple<vector<int>, vector<uint64_t>, vector<uint64_t>>>, vector<tuple<vector<uint64_t >, vector<uint64_t >>>, vector<tuple<vector<uint64_t >, vector<uint64_t >>>>
+    tuple<
+            vector<tuple<vector<uint64_t>, vector<uint64_t>>>,
+            vector<tuple<vector<uint64_t >, vector<uint64_t >>>,
+                    vector<tuple<vector<uint64_t >, vector<uint64_t >>>>
             output = make_tuple(garbledCircuit, inputWiresLabels, encOutputLabels);
     return output;
 }
@@ -137,16 +147,26 @@ baseGarble::andGate(const vector<uint64_t> &globalDelta, int permuteBitA, int pe
     return make_tuple(ciphertext, gate0, gate1);
 }
 
+
+tuple<vector<::uint64_t>, vector<uint64_t>, vector<uint64_t>>
+baseGarble::invGate(const vector<uint64_t> &globalDelta, int permuteBitA, int permuteBitB, vector<uint64_t> &A0,
+                    vector<uint64_t> &A1, vector<uint64_t> &B0, vector<uint64_t> &B1, vector<uint64_t> &ciphertext,
+                    vector<uint64_t> &gate0, vector<uint64_t> &gate1, int k) {
+    ciphertext = XORHashpart(A0, B0, k);
+    gate1 = util::vecXOR(util::vecXOR(XORHashpart(A0, B1, k), ciphertext), A0);
+    gate0 = util::vecXOR(XORHashpart(A1, B0, k), ciphertext);
+    if(permuteBitA == 0){
+        ciphertext = util::vecXOR(ciphertext, globalDelta);
+        gate0 = util::vecXOR(gate0, globalDelta);
+        gate1 = util::vecXOR(gate1, globalDelta);
+    }
+    return make_tuple(ciphertext, gate0, gate1);
+}
+
 tuple<vector<::uint64_t>, vector<uint64_t>, vector<uint64_t>>
 baseGarble::xorGate(const vector<uint64_t> &globalDelta, int permuteBitA, int permuteBitB, vector<uint64_t> &A0,
                     vector<uint64_t> &A1, vector<uint64_t> &B0, vector<uint64_t> &B1, vector<uint64_t> &ciphertext,
                     vector<uint64_t> &gate0, vector<uint64_t> &gate1, int k) {
-    //ciphertext = XORHashpart(A0, B0, k);
-    //gate1 = util::VecXOR(XORHashpart(A0, B1, k),ciphertext);
-    //gate0 = util::VecXOR(XORHashpart(A1, B0, k),ciphertext);
-//
-    //gate1 = util::VecXOR(gate1, globalDelta);
-    //gate0 = util::VecXOR(gate0, globalDelta);
     ciphertext = util::vecXOR(A0, B0);
 
     if((permuteBitA == 0 & permuteBitB == 1) | (permuteBitA == 1 & permuteBitB == 0) ){
@@ -193,13 +213,12 @@ vector<vector<uint64_t>> baseGarble::encode(vector<tuple<vector<uint64_t>, vecto
     return X;
 }
 
-vector<vector<uint64_t>> baseGarble::eval(
-        tuple<vector<tuple<vector<int>, vector<uint64_t>, vector<uint64_t>>>,
-                vector<tuple<vector<uint64_t>, vector<uint64_t>>>,
-                vector<tuple<vector<uint64_t>, vector<uint64_t>>>> F, vector<vector<uint64_t>> X, vector<string> f) {
+vector<vector<uint64_t>> baseGarble::eval(tuple<vector<tuple<vector<uint64_t>, vector<uint64_t>>>,
+        vector<tuple<vector<uint64_t>, vector<uint64_t>>>,
+        vector<tuple<vector<uint64_t>, vector<uint64_t>>>> F, vector<vector<uint64_t>> X, vector<string> f, int k = 128) {
 
     vector<vector<uint64_t>> Y;
-    vector<tuple<vector<int>, vector<uint64_t>, vector<uint64_t>>> garbledCircuit = get<0>(F);
+    vector<tuple<vector<uint64_t>, vector<uint64_t>>> garbledCircuit = get<0>(F);
     vector<tuple<vector<uint64_t>, vector<uint64_t>>> inputLabels = get<1>(F);
     vector<tuple<vector<uint64_t>, vector<uint64_t>>> outputLabels = get<2>(F);
 
@@ -218,7 +237,6 @@ vector<vector<uint64_t>> baseGarble::eval(
     vector<vector<uint64_t>> wireValues = vector< vector<uint64_t>>(numberOfWires);
     for (int i = 0; i < X.size(); ++i) {
         wireValues[i] = X[i];
-        //cout << "X[" << i << "] = " << util::uintVec2Str(X[i]) << endl;
     }
 
     if(garbledCircuit.size() != f.size()-3 & f.size()-3 != numberOfGates){
@@ -242,8 +260,18 @@ vector<vector<uint64_t>> baseGarble::eval(
             }
         }
 
-        auto A = wireValues[inputWires[0]];
-        auto B = wireValues[inputWires[1]];
+        int input0;
+        int input1;
+        if(gateType == "INV"){
+            input0 = inputWires[0];
+            input1 = inputWires[0];
+        } else {
+            input0 = inputWires[0];
+            input1 = inputWires[1];
+        }
+
+        auto A = wireValues[input0];
+        auto B = wireValues[input1];
 
         vector<uint64_t> cipher;
 
@@ -251,14 +279,15 @@ vector<vector<uint64_t>> baseGarble::eval(
         auto colorBitB = (B[0]) & 1;
 
         if (gateType == "XOR"){
-            //cout << "colorBitA = " << colorBitA << endl;
-            //cout << "colorBitB = " << colorBitB << endl;
-            //cipher = XORHashpart(wireValues[inputWires[0]], wireValues[inputWires[1]], 128);
             cipher = util::vecXOR(A, B);
-        } else { //AND CASE
-            //vector<int> inputWires = get<0>(garbledCircuit[i]);
-            vector<uint64_t> gate0 = get<1>(garbledCircuit[i]);
-            vector<uint64_t> gate1 = get<2>(garbledCircuit[i]);
+        } else
+        //if(gateType == "INV"){
+        //    cipher = XORHashpart(A, B, 128);
+        //} else
+            //if(gateType == "AND")
+            { //AND/INV CASE
+            vector<uint64_t> gate0 = get<0>(garbledCircuit[i]);
+            vector<uint64_t> gate1 = get<1>(garbledCircuit[i]);
 
             if (colorBitA == 0 && colorBitB == 0) {
                 cipher = XORHashpart(A, B, 128);
@@ -288,8 +317,8 @@ vector<int> baseGarble::decode(vector<tuple<vector<uint64_t>, vector<uint64_t>>>
             y.push_back(1);
         } else {
             cout << "Could not decode as encrypted output was invalid" << endl;
-            y.push_back(2);
-            //exit(1);
+            //y.push_back(2);
+            exit(1);
         }
     }
     return y;

@@ -12,14 +12,14 @@ using namespace std;
 class baseGarble {
 public:
     static
-    tuple<vector<tuple<vector<int>, vector<uint64_t>, vector<uint64_t>>>, vector<tuple<vector<uint64_t >, vector<uint64_t >>>, vector<tuple<vector<uint64_t >, vector<uint64_t >>>>
+    tuple<vector<tuple<vector<uint64_t>, vector<uint64_t>>>,
+            vector<tuple<vector<uint64_t >, vector<uint64_t >>>,
+                    vector<tuple<vector<uint64_t >, vector<uint64_t >>>>
     garble(int k, vector<string> f);
     static vector<vector<uint64_t>> encode(vector<tuple<vector<uint64_t>, vector<uint64_t>>> e, vector<int> x);
-    static vector<vector<uint64_t>> eval(
-            tuple<vector<tuple<vector<int>, vector<uint64_t>, vector<uint64_t>>>,
-                    vector<tuple<vector<uint64_t>, vector<uint64_t>>>,
-                            vector<tuple<vector<uint64_t>, vector<uint64_t>>>> F,
-                            vector<vector<uint64_t>> X , vector<string> f);
+    static vector<vector<uint64_t>> eval(tuple<vector<tuple<vector<uint64_t>, vector<uint64_t>>>,
+            vector<tuple<vector<uint64_t>, vector<uint64_t>>>,
+            vector<tuple<vector<uint64_t>, vector<uint64_t>>>> F, vector<vector<uint64_t>> X, vector<string> f, int k);
     static vector<int> decode(vector<tuple<vector<uint64_t>, vector<uint64_t>>> d, vector<vector<uint64_t>> Y);
     static tuple<vector<int>, vector<int>, string> extractGate(const string &line);
     static vector<uint64_t> HashFunction(vector<uint64_t> x, int k);
@@ -31,6 +31,11 @@ public:
             vector<::uint64_t> &gate1, int k);
     static tuple<vector<::uint64_t>, vector<::uint64_t>, vector<::uint64_t>>
     xorGate(const vector<::uint64_t> &globalDelta, int permuteBitA, int permuteBitB, vector<uint64_t> &A0,
+            vector<uint64_t> &A1,
+            vector<uint64_t> &B0, vector<uint64_t> &B1, vector<::uint64_t> &ciphertext, vector<::uint64_t> &gate0,
+            vector<::uint64_t> &gate1, int k);
+    static tuple<vector<::uint64_t>, vector<::uint64_t>, vector<::uint64_t>>
+    invGate(const vector<::uint64_t> &globalDelta, int permuteBitA, int permuteBitB, vector<uint64_t> &A0,
             vector<uint64_t> &A1,
             vector<uint64_t> &B0, vector<uint64_t> &B1, vector<::uint64_t> &ciphertext, vector<::uint64_t> &gate0,
             vector<::uint64_t> &gate1, int k);

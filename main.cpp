@@ -104,14 +104,14 @@ int main() {
     //auto res = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
     //util::printStrVec(res);
 
-    vector<string> smalltest = {"2 4", "2 1 1", "1 1", "2 1 0 1 2 XOR", "2 1 0 1 3 XOR"};
-    auto circuit = baseGarble::garble(128, smalltest);
-    vector<int> inputLabels = {0, 0};
-    auto X = baseGarble::encode(get<1>(circuit), inputLabels);
-    auto Y = baseGarble::eval(circuit, X, smalltest);
-    auto y = baseGarble::decode(get<2>(circuit), Y);
-    cout << (y.size()) << endl;
-    cout << y[0] << endl;
+    vector<string> smalltest = {"1 2", "1 1", "1 1", "1 1 0 1 INV"};
+    int k = 128;
+    auto smallCircuit = baseGarble::garble(128, smalltest);
+    auto X00 = baseGarble::encode(get<1>(smallCircuit), {1});
+    auto Y00 = baseGarble::eval(smallCircuit, X00, smalltest, 128);
+    auto y00 = baseGarble::decode(get<2>(smallCircuit), Y00);
+    cout << "y00[0]: " << y00[0] << endl;
+
 
 
     //string input = "1234567890_1";
