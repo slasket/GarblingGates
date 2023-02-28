@@ -25,17 +25,17 @@ int bloodcompatibility::bloodCompLookup(int i, int j) {
     return table[i][j];
 }
 
-//define AND gate
+//define AND Gate
 int AND(int a, int b) {
     return a & b;
 }
 
-//define OR gate
+//define OR Gate
 int OR(int a, int b) {
     return a | b;
 }
 
-//define XOR gate
+//define XOR Gate
 int XOR(int a, int b) {
     return a ^ b;
 }

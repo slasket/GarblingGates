@@ -8,6 +8,7 @@
 #include "util/circuitParser.h"
 #include "util/util.h"
 #include "schemes/baseGarble.h"
+#include "schemes/atecaGarble.h"
 #include <bitset>
 #include <cstdio>
 
@@ -21,8 +22,6 @@
 using namespace std;
 
 #include <openssl/sha.h>
-#include <openssl/aes.h>
-#include <openssl/evp.h>
 
 
 void testBaseOT(int v, int k ,int l, int elgamalKeySize){
@@ -94,6 +93,8 @@ void testBaseOT(int v, int k ,int l, int elgamalKeySize){
 int main() {
 
 
+    //string input = "123+0uf892ujf984j9f8jds98afuq348+ju fs890_1";
+    //vector<uint64_t> output = util::hash_variable(input,64);
     //cout << sha256("1234567890_1") << endl;
     //cout << sha256("1234567890_2") << endl;
     //cout << sha256("1234567890_3") << endl;
@@ -120,6 +121,8 @@ int main() {
     //    cout << output[i] << " ";
     //}
     //cout << endl;
+
+
 
     return 0;
 }

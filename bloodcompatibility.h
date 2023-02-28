@@ -8,12 +8,12 @@
 
 class bloodcompatibility {
 
-    int protocol(int i, int j);
-public:
-    int bloodCompLookup(int i, int j);
+    static int protocol(int i, int j);
 
 public:
-    int testAllCombinations();
+    static int testAllCombinations();
+
+    static int bloodCompLookup(int i, int j);
 };
 
 

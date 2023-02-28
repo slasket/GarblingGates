@@ -104,13 +104,25 @@ public:
     }
     //ith bit of vector might have fucked up indexing, nice (:
     //checks right to left
-    static int findithBit(vector<uint64_t> ui, int i) {
+    static int checkIthBit(vector<uint64_t> ui, int i) {
         //ith bit
         int bit = i%64;
         //find block
         int block = i / 64;
-        string blockStr = bitset<64>(ui[block]).to_string();
-        return blockStr[bit] - '0';
+        return checkBit(ui[block],bit);
+    }
+    //find ith bit the slow way
+    //static int findIthBit(vector<::uint64_t> ui, int i){
+    //    //ith bit
+    //    int bit = i%64;
+    //    //find block
+    //    int block = i / 64;
+    //    string blockStr = bitset<64>(ui[block]).to_string();
+    //    return blockStr[bit] - '0';
+    //}
+
+    static int checkBit(::uint64_t num, int i){  //# From https://stackoverflow.com/questions/18111488/convert-integer-to-binary-in-python-and-compare-the-bits
+        return (num >> i) & 1;
     }
 
     static int ithBitL2R(vector<uint64_t> v, int i){
@@ -123,27 +135,30 @@ public:
         return (num >> 63-(i%64)) & 1;
     }
 
+
     static vector<::uint64_t> setIthBitTo1L2R(vector<::uint64_t> vec, int pos){
         int block = pos / 64;
-        vec[block] |= ((uint64_t)1) << (63-(pos%64));
+        auto oneshifted = ((uint64_t)1) << (pos%64);
+
+        vec[block] |= oneshifted;
         return vec;
     }
 
-    static vector<::uint64_t> VecXOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
+    static vector<::uint64_t> vecXOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
         for (int i = 0; i < left.size(); ++i) {
-            left[i] = left[i] ^right[i];
+            left[i] = left[i] ^ right[i];
         }
         return left;
     }
     static vector<::uint64_t> vecAND(vector<::uint64_t>left, const vector<::uint64_t>& right){
         for (int i = 0; i < left.size(); ++i) {
-            left[i] = left[i] ^right[i];
+            left[i] = left[i] & right[i];
         }
         return left;
     }
     static vector<::uint64_t> vecOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
         for (int i = 0; i < left.size(); ++i) {
-            left[i] = left[i] || right[i];
+            left[i] = left[i] | right[i];
         }
         return left;
     }
@@ -182,6 +197,7 @@ public:
 
         return bits;
     }
+
     //taken from https://helloacm.com/c-coding-exercise-number-of-1-bits-revisited/
     static inline int hammingWeight(uint64_t x) {
         x -= (x >> 1) & 0x5555555555555555;             //put count of each 2 bits into those 2 bits
@@ -193,7 +209,7 @@ public:
     static inline int vecHW(vector<uint64_t> x) {
         int hw = 0;
         for (int i = 0; i < x.size(); ++i) {
-            hammingWeight(x[i]);
+            hw += hammingWeight(x[i]);
         }
         return hw;
     }
@@ -223,8 +239,16 @@ public:
     static ::uint64_t leftShiftFill1(::uint64_t x){
         return ~((~x)<<1);
     }
+    static vector<bitset<64>> insertBitVecBitset(vector<bitset<64>> vec, int bit, int i){
 
-
+        int block = i/64;
+        //for left to right insertion
+        //int pos = 63-(i%64);
+        //vec[block][pos] = bit;
+        //for left to right uint but right to left index
+        vec[block][i%64] = bit;
+        return vec;
+    }
 };
 
 
