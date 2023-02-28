@@ -17,6 +17,16 @@ tuple<vector<vector<::uint64_t>>,vector<tuple<vector<::uint64_t>,vector<::uint64
     return {get<0>(garbledFAndD), encodingInfo, decoding, l};
 }
 
+tuple<vector<vector<::uint64_t>>,vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>,vector<vector<uint64_t>>,int,vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>>
+atecaGarble::GbLEAK(int l, const vector<std::string>& C) {
+
+    auto encodingInfo = Init(C, l);
+    auto garbledFAndD = GarbleCircuit(l, C, encodingInfo);
+    auto decoding = DecodingInfo(get<1>(garbledFAndD), l);
+
+    return {get<0>(garbledFAndD), encodingInfo, decoding, l, get<1>(garbledFAndD)};
+}
+
 
 
 vector<tuple<vector<::uint64_t>,vector<::uint64_t>>> atecaGarble::Init(vector<std::string> C, int l) {

@@ -93,6 +93,74 @@ BOOST_AUTO_TEST_SUITE( Testing_decoding_garbled_Y )
     }
 BOOST_AUTO_TEST_SUITE_END()
 
+BOOST_AUTO_TEST_SUITE( xorTest )
+    auto finput1 = vector<int>{0,0};
+    auto finput2 = vector<int>{0,1};
+    auto C = circuitParser::parseCircuit("../tests/circuits/xorTest.txt");
+    int l = 64;
+    auto feds = atecaGarble::GbLEAK(l, C);
+    auto encodingInfo = get<1>(feds);
+    auto encodedInput = atecaGarble::En(get<1>(feds), finput1);
+    auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds));
+    auto y = atecaGarble::De(Y, get<2>(feds));
+    BOOST_AUTO_TEST_CASE( encoding_choice )
+    {
+        BOOST_TEST(get<0>(encodingInfo[1])[0]==encodedInput[1][0]);
+        encodedInput = atecaGarble::En(get<1>(feds), finput2);
+        BOOST_TEST(get<1>(encodingInfo[1])[0]==encodedInput[1][0]);
+    }
+    BOOST_AUTO_TEST_CASE( evalXor )
+    {
+        auto outputLabels= get<4>(feds);
+        BOOST_TEST(Y[0]==get<0>(outputLabels[0]));
+        encodedInput = atecaGarble::En(get<1>(feds), finput2);
+        Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds));
+        BOOST_TEST(Y[0]==get<1>(outputLabels[0]));
+    }
+    BOOST_AUTO_TEST_CASE( xor_Output )
+    {
+        auto encodedInput = atecaGarble::En(get<1>(feds), finput1);
+        auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds));
+        auto y = atecaGarble::De(Y, get<2>(feds));
+        BOOST_TEST(y.size()==1);
+        BOOST_TEST(y[0]==0);
+    }
+BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE( andTest )
+    auto finput1 = vector<int>{1,1};
+    auto finput2 = vector<int>{0,1};
+    auto C = circuitParser::parseCircuit("../tests/circuits/andTest.txt");
+    int l = 64;
+    auto feds = atecaGarble::GbLEAK(l, C);
+    auto encodingInfo = get<1>(feds);
+    auto encodedInput = atecaGarble::En(get<1>(feds), finput1);
+    auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds));
+    auto y = atecaGarble::De(Y, get<2>(feds));
+
+    BOOST_AUTO_TEST_CASE( encoding_choice )
+    {
+        BOOST_TEST(get<1>(encodingInfo[0])[0]==encodedInput[0][0]);
+        encodedInput = atecaGarble::En(get<1>(feds), finput2);
+        BOOST_TEST(get<0>(encodingInfo[0])[0]==encodedInput[0][0]);
+    }
+    BOOST_AUTO_TEST_CASE( evalAND )
+    {
+        auto outputLabels= get<4>(feds);
+        BOOST_TEST(Y[0]==get<1>(outputLabels[0]));
+        encodedInput = atecaGarble::En(get<1>(feds), finput2);
+        Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds));
+        BOOST_TEST(Y[0]==get<0>(outputLabels[0]));
+    }
+
+
+    BOOST_AUTO_TEST_CASE( and_output )
+    {
+        BOOST_TEST(y.size()==1);
+        BOOST_TEST(y[0]==0);
+    }
+BOOST_AUTO_TEST_SUITE_END()
+
 BOOST_AUTO_TEST_SUITE( Testing_BloodComp_Alternate )
     int lInput =6; int rInput = 1;
     auto finput = vector<int>{1,1,0,0,0,1,1};
