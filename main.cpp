@@ -91,53 +91,35 @@ void testBaseOT(int v, int k ,int l, int elgamalKeySize){
 
 
 int main() {
-    bitset<64> val ("0001000100010001");
-    bitset<64> val2 ("000100000001");
-
-    auto a = vector<::uint64_t>{val2.to_ullong(),0};
-    auto b = vector<::uint64_t>{val.to_ullong(),0};
-
-    auto res = atecaGarble::projection(a,b);
-    util::printUintVec(res);
-
-
-    cout << "and"<<endl;
-    for (int i = 0; i < 2; ++i) {
-        auto finput1 = vector<int>{0,1};
-        auto C = circuitParser::parseCircuit("../tests/circuits/andTest.txt");
-        int l = 64;
-        auto feds = atecaGarble::GbLEAK(l, C);
-        auto encodingInfo = get<1>(feds);
-        auto encodedInput = atecaGarble::En(get<1>(feds), finput1);
-
-        auto outwires = get<4>(feds);
-        auto outwires0 = get<0>(outwires[0]);
-        auto outwires1 = get<1>(outwires[0]);
-        auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds));
-        auto y = atecaGarble::De(Y, get<2>(feds));
-        //cout<< "ow0: " << outwires0[0] << " ow1: " <<outwires1[0] <<endl;
-        //cout<< "  Y: " << Y[0][0] <<endl;
-        cout <<endl;
-    }
-    cout << "xor"<<endl;
-    for (int i = 0; i < 2; ++i) {
-        auto finput1 = vector<int>{1,1};
-        auto C = circuitParser::parseCircuit("../tests/circuits/xorTest.txt");
-        int l = 64;
-        auto feds = atecaGarble::GbLEAK(l, C);
-        auto encodingInfo = get<1>(feds);
-        auto encodedInput = atecaGarble::En(get<1>(feds), finput1);
-
-        auto outwires = get<4>(feds);
-        auto outwires0 = get<0>(outwires[0]);
-        auto outwires1 = get<1>(outwires[0]);
-        auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds));
-        auto y = atecaGarble::De(Y, get<2>(feds));
-        //cout<< "ow0: " << outwires0[0] << " ow1: " <<outwires1[0] <<endl;
-        //cout<< "  Y: " << Y[0][0] <<endl;
-        cout <<endl;
-
-    }
+    //bitset<64> val ("0001000100010001");
+    //bitset<64> val2 (   "000100000001");
+//
+    //auto a = vector<::uint64_t>{val2.to_ullong(),0};
+    //auto b = vector<::uint64_t>{val.to_ullong(),0};
+//
+    //auto res = atecaGarble::projection(a,b);
+    //util::printUintVec(res);
+//
+//
+    //cout << "and"<<endl;
+    //for (int i = 0; i < 10; ++i) {
+    //    auto finput1 = vector<int>{0,1};
+    //    auto C = circuitParser::parseCircuit("../tests/circuits/andTest.txt");
+    //    int l = 64;
+    //    auto feds = atecaGarble::GbLEAK(l, C);
+    //    auto encodingInfo = get<1>(feds);
+    //    auto encodedInput = atecaGarble::En(get<1>(feds), finput1);
+//
+    //    auto outwires = get<4>(feds);
+    //    auto outwires0 = get<0>(outwires[0]);
+    //    auto outwires1 = get<1>(outwires[0]);
+    //    auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds));
+    //    auto y = atecaGarble::De(Y, get<2>(feds));
+    //    //cout<< "ow0: " << outwires0[0] << " ow1: " <<outwires1[0] <<endl;
+    //    //cout<< "  Y: " << Y[0][0] <<endl;
+    //    //cout << "  y: " << y[0] <<endl;
+    //    cout <<endl;
+    //}
 
 
     //string input = "123+0uf892ujf984j9f8jds98afuq348+ju fs890_1";

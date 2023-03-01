@@ -119,11 +119,11 @@ atecaGarble::Gate(const tuple<vector<::uint64_t>, vector<::uint64_t>>& in0, cons
     vector<::uint64_t> X_01 = util::hash_variable(util::uintVec2Str(l01), internalParam);
     vector<::uint64_t> X_10 = util::hash_variable(util::uintVec2Str(l10), internalParam);
     vector<::uint64_t> X_11 = util::hash_variable(util::uintVec2Str(l11), internalParam);
-    cout<< "garble hashes" <<endl;
-    util::printUintVec(X_00);
-    util::printUintVec(X_01);
-    util::printUintVec(X_10);
-    util::printUintVec(X_11);
+    //cout<< "garble hashes" <<endl;
+    //util::printUintVec(X_00);
+    //util::printUintVec(X_01);
+    //util::printUintVec(X_10);
+    //util::printUintVec(X_11);
     auto delta = vector<::uint64_t>((internalParam+64-1)/64);
     auto deltaHW =0;
 
@@ -159,20 +159,28 @@ atecaGarble::Gate(const tuple<vector<::uint64_t>, vector<::uint64_t>>& in0, cons
     } while (deltaHW < l);
 
     vector<::uint64_t> L0; vector<::uint64_t>L1;
+    vector<::uint64_t> L00; vector<::uint64_t>L01; vector<::uint64_t>L02;
 
     if (typ=="AND"){
         L0 = projection(X_00, delta);
         L1 = projection(X_11, delta);
+        L00 = projection(X_00, delta);
+        L01 = projection(X_01, delta);
+        L02 = projection(X_10, delta);
     }else if (typ=="XOR"){
         L0 = projection(X_00, delta);
         L1 = projection(X_01,delta);
     }
-    cout<< "garble delta ";
-    util::printUintVec(delta);
-    cout<< "garble projections " <<endl;
-    util::printUintVec(L0);
-    util::printUintVec(L1);
-    cout<<endl;
+    //cout<< "garble delta ";
+    //util::printUintVec(delta);
+    //cout<< "garble projections " <<endl;
+    //util::printUintVec(L0);
+    //util::printUintVec(L1);
+    //cout<< "garble projections DEBUG" <<endl;
+    //util::printUintVec(L00);
+    //util::printUintVec(L01);
+    //util::printUintVec(L02);
+    //cout<<endl;
 
 
 
@@ -288,12 +296,12 @@ atecaGarble::Ev(const vector<vector<::uint64_t>>& F, const vector<vector<::uint6
             //util::printUintVec(hashOut);
             auto delta = F[gateNo];
             auto gateOut = projection(hashOut, delta);
-            cout<< "ev hash ";
-            util::printUintVec(hashOut);
-            cout<< "ev delta ";
-            util::printUintVec(delta);
-            cout << "ev projection ";
-            util::printUintVec(gateOut);
+            //cout<< "ev hash ";
+            //util::printUintVec(hashOut);
+            //cout<< "ev delta ";
+            //util::printUintVec(delta);
+            //cout << "ev projection ";
+            //util::printUintVec(gateOut);
             wires[out] = gateOut;
             if (out >= firstOutputBit){
                 outputY[out - firstOutputBit] = gateOut;
