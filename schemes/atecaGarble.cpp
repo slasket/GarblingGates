@@ -17,16 +17,6 @@ tuple<vector<vector<::uint64_t>>,vector<tuple<vector<::uint64_t>,vector<::uint64
     return {get<0>(garbledFAndD), encodingInfo, decoding, l};
 }
 
-tuple<vector<vector<::uint64_t>>,vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>,vector<vector<uint64_t>>,int,vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>>
-atecaGarble::GbLEAK(int l, const vector<std::string>& C) {
-
-    auto encodingInfo = Init(C, l);
-    auto garbledFAndD = GarbleCircuit(l, C, encodingInfo);
-    auto decoding = DecodingInfo(get<1>(garbledFAndD), l);
-
-    return {get<0>(garbledFAndD), encodingInfo, decoding, l, get<1>(garbledFAndD)};
-}
-
 
 
 vector<tuple<vector<::uint64_t>,vector<::uint64_t>>> atecaGarble::Init(vector<std::string> C, int l) {
@@ -119,27 +109,16 @@ atecaGarble::Gate(const tuple<vector<::uint64_t>, vector<::uint64_t>>& in0, cons
     vector<::uint64_t> X_01 = util::hash_variable(util::uintVec2Str(l01), internalParam);
     vector<::uint64_t> X_10 = util::hash_variable(util::uintVec2Str(l10), internalParam);
     vector<::uint64_t> X_11 = util::hash_variable(util::uintVec2Str(l11), internalParam);
-    //cout<< "garble hashes" <<endl;
-    //util::printUintVec(X_00);
-    //util::printUintVec(X_01);
-    //util::printUintVec(X_10);
-    //util::printUintVec(X_11);
     auto delta = vector<::uint64_t>((internalParam+64-1)/64);
     auto deltaHW =0;
 
-    ///0000
-    ///1111
-    ///0001
-    ///1110
-    //make internal param length zer0 string
     int j =0;
     do {
         string slice = util::sliceVecL2R(X_00,X_01,X_10,X_11,j);
         if (typ == "AND"){
             //util::ithBitL2R(masksORed,j)
-            if (slice =="0000"|| slice =="0001"||slice=="1110"||slice=="1111"){
+            if (slice =="0000"|| slice =="0001"||slice=="1110"||slice=="1111"){//(util::ithBitL2R(masksORed,j)){
                 //or the ith bit with 1
-
                 delta= util::setIthBitTo1L2R(delta,j);
                 deltaHW ++;
             }
@@ -147,7 +126,7 @@ atecaGarble::Gate(const tuple<vector<::uint64_t>, vector<::uint64_t>>& in0, cons
             //if true
             ///1001
             ///0110
-            if (slice =="0000"|| slice =="1001"||slice=="0110"||slice=="1111"){
+            if (slice =="0000"|| slice =="1001"||slice=="0110"||slice=="1111"){//(util::ithBitL2R(masksORed,j)){
                 //update j'th bit of delta to 1
                 delta= util::setIthBitTo1L2R(delta,j);
                 deltaHW ++;
@@ -159,30 +138,19 @@ atecaGarble::Gate(const tuple<vector<::uint64_t>, vector<::uint64_t>>& in0, cons
     } while (deltaHW < l);
 
     vector<::uint64_t> L0; vector<::uint64_t>L1;
-    vector<::uint64_t> L00; vector<::uint64_t>L01; vector<::uint64_t>L02;
 
     if (typ=="AND"){
         L0 = projection(X_00, delta);
         L1 = projection(X_11, delta);
-        L00 = projection(X_00, delta);
-        L01 = projection(X_01, delta);
-        L02 = projection(X_10, delta);
     }else if (typ=="XOR"){
         L0 = projection(X_00, delta);
         L1 = projection(X_01,delta);
     }
-    //cout<< "garble delta ";
-    //util::printUintVec(delta);
-    //cout<< "garble projections " <<endl;
-    //util::printUintVec(L0);
-    //util::printUintVec(L1);
-    //cout<< "garble projections DEBUG" <<endl;
-    //util::printUintVec(L00);
-    //util::printUintVec(L01);
-    //util::printUintVec(L02);
-    //cout<<endl;
-
-
+    //cout << "projects"<<endl;
+    //cout<< projection(X_00, delta)[0]<<endl;
+    //cout<< projection(X_01, delta)[0]<<endl;
+    //cout<< projection(X_10, delta)[0]<<endl;
+    //cout<< projection(X_11, delta)[0]<<endl;
 
     return {L0, L1, delta};
 }
@@ -232,10 +200,11 @@ vector<vector<uint64_t>> atecaGarble::DecodingInfo(const vector<tuple<vector<::u
         int lsbHL1;
         do {
             di = util::genBitsNonCrypto(l);
-
+            //this is not the cleanest code ever
+            L0wdi.clear();
             L0wdi.insert(L0wdi.begin(), L0.begin(), L0.end());
             L0wdi.insert(L0wdi.end(), di.begin(), di.end());
-
+            L1wdi.clear();
             L1wdi.insert(L1wdi.begin(), L1.begin(), L1.end());
             L1wdi.insert(L1wdi.end(), di.begin(), di.end());
             hashL0 = util::hash_variable(util::uintVec2Str(L0wdi),l);
@@ -243,6 +212,10 @@ vector<vector<uint64_t>> atecaGarble::DecodingInfo(const vector<tuple<vector<::u
             lsbHL0=util::checkBit(hashL0[0],0);
             lsbHL1=util::checkBit(hashL1[0],0);
         } while (!((lsbHL0 == 0) && (lsbHL1 == 1)));
+        //cout<< "hashL0 in " << L0wdi[0]<<" "<<L0wdi[1]<<endl;
+        //cout << "hashL0 " <<hashL0[0] <<endl;
+        //cout<< "hashL1 in " << L1wdi[0]<<" "<<L1wdi[1]<<endl;
+        //cout << "hashL1 " <<hashL1[0]<<endl;
         d[i] = di;
     }
     return d;
@@ -292,16 +265,10 @@ atecaGarble::Ev(const vector<vector<::uint64_t>>& F, const vector<vector<::uint6
             labelA.push_back(gateNo);
             auto hashInputLabel = util::uintVec2Str(labelA);
             auto hashOut = util::hash_variable(hashInputLabel,internalSecParam);
-            //cout<< "ev hash" <<endl;
-            //util::printUintVec(hashOut);
             auto delta = F[gateNo];
             auto gateOut = projection(hashOut, delta);
-            //cout<< "ev hash ";
-            //util::printUintVec(hashOut);
-            //cout<< "ev delta ";
-            //util::printUintVec(delta);
-            //cout << "ev projection ";
-            //util::printUintVec(gateOut);
+            //cout<< "ev proj"<<endl;
+            //cout << gateOut[0] <<endl;
             wires[out] = gateOut;
             if (out >= firstOutputBit){
                 outputY[out - firstOutputBit] = gateOut;
@@ -312,18 +279,21 @@ atecaGarble::Ev(const vector<vector<::uint64_t>>& F, const vector<vector<::uint6
 }
 
 vector<::uint64_t> atecaGarble::De(vector<vector<::uint64_t>> outputY, vector<vector<uint64_t>> d) {
-    auto outputBits = outputY.size();
-    auto outputSets =  vector<bitset<64>>((outputBits+64-1)/64);
+    auto outbits = outputY.size();
+    auto unit64sNeeded = outbits/64 + ((outbits%64!=0) ? 1 : 0);
+    auto outputSets =  vector<bitset<64>>(unit64sNeeded);
 
-    for (int i = 0; i < outputBits; ++i) {
+    for (int i = 0; i < outbits; ++i) {
         //get the lsb of the hash shit
         outputY[i].insert(outputY[i].end(), d[i].begin(), d[i].end());
         auto hash = util::hash_variable(util::uintVec2Str(outputY[i]), 64);
+        //cout<< "Dehashin " <<outputY[i][0] << " "<< outputY[i][1]<<endl;
+        //cout<< "Dehash "<<hash[0]<<endl;
         int lsbHash=util::checkBit(hash[0],0);
         outputSets = util::insertBitVecBitset(outputSets,lsbHash,i);
     }
-    auto y = vector<::uint64_t>(outputY.size());
-    for (int i = 0; i < outputSets.size(); ++i) {
+    auto y = vector<::uint64_t>(unit64sNeeded);
+    for (int i = 0; i < unit64sNeeded; ++i) {
         y[i] = outputSets[i].to_ullong();
     }
 
