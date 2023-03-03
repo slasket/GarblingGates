@@ -7,42 +7,50 @@
 
 #include <vector>
 #include <string>
-
 using namespace std;
+typedef vector<uint64_t> vint;
+typedef tuple<vint, vint> labelPair;
+
 class baseGarble {
 public:
     static
-    tuple<vector<tuple<vector<uint64_t>, vector<uint64_t>>>,
-            vector<tuple<vector<uint64_t >, vector<uint64_t >>>,
-                    vector<tuple<vector<uint64_t >, vector<uint64_t >>>>
-    garble(int k, vector<string> f);
-    static vector<vector<uint64_t>> encode(vector<tuple<vector<uint64_t>, vector<uint64_t>>> e, vector<int> x);
-    static vector<vector<uint64_t>> eval(tuple<vector<tuple<vector<uint64_t>, vector<uint64_t>>>,
-            vector<tuple<vector<uint64_t>, vector<uint64_t>>>,
-            vector<tuple<vector<uint64_t>, vector<uint64_t>>>> F, vector<vector<uint64_t>> X, vector<string> f, int k);
-    static vector<int> decode(vector<tuple<vector<uint64_t>, vector<uint64_t>>> d, vector<vector<uint64_t>> Y);
+    tuple<vector<labelPair>,
+            vector<tuple<vint, vint>>,
+            vector<tuple<vint, vint>>>
+    garble(vector<string> f, const vint& invConst = {874537361747324275,15596160569201595389}, int k = 128);
+    static vector<vint> encode(vector<labelPair> e, vector<int> x);
+    static vector<vint> eval(tuple<vector<labelPair>,
+            vector<labelPair>,
+            vector<labelPair>> F, vector<vint> X, vector<string> f,
+                             const vint& invConst = {874537361747324275,15596160569201595389}, int k = 128);
+    static vector<int> decode(vector<labelPair> d, vector<vint> Y);
     static tuple<vector<int>, vector<int>, string> extractGate(const string &line);
-    static vector<uint64_t> HashFunction(vector<uint64_t> x, int k);
+    static vint hashFunc(vint x, int k);
 
-    static tuple<vector<::uint64_t>, vector<::uint64_t>, vector<::uint64_t>>
-    andGate(const vector<::uint64_t> &globalDelta, int permuteBitA, int permuteBitB, vector<uint64_t> &A0,
-            vector<uint64_t> &A1,
-            vector<uint64_t> &B0, vector<uint64_t> &B1, vector<::uint64_t> &ciphertext, vector<::uint64_t> &gate0,
+    static void
+    andGate(const vector<::uint64_t> &globalDelta, int permuteBitA, int permuteBitB, vint &A0,
+            vint &A1,
+            vint &B0, vint &B1, vector<::uint64_t> &ciphertext, vector<::uint64_t> &gate0,
             vector<::uint64_t> &gate1, int k);
-    static tuple<vector<::uint64_t>, vector<::uint64_t>, vector<::uint64_t>>
-    xorGate(const vector<::uint64_t> &globalDelta, int permuteBitA, int permuteBitB, vector<uint64_t> &A0,
-            vector<uint64_t> &A1,
-            vector<uint64_t> &B0, vector<uint64_t> &B1, vector<::uint64_t> &ciphertext, vector<::uint64_t> &gate0,
-            vector<::uint64_t> &gate1, int k);
-    static tuple<vector<::uint64_t>, vector<::uint64_t>, vector<::uint64_t>>
-    invGate(const vector<::uint64_t> &globalDelta, int permuteBitA, int permuteBitB, vector<uint64_t> &A0,
-            vector<uint64_t> &A1,
-            vector<uint64_t> &B0, vector<uint64_t> &B1, vector<::uint64_t> &ciphertext, vector<::uint64_t> &gate0,
-            vector<::uint64_t> &gate1, int k);
+    static void
+    xorGate(const vector<::uint64_t> &globalDelta, int permuteBitA, int permuteBitB,
+            vint &A0, vint &B0, vector<::uint64_t> &ciphertext);
+    static void
+    invGate(int permuteBitA, vint &A0, vint &A1, vint &ciphertext, const vint &invConst);
 
-    static vector<uint64_t> XORHashpart(vector<uint64_t> &labelA, vector<uint64_t> &labelB, int k);
+    static vint hashXOR(vint &labelA, vint &labelB, int k);
 
     static void getBits(string &f, int &numberOfInputBits);
+
+    static void
+    garbleGate(const vint &invConst, int k, const vector<::uint64_t> &globalDelta, vector<int> inputWires,
+               const string& gateType, vector<labelPair> &wireLabels,
+               vector<int> &outputWires, vector<::uint64_t> &gate0, vector<::uint64_t> &gate1);
+
+    static vint evalGate(const vint &invConst, int k,
+                         const vector<labelPair> &garbledCircuit,
+                         const vector<vint> &wireValues, int i, vector<int> inputWires,
+                         const string& gateType);
 };
 
 

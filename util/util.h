@@ -64,14 +64,19 @@ public:
                                      vector<tuple<vector<uint64_t>, vector<uint64_t>>>& wiresLabels) {
                 //generate new global delta if non is given
                 if(globalDelta[0]==0){
-                    globalDelta = otUtil::genBitsNonCrypto(k);
-                    globalDelta[0] = globalDelta[0] | 1;
+                    globalDelta = genDelta(k);
                 }
                 //generate input labels
                 for(auto & wiresLabel : wiresLabels){
                     labelPointAndPermute(k, wiresLabel, globalDelta);
                 }
                 return make_tuple(globalDelta, wiresLabels);
+    }
+
+    static vector<uint64_t> genDelta(int k) {
+        vector<uint64_t> globalDelta = otUtil::genBitsNonCrypto(k);
+        globalDelta[0] = globalDelta[0] | 1;
+        return globalDelta;
     }
 
     static void labelPointAndPermute(int k,
