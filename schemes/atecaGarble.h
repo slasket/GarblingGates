@@ -13,25 +13,30 @@
 #include <string>
 
 using namespace std;
+typedef vector<uint64_t> vint;
+typedef tuple<vint, vint> labelPair;
+
 class atecaGarble {
 
 public:
     //garbler public function
-    static tuple<vector<vector<::uint64_t>>,vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>,vector<vector<uint64_t>>,int>
+    static tuple<vector<vint>, vector<tuple<vint,vint>>, vector<vint>, int, tuple<vint,vint>>
             Gb(int l, const vector<std::string>& C);
 
     //Evaluator functions
-    static vector<vector<::uint64_t>> En(vector<tuple<vector<::uint64_t>,vector<::uint64_t>>> encoding, vector<int> input);
-    static vector<vector<::uint64_t>> Ev(const vector<vector<::uint64_t>>& F, const vector<vector<::uint64_t>>& X, vector<string>C, int l);
-    static vector<::uint64_t> De(vector<vector<::uint64_t>> outputY, vector<vector<uint64_t>> d);
+    static vector<vint> En(vector<tuple<vint,vint>> encoding, vector<int> input);
+    static vector<vint> Ev(const vector<vint>& F, const vector<vint>& X, vector<string>C, int l, tuple<vint,vint> invVar);
+    static vint De(vector<vint> outputY, vector<vint> d);
     //projection method
-    static vector<uint64_t> projection(const vector<::uint64_t>& a,const vector<::uint64_t>& b);
+    static vint projection(const vint& a,const vint& b);
 private:
-    static vector<tuple<vector<::uint64_t>,vector<::uint64_t>>> Init(vector<std::string> C, int l);
-    static tuple<vector<vector<::uint64_t>>,vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>> GarbleCircuit(int l, vector<std::string> C, vector<tuple<vector<::uint64_t>,vector<::uint64_t>>> encoding);
+    static vector<tuple<vint,vint>> Init(vector<std::string> C, int l);
+    static tuple<vector<vint>,vector<tuple<vint,vint>>, tuple<vint,vint>> GarbleCircuit(int l, vector<std::string> C, vector<tuple<vint,vint>> encoding, const tuple<vint,vint>& invVar);
     //single Gate Gb
-    static vector<vector<uint64_t>> Gate(const tuple<vector<::uint64_t>, vector<::uint64_t>>&in0, const tuple<vector<::uint64_t>, vector<::uint64_t>>&in1, const string& typ, int gateNo, int l);
-    static vector<vector<uint64_t>> DecodingInfo(const vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>&D, int l);
+    static vector<vint> Gate(const tuple<vint, vint>&in0, const tuple<vint, vint>&in1, const string& typ, int gateNo, int l);
+    static vector<vint> DecodingInfo(const vector<tuple<vint,vint>>&D, int l, tuple<vint,vint> invVar);
+
+    static tuple<vint, vint> genInvVar(int l);
 };
 
 #endif //GARBLINGGATES_ATECAGARBLE_H

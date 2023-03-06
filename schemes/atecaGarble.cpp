@@ -7,37 +7,40 @@
 #include <utility>
 #include "../util/util.h"
 
-tuple<vector<vector<::uint64_t>>,vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>,vector<vector<uint64_t>>,int>
+tuple<vector<vint>,vector<tuple<vint,vint>>,vector<vint>,int,tuple<vint,vint>>
     atecaGarble::Gb(int l, const vector<std::string>& C) {
 
     auto encodingInfo = Init(C, l);
-    auto garbledFAndD = GarbleCircuit(l, C, encodingInfo);
-    auto decoding = DecodingInfo(get<1>(garbledFAndD), l);
+    cout<<"garbleFunc"<<endl;
+    auto invVar= genInvVar(l);
+    auto garbledFnDnInvVar = GarbleCircuit(l, C, encodingInfo, invVar);
+    cout<<"decoding construct"<<endl;
+    auto decoding = DecodingInfo(get<1>(garbledFnDnInvVar), l, invVar);
 
-    return {get<0>(garbledFAndD), encodingInfo, decoding, l};
+    return {get<0>(garbledFnDnInvVar), encodingInfo, decoding, l, invVar};
 }
 
 
 
-vector<tuple<vector<::uint64_t>,vector<::uint64_t>>> atecaGarble::Init(vector<std::string> C, int l) {
+vector<tuple<vint,vint>> atecaGarble::Init(vector<std::string> C, int l) {
     auto inputs = util::split(C[1], ' ');
     int inputWires = 0;
     for (int i = 1; i < inputs.size(); ++i) {
         inputWires+= stoi(inputs[i]);
     }
-    vector<tuple<vector<::uint64_t>,vector<::uint64_t>>> e =vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>(inputWires);
+    vector<tuple<vint,vint>> e =vector<tuple<vint,vint>>(inputWires);
     for (int i = 0; i < inputWires; ++i) {
-        vector<::uint64_t> lw0 = util::genBitsNonCrypto(l);
-        vector<::uint64_t> lw1 = util::vecXOR(util::genBitsNonCrypto(l), lw0);
-        tuple<vector<::uint64_t>,vector<::uint64_t>> ew = {lw0,lw1};
+        vint lw0 = util::genBitsNonCrypto(l);
+        vint lw1 = util::vecXOR(util::genBitsNonCrypto(l), lw0);
+        tuple<vint,vint> ew = {lw0,lw1};
         e[i] = ew;
     }
 
     return e;
 }
 
-tuple<vector<vector<::uint64_t>>,vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>>
-        atecaGarble::GarbleCircuit(int l, vector<std::string> C,vector<tuple<vector<::uint64_t>, vector<::uint64_t>>> encoding) {
+tuple<vector<vint>,vector<tuple<vint,vint>>, tuple<vint,vint>>
+        atecaGarble::GarbleCircuit(int l, vector<std::string> C,vector<tuple<vint, vint>> encoding, const tuple<vint,vint>& invVar) {
     //get amount of gates, wires and output bits
     auto gatesAndWires=util::split(C[0], ' ');
     int outputBits =stoi( util::split(C[2], ' ')[1]);
@@ -48,51 +51,65 @@ tuple<vector<vector<::uint64_t>>,vector<tuple<vector<::uint64_t>,vector<::uint64
     wires.resize(amountOfWires);
 
     //gabled vector
-    auto F = vector<vector<::uint64_t>>(amountOfWires);//too large remove input wires
+    auto F = vector<vint>(amountOfWires);//too large remove input wires
     //decoding vector
-    auto D = vector<tuple<vector<::uint64_t>,vector<::uint64_t>>>(outputBits);
+    auto D = vector<tuple<vint,vint>>(outputBits);
 
     //output bits are defined as the last k wires, where k is the amount of output bits
     int firstOutputBit = amountOfWires - outputBits;
-
+    vector<vint> garbledGate;
+    int out;
     //for every Gate in circuit
     for (int i = 3; i < C.size(); ++i) {
         //find input labels
         auto gateInfo = util::split(C[i], ' ');
-        int inAmount = stoi(gateInfo[0]); int outAmount = stoi(gateInfo[1]);
-        //this always happen xd
-        if(inAmount == 2 & outAmount == 1){
-            int gateNo = (i-3);
+        //int inAmount = stoi(gateInfo[0]);
+        //int outAmount = stoi(gateInfo[1]);
+
+        int gateNo = (i - 3);
+        if (gateNo==380){
+            cout<<"xd"<<endl;
+        }
+        //inverse gate hack
+        if (gateInfo[4] == "INV") {
+            int in0 = stoi(gateInfo[2]);
+            //int in1 = stoi(gateInfo[3]);
+            out = stoi(gateInfo[3]);
+            string type = gateInfo[4];
+
+            //calculate Gb
+            garbledGate = Gate(wires[in0], invVar, type, gateNo, l);
+
+        }//normal gate
+        else {
             int in0 = stoi(gateInfo[2]);
             int in1 = stoi(gateInfo[3]);
-            int out = stoi(gateInfo[4]);
+            out = stoi(gateInfo[4]);
             string type = gateInfo[5];
 
             //calculate Gb
-            auto garbledGate = Gate(wires[in0], wires[in1], type, gateNo, l);
-            //add Delta to F set for a Gate
-            F[gateNo]= garbledGate[2];
-            //the gates output labels
-            wires[out] = {garbledGate[0],garbledGate[1]};
-
-            //if g is an output Gate, add it to D
-            if (out >= firstOutputBit){
-             //add the label to D
-             D[out-firstOutputBit] = {garbledGate[0],garbledGate[1]};
-            }
+            garbledGate = Gate(wires[in0], wires[in1], type, gateNo, l);
+        }
+        //add Delta to F set for a Gate
+        F[gateNo] = garbledGate[2];
+        //the gates output labels
+        wires[out] = {garbledGate[0], garbledGate[1]};
+        //if g is an output Gate, add it to D
+        if (out >= firstOutputBit) {
+            //add the label to D
+            D[out-firstOutputBit] = {garbledGate[0],garbledGate[1]};
         }
     }
-    return {F,D};
+    return {F,D, invVar};
 }
 
 
-vector<vector<uint64_t>>
-atecaGarble::Gate(const tuple<vector<::uint64_t>, vector<::uint64_t>>& in0, const tuple<vector<::uint64_t>, vector<::uint64_t>>& in1,
+vector<vint> atecaGarble::Gate(const tuple<vint, vint>& in0, const tuple<vint, vint>& in1,
                           const string& typ, int gateNo, int l) {
     int internalParam= l * 8;
     //the random oracles lol
     //THIS IS THE WRONG WAY OF TWEAKING!=!=!?!??!!
-    vector<::uint64_t> l00 = get<0>(in0);
+    vint l00 = get<0>(in0);
     l00.insert(l00.end(), get<0>(in1).begin(), get<0>(in1).end());
     l00.push_back(gateNo);
     auto l01 = get<0>(in0);
@@ -105,11 +122,11 @@ atecaGarble::Gate(const tuple<vector<::uint64_t>, vector<::uint64_t>>& in0, cons
     l11.insert(l11.end(), get<1>(in1).begin(), get<1>(in1).end());
     l11.push_back(gateNo);
     //actually compute the hashes
-    vector<::uint64_t> X_00 = util::hash_variable(util::uintVec2Str(l00), internalParam);
-    vector<::uint64_t> X_01 = util::hash_variable(util::uintVec2Str(l01), internalParam);
-    vector<::uint64_t> X_10 = util::hash_variable(util::uintVec2Str(l10), internalParam);
-    vector<::uint64_t> X_11 = util::hash_variable(util::uintVec2Str(l11), internalParam);
-    auto delta = vector<::uint64_t>((internalParam+64-1)/64);
+    vint X_00 = util::hash_variable(util::uintVec2Str(l00), internalParam);
+    vint X_01 = util::hash_variable(util::uintVec2Str(l01), internalParam);
+    vint X_10 = util::hash_variable(util::uintVec2Str(l10), internalParam);
+    vint X_11 = util::hash_variable(util::uintVec2Str(l11), internalParam);
+    auto delta = vint((internalParam+64-1)/64);
     auto deltaHW =0;
 
     int j =0;
@@ -122,7 +139,7 @@ atecaGarble::Gate(const tuple<vector<::uint64_t>, vector<::uint64_t>>& in0, cons
                 delta= util::setIthBitTo1L2R(delta,j);
                 deltaHW ++;
             }
-        }else if(typ == "XOR"){
+        }else if(typ == "XOR"|| typ=="INV"){
             //if true
             ///1001
             ///0110
@@ -131,18 +148,20 @@ atecaGarble::Gate(const tuple<vector<::uint64_t>, vector<::uint64_t>>& in0, cons
                 delta= util::setIthBitTo1L2R(delta,j);
                 deltaHW ++;
             }
-        }else if(typ == "INV"){
-            throw invalid_argument("NOT IMPlEMENTED YET");
+        }else{
+            string a = "Gate not implemented: ";
+            a.append(typ);
+            throw invalid_argument(a);
         }
         j++;
     } while (deltaHW < l);
 
-    vector<::uint64_t> L0; vector<::uint64_t>L1;
+    vint L0; vint L1;
 
     if (typ=="AND"){
         L0 = projection(X_00, delta);
         L1 = projection(X_11, delta);
-    }else if (typ=="XOR"){
+    }else if (typ=="XOR"||typ=="INV"){
         L0 = projection(X_00, delta);
         L1 = projection(X_01,delta);
     }
@@ -157,12 +176,12 @@ atecaGarble::Gate(const tuple<vector<::uint64_t>, vector<::uint64_t>>& in0, cons
 
 
 
-vector<uint64_t> atecaGarble::projection(const vector<::uint64_t>& a, const vector<::uint64_t>& b) {
+vint atecaGarble::projection(const vint& a, const vint& b) {
     //projection A o B means take the bit A[i] if B[i]=1
     int l = util::vecHW(b);
     int uintsNeeded = l/64 + ((l%64!=0) ? 1 : 0);
     auto projection = bitset<64>(0);
-    auto res = vector<::uint64_t>(uintsNeeded);
+    auto res = vint(uintsNeeded);
     int bitsProjected =0; int j =0; int blockNum =0;
     do {
         if (util::ithBitL2R(b,j)==1){
@@ -185,17 +204,17 @@ vector<uint64_t> atecaGarble::projection(const vector<::uint64_t>& a, const vect
 
 
 
-vector<vector<uint64_t>> atecaGarble::DecodingInfo(const vector<tuple<vector<::uint64_t>, vector<::uint64_t>>>& D, int l) {
+vector<vint> atecaGarble::DecodingInfo(const vector<tuple<vint, vint>>& D, int l, tuple<vint,vint> invVar) {
     //RO from 2l->1
-    vector<vector<::uint64_t>> d(D.size());
+    vector<vint> d(D.size());
     for (int i = 0; i < D.size(); ++i) {
         auto L0 = get<0>(D[i]);
         auto L1 = get<1>(D[i]);
-        vector<::uint64_t> L0wdi;
-        vector<::uint64_t> L1wdi;
-        vector<::uint64_t> di;
-        vector<::uint64_t> hashL0;
-        vector<::uint64_t> hashL1;
+        vint L0wdi;
+        vint L1wdi;
+        vint di;
+        vint hashL0;
+        vint hashL1;
         int lsbHL0;
         int lsbHL1;
         do {
@@ -211,6 +230,7 @@ vector<vector<uint64_t>> atecaGarble::DecodingInfo(const vector<tuple<vector<::u
             hashL1 = util::hash_variable(util::uintVec2Str(L1wdi),l);
             lsbHL0=util::checkBit(hashL0[0],0);
             lsbHL1=util::checkBit(hashL1[0],0);
+
         } while (!((lsbHL0 == 0) && (lsbHL1 == 1)));
         //cout<< "hashL0 in " << L0wdi[0]<<" "<<L0wdi[1]<<endl;
         //cout << "hashL0 " <<hashL0[0] <<endl;
@@ -223,10 +243,10 @@ vector<vector<uint64_t>> atecaGarble::DecodingInfo(const vector<tuple<vector<::u
 
 //Evaluator functions
 
-vector<vector<::uint64_t>>
-atecaGarble::En(vector<tuple<vector<::uint64_t>, vector<::uint64_t>>> encoding,
+vector<vint>
+atecaGarble::En(vector<tuple<vint, vint>> encoding,
                         vector<int> input) {
-    auto X = vector<vector<::uint64_t>>(input.size());
+    auto X = vector<vint>(input.size());
     for (int i = 0; i < input.size(); ++i) {
         if (input[i]== 0){
         X[i]=get<0>(encoding[i]);
@@ -237,9 +257,9 @@ atecaGarble::En(vector<tuple<vector<::uint64_t>, vector<::uint64_t>>> encoding,
     return X;
 }
 
-vector<vector<::uint64_t>>
-atecaGarble::Ev(const vector<vector<::uint64_t>>& F, const vector<vector<::uint64_t>>& X,
-                        vector<string> C, int l){
+vector<vint>
+atecaGarble::Ev(const vector<vint>& F, const vector<vint>& X,
+                        vector<string> C, int l, tuple<vint,vint> invVar){
     int internalSecParam = 8 * l;
     int outputBits =stoi( util::split(C[2], ' ')[1]);
     int amountOfWires = stoi(util::split(C[0], ' ')[1]);
@@ -248,22 +268,34 @@ atecaGarble::Ev(const vector<vector<::uint64_t>>& F, const vector<vector<::uint6
     auto wires = X;
     wires.resize(amountOfWires);
 
-    auto outputY = vector<vector<::uint64_t>>(outputBits);
+    auto outputY = vector<vint>(outputBits);
 
     for (int i = 3; i < C.size(); ++i) {
         auto gateInfo = util::split(C[i], ' ');
         int inAmount = stoi(gateInfo[0]); int outAmount = stoi(gateInfo[1]);
-        if(inAmount == 2 & outAmount == 1){
-            int gateNo = (i-3);
+        int gateNo = (i-3);
+        int out;
+        string hashInputLabel;
+        if (gateInfo[4]=="INV"){
+            int in0 = stoi(gateInfo[2]);
+            out = stoi(gateInfo[3]);
+            auto labelA = wires[in0];
+            auto labelB = get<1>(invVar);
+            //hash input string
+            labelA.insert(labelA.end(), labelB.begin(), labelB.end());
+            labelA.push_back(gateNo);
+            hashInputLabel = util::uintVec2Str(labelA);
+        }else {
             int in0 = stoi(gateInfo[2]);
             int in1 = stoi(gateInfo[3]);
-            int out = stoi(gateInfo[4]);
+            out = stoi(gateInfo[4]);
             auto labelA = wires[in0];
             auto labelB = wires[in1];
             //hash input string
             labelA.insert(labelA.end(), labelB.begin(), labelB.end());
             labelA.push_back(gateNo);
-            auto hashInputLabel = util::uintVec2Str(labelA);
+            hashInputLabel = util::uintVec2Str(labelA);
+        }
             auto hashOut = util::hash_variable(hashInputLabel,internalSecParam);
             auto delta = F[gateNo];
             auto gateOut = projection(hashOut, delta);
@@ -273,12 +305,12 @@ atecaGarble::Ev(const vector<vector<::uint64_t>>& F, const vector<vector<::uint6
             if (out >= firstOutputBit){
                 outputY[out - firstOutputBit] = gateOut;
             }
-        }
+
     }
     return outputY;
 }
 
-vector<::uint64_t> atecaGarble::De(vector<vector<::uint64_t>> outputY, vector<vector<uint64_t>> d) {
+vint atecaGarble::De(vector<vint> outputY, vector<vint> d) {
     auto outbits = outputY.size();
     auto unit64sNeeded = outbits/64 + ((outbits%64!=0) ? 1 : 0);
     auto outputSets =  vector<bitset<64>>(unit64sNeeded);
@@ -292,10 +324,16 @@ vector<::uint64_t> atecaGarble::De(vector<vector<::uint64_t>> outputY, vector<ve
         int lsbHash=util::checkBit(hash[0],0);
         outputSets = util::insertBitVecBitset(outputSets,lsbHash,i);
     }
-    auto y = vector<::uint64_t>(unit64sNeeded);
+    auto y = vint(unit64sNeeded);
     for (int i = 0; i < unit64sNeeded; ++i) {
         y[i] = outputSets[i].to_ullong();
     }
 
     return y;
+}
+
+tuple<vint, vint> atecaGarble::genInvVar(int l) {
+    vint lw0 = util::genBitsNonCrypto(l);
+    vint lw1 = util::vecXOR(util::genBitsNonCrypto(l), lw0);
+    return {lw0,lw1};
 }

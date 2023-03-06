@@ -91,35 +91,29 @@ void testBaseOT(int v, int k ,int l, int elgamalKeySize){
 
 
 int main() {
-
-
-    auto finput = vector<int>{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                              0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                              1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                              0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
-    auto bloodCircuit = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
-    auto feds = atecaGarble::Gb(64, bloodCircuit);
-    auto encodedInput = atecaGarble::En(get<1>(feds), finput);
-    auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, bloodCircuit, get<3>(feds));
-    auto y = atecaGarble::De(Y, get<2>(feds));
-
-    util::printUintVec(y);
+    //least significant bit first :^)
     if (true){
-   cout << "and"<<endl;
+        cout<<"6-2 mega fucked"<<endl;
+        auto finput = vector<int>{0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+        auto C = circuitParser::parseCircuit("../tests/circuits/sub64.txt");
+        cout<<"garbling"<<endl;
+        auto feds = atecaGarble::Gb(64, C);
+        cout<<"encoding"<<endl;
+        auto encodedInput = atecaGarble::En(get<1>(feds), finput);
+        cout<<"eval"<<endl;
+        auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds),get<4>(feds));
+        cout<<"decoding"<<endl;
+        auto y = atecaGarble::De(Y, get<2>(feds));
 
-   auto finput1 = vector<int>{1,0};
-   auto C = circuitParser::parseCircuit("../tests/circuits/xorTest.txt");
-   int l = 64;
-   auto feds = atecaGarble::Gb(l, C);
-   auto encodingInfo = get<1>(feds);
-   auto encodedInput = atecaGarble::En(get<1>(feds), finput1);
+        util::printUintVec(y);
 
-   auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds));
-   auto y = atecaGarble::De(Y, get<2>(feds));
-   cout<< "  y: " << y[0] <<endl;
-   cout <<endl;
     }
+
     return 0;
+
 }
 
 //util::printCircuit("../tests/circuits/BloodComp.txt");
