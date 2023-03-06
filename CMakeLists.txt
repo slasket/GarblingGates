@@ -27,7 +27,7 @@ set(SOURCES
         schemes/toyExample/toyGarblingScheme.h
         schemes/baseGarble.cpp
         schemes/baseGarble.h
-        )
+        schemes/threeHalves.cpp schemes/threeHalves.h)
 
 set(TESTS
         tests/test_class.cpp
