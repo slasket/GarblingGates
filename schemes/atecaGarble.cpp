@@ -5,7 +5,7 @@
 #include "atecaGarble.h"
 
 #include <utility>
-#include "../util/util.h"
+
 
 tuple<vector<vint>,vector<tuple<vint,vint>>,vector<vint>,int,tuple<vint,vint>>
     atecaGarble::Gb(int l, const vector<std::string>& C) {
