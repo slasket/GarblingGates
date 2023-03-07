@@ -7,9 +7,9 @@
 
 #include <vector>
 #include <string>
+#include "../util/util.h"
+using namespace customTypeSpace;
 using namespace std;
-typedef vector<uint64_t> vint;
-typedef tuple<vint, vint> labelPair;
 
 class baseGarble {
 public:

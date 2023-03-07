@@ -11,10 +11,10 @@
 
 #include <vector>
 #include <string>
-
+#include "../util/util.h"
 using namespace std;
-typedef vector<uint64_t> vint;
-typedef tuple<vint, vint> labelPair;
+using namespace customTypeSpace;
+
 
 class atecaGarble {
 

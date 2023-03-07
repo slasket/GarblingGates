@@ -17,6 +17,11 @@
 #include <openssl/evp.h>
 using namespace std;
 
+//Namespace for custom types
+namespace customTypeSpace {
+    typedef vector<uint64_t> vint;
+    typedef tuple<vint, vint> labelPair;
+}
 class util {
 
 public:
