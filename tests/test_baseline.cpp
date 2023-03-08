@@ -3,16 +3,15 @@
 //
 #include <boost/test/unit_test.hpp>
 #include "../schemes/baseGarble.h"
-#include "../util/util.h"
-#include "../util/otUtil/otUtil.h"
+
 
 using namespace boost::unit_test;
 
 BOOST_AUTO_TEST_SUITE( Testing_BaseLineExtractGate )
     string gateXOR = "2 1 0 6 7 XOR";
     string gateAND = "2 1 7 3 10 AND";
-    tuple<vector<int>, vector<int>, string> gateInfoXOR = baseGarble::extractGate(gateXOR);
-    tuple<vector<int>, vector<int>, string> gateInfoAND = baseGarble::extractGate(gateAND);
+    tuple<vector<int>, vector<int>, string> gateInfoXOR = util::extractGate(gateXOR);
+    tuple<vector<int>, vector<int>, string> gateInfoAND = util::extractGate(gateAND);
     vector<int> inputWiresXOR = get<0>(gateInfoXOR);
     vector<int> outputWiresXOR = get<1>(gateInfoXOR);
     string gateTypeXOR = get<2>(gateInfoXOR);
@@ -40,7 +39,7 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( Testing_BaseLineCipher )
     string gate = "2 1 0 1 2 XOR";
-    tuple<vector<int>, vector<int>, string> gateInfo = baseGarble::extractGate(gate);
+    tuple<vector<int>, vector<int>, string> gateInfo = util::extractGate(gate);
     vector<int> inputWires = get<0>(gateInfo);
     vector<int> outputWires = get<1>(gateInfo);
     string gateType = get<2>(gateInfo);

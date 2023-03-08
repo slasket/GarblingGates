@@ -19,9 +19,9 @@ baseGarble::garble(vector<string> f, const vint& invConst, int k) {
 
     //get number of input and output bits
     int numberOfInputBits;
-    getBits(f[1], numberOfInputBits);
+    util::getBits(f[1], numberOfInputBits);
     int numberOfOutputBits;
-    getBits(f[2], numberOfOutputBits);
+    util::getBits(f[2], numberOfOutputBits);
 
     //initialize variables
     auto garbledCircuit = vector<tuple< vint, vint>>();
@@ -41,7 +41,7 @@ baseGarble::garble(vector<string> f, const vint& invConst, int k) {
     for (int i = 3; i < f.size(); ++i) {
         //////////////////////// Getting out gate from string //////////////////////////
         auto &line = f[i];
-        auto gateInfo = extractGate(line);              // "2 1 0 1 2 XOR"
+        auto gateInfo = util::extractGate(line);              // "2 1 0 1 2 XOR"
         auto inputWires = get<0>(gateInfo);         // [ ..., 0, 1]
         auto outputWires = get<1>(gateInfo);        // [..., 1, ..., 2]
         auto gateType = get<2>(gateInfo);               // "XOR"
@@ -187,11 +187,11 @@ vector<vint> baseGarble::eval(tuple<vector<labelPair>, vector<labelPair>, vector
     int numberOfGates = stoi(gatesAndWiresSplit[0]);
     int numberOfWires = stoi(gatesAndWiresSplit[1]);
     int numberOfInputBits;
-    getBits(f[1], numberOfInputBits);
+    util::getBits(f[1], numberOfInputBits);
     auto &outputs = f[2]; //number of outputs and how many bits each output is
     auto outputSplit = util::split(outputs, ' ');
     int numberOfOutputBits;
-    getBits(f[2], numberOfOutputBits);
+    util::getBits(f[2], numberOfOutputBits);
 
     //get input labels from X and put them in wireValues
     auto wireValues = vector< vint>(numberOfWires);
@@ -209,7 +209,7 @@ vector<vint> baseGarble::eval(tuple<vector<labelPair>, vector<labelPair>, vector
     for (int i = 0; i < garbledCircuit.size(); ++i) {
         //////////////////////// Getting out gate from string //////////////////////////
         auto &line = f[i+3];
-        auto gateInfo = extractGate(line);              // "2 1 0 1 2 XOR"
+        auto gateInfo = util::extractGate(line);              // "2 1 0 1 2 XOR"
         auto inputWires = get<0>(gateInfo);         // [ ..., 0, 1]
         auto outputWires = get<1>(gateInfo);        // [..., 1, ..., 2]
         auto gateType = get<2>(gateInfo);               // "XOR"
@@ -298,38 +298,10 @@ vint baseGarble::hashFunc(vint x, int k) {
     return util::hash_variable(xstring, k);
 }
 
-void baseGarble::getBits(string &f, int &numberOfInputBits) {
-    numberOfInputBits= 0;
-    auto split = util::split(f, ' ');
-    int numberOfInputWires = stoi(split[0]);
-    for (int i = 0; i < numberOfInputWires; ++i) {
-        int numberOfBits = stoi(split[i + 1]);
-        numberOfInputBits += numberOfBits;
-    }
-}
+
 
 vint baseGarble::hashXOR(vint &labelA, vint &labelB, int k){
     return util::vecXOR(hashFunc(labelA, k), hashFunc(labelB, k));
 }
 
-tuple<vector<int>, vector<int>, string> baseGarble::extractGate(const string &line) {
-    vector<int> inputWires;
-    vector<int> outputWires;
-    //split line into space separated values
-    vector<string> lineSplit = util::split(line, ' ');
-    int numInputWires = stoi(lineSplit[0]);
-    int numOutputWires = stoi(lineSplit[1]);
-    //handle input wires
-    for (int j = 2; j < numInputWires + 2; ++j) { //index names start at 2
-        //get next input wire label/index
-        inputWires.push_back(stoi(lineSplit[j]));
-    }
-    //handle output wires
-    for (int j = numInputWires + 2; j < numInputWires + numOutputWires + 2; ++j) {
-        //get next output wire label/index
-        outputWires.push_back(stoi(lineSplit[j]));
-    }
-    //handle gate type
-    string gateType = lineSplit[numInputWires + numOutputWires + 2];
-    return make_tuple(inputWires, outputWires, gateType);
-}
+

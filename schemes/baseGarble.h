@@ -24,7 +24,6 @@ public:
             vector<labelPair>> F, vector<vint> X, vector<string> f,
                              const vint& invConst = {874537361747324275,15596160569201595389}, int k = 128);
     static vector<int> decode(vector<labelPair> d, vector<vint> Y);
-    static tuple<vector<int>, vector<int>, string> extractGate(const string &line);
     static vint hashFunc(vint x, int k);
 
     static void
@@ -40,7 +39,6 @@ public:
 
     static vint hashXOR(vint &labelA, vint &labelB, int k);
 
-    static void getBits(string &f, int &numberOfInputBits);
 
     static void
     garbleGate(const vint &invConst, int k, const vector<::uint64_t> &globalDelta, vector<int> inputWires,

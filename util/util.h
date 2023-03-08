@@ -15,16 +15,21 @@
 #include <openssl/sha.h>
 #include <openssl/aes.h>
 #include <openssl/evp.h>
-using namespace std;
+
 
 //Namespace for custom types
 namespace customTypeSpace {
     typedef vector<uint64_t> vint;
     typedef tuple<vint, vint> labelPair;
+    typedef tuple<vint, vint> halfDelta;
+    typedef tuple<vint, vint> halfLabels;
 }
+using namespace customTypeSpace;
+
 class util {
 
 public:
+
     //template for splitting strings taken from:
     // https://stackoverflow.com/questions/236129/how-do-i-iterate-over-the-words-of-a-string
     template <typename Out>
@@ -82,6 +87,22 @@ public:
         vector<uint64_t> globalDelta = otUtil::genBitsNonCrypto(k);
         globalDelta[0] = globalDelta[0] | 1;
         return globalDelta;
+    }
+
+    static halfDelta genDeltaHalves(int k) {
+        vector<uint64_t> leftDeltaHalf = otUtil::genBitsNonCrypto(k/2);
+        leftDeltaHalf[0] = leftDeltaHalf[0] | 1;
+        vector<uint64_t> rightDeltaHalf = otUtil::genBitsNonCrypto(k/2);
+
+        return {leftDeltaHalf, rightDeltaHalf};
+    }
+
+    static halfDelta genLabelHalves(int k) {
+        vector<uint64_t> leftLabelHalf = otUtil::genBitsNonCrypto(k/2);
+        leftLabelHalf[0] = leftLabelHalf[0] & (UINT64_MAX << 1);
+        vector<uint64_t> rightLabelHalf = otUtil::genBitsNonCrypto(k/2);
+
+        return {leftLabelHalf, rightLabelHalf};
     }
 
     static void labelPointAndPermute(int k,
@@ -274,6 +295,37 @@ public:
         int x10j = ithBitL2R(X_10,j);
         int x11j = ithBitL2R(X_11,j);
         return to_string(x00j).append(to_string(x01j)).append(to_string(x10j)).append(to_string(x11j));
+    }
+    static void getBits(string &f, int &numberOfInputBits) {
+        numberOfInputBits= 0;
+        auto split = util::split(f, ' ');
+        int numberOfInputWires = stoi(split[0]);
+        for (int i = 0; i < numberOfInputWires; ++i) {
+            int numberOfBits = stoi(split[i + 1]);
+            numberOfInputBits += numberOfBits;
+        }
+    }
+
+    static tuple<vector<int>, vector<int>, string> extractGate(const string &line) {
+        vector<int> inputWires;
+        vector<int> outputWires;
+        //split line into space separated values
+        vector<string> lineSplit = util::split(line, ' ');
+        int numInputWires = stoi(lineSplit[0]);
+        int numOutputWires = stoi(lineSplit[1]);
+        //handle input wires
+        for (int j = 2; j < numInputWires + 2; ++j) { //index names start at 2
+            //get next input wire label/index
+            inputWires.push_back(stoi(lineSplit[j]));
+        }
+        //handle output wires
+        for (int j = numInputWires + 2; j < numInputWires + numOutputWires + 2; ++j) {
+            //get next output wire label/index
+            outputWires.push_back(stoi(lineSplit[j]));
+        }
+        //handle gate type
+        string gateType = lineSplit[numInputWires + numOutputWires + 2];
+        return make_tuple(inputWires, outputWires, gateType);
     }
 };
 
