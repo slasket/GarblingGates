@@ -18,7 +18,7 @@ tuple<int, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<vint>> three
     int numberOfOutputBits;
     util::getBits(f[2], numberOfOutputBits);
     halfDelta delta = util::genDeltaHalves(k);
-    vector<tuple<halfLabels, int>> labelAndPermuteBitPairs(numberOfInputBits);
+    vector<tuple<halfLabels, int>> labelAndPermuteBitPairs(numberOfWires);
     vector<vint> encryptedOutputLabels(numberOfOutputBits);
     for (int i = 0; i < numberOfInputBits; i++){
         auto label0 = util::genLabelHalves(k);
@@ -50,7 +50,7 @@ tuple<int, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<vint>> three
             halfLabels outputLabel = {leftHalf, rightHalf};
             auto outputCipher = make_tuple(outputLabel, permuteBitXOR);
 
-            labelAndPermuteBitPairs[i] = outputCipher;
+            labelAndPermuteBitPairs[i-3] = outputCipher;
         }
         else if( gateType == "AND"){
             A0AndPermuteBit = labelAndPermuteBitPairs[inputWires[0]];
@@ -82,7 +82,7 @@ tuple<int, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<vint>> three
         //Calculate tweak as 3*|f| + 2k
         int tweak = (numberOfWires * 3) + (2 * i);
         auto encryptedOutputLabel = hashPrime(label0, k, tweak);
-        encryptedOutputLabels[i] = encryptedOutputLabel;
+        encryptedOutputLabels[i-(numberOfWires-1)] = encryptedOutputLabel;
     }
 
     auto e = make_tuple(delta, labelAndPermuteBitPairs);
