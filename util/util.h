@@ -16,7 +16,6 @@
 #include <openssl/aes.h>
 #include <openssl/evp.h>
 
-
 //Namespace for custom types
 namespace customTypeSpace {
     typedef vector<uint64_t> vint;
@@ -29,7 +28,6 @@ using namespace customTypeSpace;
 class util {
 
 public:
-
     //template for splitting strings taken from:
     // https://stackoverflow.com/questions/236129/how-do-i-iterate-over-the-words-of-a-string
     template <typename Out>

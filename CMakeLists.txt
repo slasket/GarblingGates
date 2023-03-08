@@ -11,7 +11,6 @@ set(SOURCES
         bloodcompatibility.h
         util/circuitParser.cpp
         util/circuitParser.h
-        util/util.cpp
         util/util.h
         util/otUtil/elgamal.cpp
         util/otUtil/elgamal.h
