@@ -33,9 +33,10 @@ private:
     static tuple<vector<vint>,vector<tuple<vint,vint>>, tuple<vint,vint>> GarbleCircuit(int l, vector<std::string> C, vector<tuple<vint,vint>> encoding, const tuple<vint,vint>& invVar);
     //single Gate Gb
     static vector<vint> Gate(const tuple<vint, vint>&in0, const tuple<vint, vint>&in1, const string& typ, int gateNo, int l);
-    static vector<vint> DecodingInfo(const vector<tuple<vint,vint>>&D, int l, tuple<vint,vint> invVar);
+    static vector<vint> DecodingInfo(const vector<tuple<vint,vint>>&D, int l, const tuple<vint,vint>& invVar);
 
     static tuple<vint, vint> genInvVar(int l);
+    static vint masksForSlices(vint X_00, vint X_01, vint X_10, vint X_11, string typ);
 };
 
 #endif //GARBLINGGATES_ATECAGARBLE_H
