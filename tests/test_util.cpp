@@ -215,4 +215,41 @@ BOOST_AUTO_TEST_SUITE( selecting_ith_bit )
 
 BOOST_AUTO_TEST_SUITE_END()
 
+BOOST_AUTO_TEST_SUITE( Testing_Gen_Halves )
+
+    BOOST_AUTO_TEST_CASE( test_genDeltaHalves )
+    {
+        int k = 128;
+        auto deltaHalves = util::genDeltaHalves(k);
+        auto leftHalf = get<0>(deltaHalves);
+        auto rightHalf = get<1>(deltaHalves);
+        int fullSize = k / 64;
+
+        //Test both halves are correct size
+        BOOST_TEST(leftHalf.size() == fullSize / 2);
+        BOOST_TEST(rightHalf.size() == fullSize / 2);
+
+        auto lsbInFirstUInt = leftHalf[0] & 1;
+        BOOST_TEST(lsbInFirstUInt == 1);
+    }
+
+    BOOST_AUTO_TEST_CASE( test_genLabelHalves )
+    {
+        int k = 128;
+        auto labelHalves = util::genLabelHalves(k);
+        auto leftHalf = get<0>(labelHalves);
+        auto rightHalf = get<1>(labelHalves);
+        int fullSize = k / 64;
+
+        //Test both halves are correct size
+        BOOST_TEST(leftHalf.size() == fullSize / 2);
+        BOOST_TEST(rightHalf.size() == fullSize / 2);
+
+        auto lsbInFirstUInt = leftHalf[0] & 1;
+        BOOST_TEST(lsbInFirstUInt == 0);
+    }
+
+BOOST_AUTO_TEST_SUITE_END()
+
+
 
