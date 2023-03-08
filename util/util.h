@@ -15,7 +15,6 @@
 #include <openssl/sha.h>
 #include <openssl/aes.h>
 #include <openssl/evp.h>
-using namespace std;
 
 //Namespace for custom types
 namespace customTypeSpace {

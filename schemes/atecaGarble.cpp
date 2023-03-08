@@ -11,10 +11,8 @@ tuple<vector<vint>,vector<tuple<vint,vint>>,vector<vint>,int,tuple<vint,vint>>
     atecaGarble::Gb(int l, const vector<std::string>& C) {
 
     auto encodingInfo = Init(C, l);
-    cout<<"garbleFunc"<<endl;
     auto invVar= genInvVar(l);
     auto garbledFnDnInvVar = GarbleCircuit(l, C, encodingInfo, invVar);
-    cout<<"decoding construct"<<endl;
     auto decoding = DecodingInfo(get<1>(garbledFnDnInvVar), l, invVar);
 
     return {get<0>(garbledFnDnInvVar), encodingInfo, decoding, l, invVar};
@@ -67,9 +65,6 @@ tuple<vector<vint>,vector<tuple<vint,vint>>, tuple<vint,vint>>
         //int outAmount = stoi(gateInfo[1]);
 
         int gateNo = (i - 3);
-        if (gateNo==380){
-            cout<<"xd"<<endl;
-        }
         //inverse gate hack
         if (gateInfo[4] == "INV") {
             int in0 = stoi(gateInfo[2]);
@@ -165,12 +160,6 @@ vector<vint> atecaGarble::Gate(const tuple<vint, vint>& in0, const tuple<vint, v
         L0 = projection(X_00, delta);
         L1 = projection(X_01,delta);
     }
-    //cout << "projects"<<endl;
-    //cout<< projection(X_00, delta)[0]<<endl;
-    //cout<< projection(X_01, delta)[0]<<endl;
-    //cout<< projection(X_10, delta)[0]<<endl;
-    //cout<< projection(X_11, delta)[0]<<endl;
-
     return {L0, L1, delta};
 }
 
@@ -232,10 +221,6 @@ vector<vint> atecaGarble::DecodingInfo(const vector<tuple<vint, vint>>& D, int l
             lsbHL1=util::checkBit(hashL1[0],0);
 
         } while (!((lsbHL0 == 0) && (lsbHL1 == 1)));
-        //cout<< "hashL0 in " << L0wdi[0]<<" "<<L0wdi[1]<<endl;
-        //cout << "hashL0 " <<hashL0[0] <<endl;
-        //cout<< "hashL1 in " << L1wdi[0]<<" "<<L1wdi[1]<<endl;
-        //cout << "hashL1 " <<hashL1[0]<<endl;
         d[i] = di;
     }
     return d;
@@ -272,7 +257,7 @@ atecaGarble::Ev(const vector<vint>& F, const vector<vint>& X,
 
     for (int i = 3; i < C.size(); ++i) {
         auto gateInfo = util::split(C[i], ' ');
-        int inAmount = stoi(gateInfo[0]); int outAmount = stoi(gateInfo[1]);
+        //int inAmount = stoi(gateInfo[0]); int outAmount = stoi(gateInfo[1]);
         int gateNo = (i-3);
         int out;
         string hashInputLabel;
@@ -299,8 +284,6 @@ atecaGarble::Ev(const vector<vint>& F, const vector<vint>& X,
             auto hashOut = util::hash_variable(hashInputLabel,internalSecParam);
             auto delta = F[gateNo];
             auto gateOut = projection(hashOut, delta);
-            //cout<< "ev proj"<<endl;
-            //cout << gateOut[0] <<endl;
             wires[out] = gateOut;
             if (out >= firstOutputBit){
                 outputY[out - firstOutputBit] = gateOut;
@@ -316,11 +299,9 @@ vint atecaGarble::De(vector<vint> outputY, vector<vint> d) {
     auto outputSets =  vector<bitset<64>>(unit64sNeeded);
 
     for (int i = 0; i < outbits; ++i) {
-        //get the lsb of the hash shit
+        //get the lsb of the hash
         outputY[i].insert(outputY[i].end(), d[i].begin(), d[i].end());
         auto hash = util::hash_variable(util::uintVec2Str(outputY[i]), 64);
-        //cout<< "Dehashin " <<outputY[i][0] << " "<< outputY[i][1]<<endl;
-        //cout<< "Dehash "<<hash[0]<<endl;
         int lsbHash=util::checkBit(hash[0],0);
         outputSets = util::insertBitVecBitset(outputSets,lsbHash,i);
     }

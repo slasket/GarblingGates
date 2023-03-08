@@ -10,13 +10,10 @@
 #include "schemes/baseGarble.h"
 #include "schemes/atecaGarble.h"
 #include <bitset>
-#include <cstdio>
-
-
-#include <iostream>
-#include <iomanip>
-#include <sstream>
 #include <string>
+
+#include <emmintrin.h>
+#include <immintrin.h>
 
 
 using namespace std;
@@ -25,6 +22,40 @@ using namespace std;
 
 
 void testsubAteca();
+void testBaseOT(int v, int k , int l, int elgamalKeySize);
+
+int main() {
+    testsubAteca();
+
+    return 0;
+
+}
+
+
+
+void testsubAteca() {
+    //least significant bit first :^)
+    auto finput = vector<int>{0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                              0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                              0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                              0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    auto C = circuitParser::parseCircuit("../tests/circuits/sub64.txt");
+    cout<<"garbling"<<endl;
+    auto feds = atecaGarble::Gb(64, C);
+    cout<<"encoding"<<endl;
+    auto encodedInput = atecaGarble::En(get<1>(feds), finput);
+    cout<<"eval"<<endl;
+    auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds),get<4>(feds));
+    cout<<"decoding"<<endl;
+    auto y = atecaGarble::De(Y, get<2>(feds));
+    util::printUintVec(y);
+}
+
+//util::printCircuit("../tests/circuits/BloodComp.txt");
+//testBaseOT(64,512,256,2048);
+//bloodcompatibility bc;
+//bc.testAllCombinations();
+
 
 void testBaseOT(int v, int k , int l, int elgamalKeySize){
     cout<< "#Testing baseOTs from "<< v << " to " << k<< " Amount of OTs"<<endl;
@@ -88,37 +119,3 @@ void testBaseOT(int v, int k , int l, int elgamalKeySize){
         cout<<"ones: "<<ones<<endl;
     }
 }
-
-
-
-
-int main() {
-    testsubAteca();
-
-
-    return 0;
-
-}
-
-void testsubAteca() {
-    //least significant bit first :^)
-    auto finput = vector<int>{0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                              0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                              0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                              0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-    auto C = circuitParser::parseCircuit("../tests/circuits/sub64.txt");
-    cout<<"garbling"<<endl;
-    auto feds = atecaGarble::Gb(64, C);
-    cout<<"encoding"<<endl;
-    auto encodedInput = atecaGarble::En(get<1>(feds), finput);
-    cout<<"eval"<<endl;
-    auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds),get<4>(feds));
-    cout<<"decoding"<<endl;
-    auto y = atecaGarble::De(Y, get<2>(feds));
-    util::printUintVec(y);
-}
-
-//util::printCircuit("../tests/circuits/BloodComp.txt");
-//testBaseOT(64,512,256,2048);
-//bloodcompatibility bc;
-//bc.testAllCombinations();
