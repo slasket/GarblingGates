@@ -1,22 +1,19 @@
 //
-// Created by a on 27/02/2023.
-//
+// Created by a on 13/03/2023.
 //
 #include <boost/test/unit_test.hpp>
 #include "../util/util.h"
-#include "../schemes/atecaGarble.h"
 #include "../bloodcompatibility.h"
+#include "../schemes/atecaFreeXOR.h"
+#include "../schemes/atecaGarble.h"
 
 using namespace boost::unit_test;
 
 
-BOOST_AUTO_TEST_SUITE( Testing_garbling_values )
+BOOST_AUTO_TEST_SUITE( freexor_GarbleVals )
     auto C = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
     int l = 64;
-    auto feds = atecaGarble::Gb(l, C,"RO");
-    auto F = get<0>(feds);
-    auto encodingInfo = get<1>(feds);
-    auto decoding = get<2>(feds);
+    auto [F,encodingInfo,decoding,secL,invVar,hashtype] = atecaFreeXOR::Gb(l, C,"RO");
 
     BOOST_AUTO_TEST_CASE( test_input_encoding )
     {
@@ -31,11 +28,10 @@ BOOST_AUTO_TEST_SUITE( Testing_garbling_values )
     BOOST_AUTO_TEST_CASE( test_Garbled_wires )
     {
         //test F
-        BOOST_TEST(F[3].size()==8);//gate
-        BOOST_TEST(F[9].size()==8);//last gate
-        BOOST_TEST(F[1][0]!=0);//test value not null
+        BOOST_TEST(F[3].size()==16);//gate
+        BOOST_TEST(F[9].size()==16);//last gate
         BOOST_TEST(F[9][1]!=0);//test value not null
-        BOOST_TEST(F[9][7]==0);//unlucky test last uint prolly has not bits
+        BOOST_TEST(F[9][15]==0);//unlucky test last uint prolly has not bits
     }
     BOOST_AUTO_TEST_CASE( test_DecodingInfo )
     {
@@ -45,65 +41,30 @@ BOOST_AUTO_TEST_SUITE( Testing_garbling_values )
     }
 BOOST_AUTO_TEST_SUITE_END()
 
-BOOST_AUTO_TEST_SUITE( Test_projection )
-
-    auto b = vector<::uint64_t>{15,0};
-    auto a = vector<::uint64_t>{9,0};
 
 
-    BOOST_AUTO_TEST_CASE( simpleProjection )
-    {
-        auto res = atecaGarble::projection(a,b);
-        BOOST_TEST(res.size()==1);
-        BOOST_TEST(res[0]==9);
-    }
-
-BOOST_AUTO_TEST_SUITE_END()
-
-BOOST_AUTO_TEST_SUITE( Test_large_projection )
-    auto b = vector<::uint64_t>{152109056,0};
-    auto a = vector<::uint64_t>{134283264,0};
-
-
-    auto b1 = vector<::uint64_t>{4755837490663786591,0};
-    auto a1 = vector<::uint64_t>{5908722711386916953,0};
-    BOOST_AUTO_TEST_CASE( largerVec )
-    {
-        auto res = atecaGarble::projection(a,b);
-        BOOST_TEST(res.size()==1);
-        BOOST_TEST(res[0]==9);
-        res = atecaGarble::projection(a1,b1);
-        BOOST_TEST(res[0]==5107);
-
-    }
-BOOST_AUTO_TEST_SUITE_END()
-
-
-BOOST_AUTO_TEST_SUITE( Testing_input_encoding_choice )
+BOOST_AUTO_TEST_SUITE( Testing_freexor_input_encoding_choice )
     auto finput = vector<int>{0,0,0,0,0,0,1};
     auto C = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
     int l = 64;
-    auto feds = atecaGarble::Gb(l, C,"RO");
-    auto F = get<0>(feds);
-    auto encodingInfo = get<1>(feds);
-    auto decoding = get<2>(feds);
+    auto [F,encodingInfo,decoding,secL,invVar,hashtype] = atecaFreeXOR::Gb(l, C,"RO");
     BOOST_AUTO_TEST_CASE( encoding_choice )
     {
         //compare chosen input with encoding
-        auto encodedInput = atecaGarble::En(get<1>(feds), finput);
+        auto encodedInput = atecaFreeXOR::En(encodingInfo, finput);
         BOOST_TEST(get<0>(encodingInfo[5])[0]==encodedInput[5][0]);
         BOOST_TEST(get<0>(encodingInfo[6])[0]!=encodedInput[6][0]);
     }
 
 BOOST_AUTO_TEST_SUITE_END()
 
-BOOST_AUTO_TEST_SUITE( Testing_garbled_Output )
+BOOST_AUTO_TEST_SUITE( Testing_freexor_garbled_Output )
     auto finput = vector<int>{0,0,0,0,0,0,1};
     auto C = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
     int l = 64;
-    auto feds = atecaGarble::Gb(l, C,"RO");
-    auto encodedInput = atecaGarble::En(get<1>(feds), finput);
-    auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds),get<4>(feds));
+    auto [F,encodingInfo,decoding,secL,invVar,hashtype] = atecaFreeXOR::Gb(l, C,"RO");
+    auto encodedInput = atecaFreeXOR::En(encodingInfo, finput);
+    auto Y = atecaFreeXOR::Ev(F, encodedInput, C, secL,invVar);
     BOOST_AUTO_TEST_CASE( garbled_output )
     {
         BOOST_TEST(Y.size()==1);
@@ -112,14 +73,14 @@ BOOST_AUTO_TEST_SUITE( Testing_garbled_Output )
     }
 BOOST_AUTO_TEST_SUITE_END()
 
-BOOST_AUTO_TEST_SUITE( Testing_decoding_garbled_Y )
+BOOST_AUTO_TEST_SUITE( Testing_freexor_decoding_garbled_Y )
     auto finput = vector<int>{0,0,0,0,0,0,1};
     auto C = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
     int l = 64;
-    auto feds = atecaGarble::Gb(l, C,"RO");
-    auto encodedInput = atecaGarble::En(get<1>(feds), finput);
-    auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds));
-    auto y = atecaGarble::De(Y, get<2>(feds));
+    auto [F,encodingInfo,decoding,secL,invVar,hashtype] = atecaFreeXOR::Gb(l, C,"RO");
+    auto encodedInput = atecaFreeXOR::En(encodingInfo, finput);
+    auto Y = atecaFreeXOR::Ev(F, encodedInput, C, secL, invVar);
+    auto y = atecaFreeXOR::De(Y, decoding);
     BOOST_AUTO_TEST_CASE( decoding_Y )
     {
         BOOST_TEST(y.size()==1);
@@ -127,20 +88,19 @@ BOOST_AUTO_TEST_SUITE( Testing_decoding_garbled_Y )
     }
 BOOST_AUTO_TEST_SUITE_END()
 
-BOOST_AUTO_TEST_SUITE( xorTest )
+BOOST_AUTO_TEST_SUITE( freexor_xorGate_test )
     auto finput1 = vector<int>{0,0};
     auto finput2 = vector<int>{0,1};
     auto C = circuitParser::parseCircuit("../tests/circuits/xorTest.txt");
     int l = 64;
-    auto feds = atecaGarble::Gb(l, C,"RO");
-    auto encodingInfo = get<1>(feds);
-    auto encodedInput = atecaGarble::En(get<1>(feds), finput1);
-    auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds));
-    auto y = atecaGarble::De(Y, get<2>(feds));
+    auto [F,encodingInfo,decoding,secL,invVar,hashtype] = atecaFreeXOR::Gb(l, C,"RO");
+    auto encodedInput = atecaFreeXOR::En(encodingInfo, finput1);
+    auto Y = atecaFreeXOR::Ev(F, encodedInput, C, secL, invVar);
+    auto y = atecaFreeXOR::De(Y, decoding);
     BOOST_AUTO_TEST_CASE( encoding_choice )
     {
         BOOST_TEST(get<0>(encodingInfo[1])[0]==encodedInput[1][0]);
-        encodedInput = atecaGarble::En(get<1>(feds), finput2);
+        encodedInput = atecaFreeXOR::En(encodingInfo, finput2);
         BOOST_TEST(get<1>(encodingInfo[1])[0]==encodedInput[1][0]);
     }
 
@@ -151,21 +111,20 @@ BOOST_AUTO_TEST_SUITE( xorTest )
     }
 BOOST_AUTO_TEST_SUITE_END()
 
-BOOST_AUTO_TEST_SUITE( andTest )
+BOOST_AUTO_TEST_SUITE( freexor_andGate_test )
     auto finput1 = vector<int>{1,1};
     auto finput2 = vector<int>{0,1};
     auto C = circuitParser::parseCircuit("../tests/circuits/andTest.txt");
     int l = 64;
-    auto feds = atecaGarble::Gb(l, C,"RO");
-    auto encodingInfo = get<1>(feds);
-    auto encodedInput = atecaGarble::En(get<1>(feds), finput1);
-    auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds));
-    auto y = atecaGarble::De(Y, get<2>(feds));
+    auto [F,encodingInfo,decoding,secL,invVar,hashtype] = atecaFreeXOR::Gb(l, C,"RO");
+    auto encodedInput = atecaFreeXOR::En(encodingInfo, finput1);
+    auto Y = atecaFreeXOR::Ev(F, encodedInput, C, secL, invVar);
+    auto y = atecaFreeXOR::De(Y, decoding);
 
     BOOST_AUTO_TEST_CASE( encoding_choice )
     {
         BOOST_TEST(get<1>(encodingInfo[0])[0]==encodedInput[0][0]);
-        encodedInput = atecaGarble::En(get<1>(feds), finput2);
+        encodedInput = atecaFreeXOR::En(encodingInfo, finput2);
         BOOST_TEST(get<0>(encodingInfo[0])[0]==encodedInput[0][0]);
     }
 
@@ -179,15 +138,15 @@ BOOST_AUTO_TEST_SUITE_END()
 
 
 
-BOOST_AUTO_TEST_SUITE( Testing_BloodComp_Alternate )
+BOOST_AUTO_TEST_SUITE( Free_xor_bloodComp )
     int lInput =6; int rInput = 1;
     auto finput = vector<int>{1,1,0,0,0,1,1};
     auto C = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
     int l = 64;
-    auto feds = atecaGarble::Gb(l, C,"RO");
-    auto encodedInput = atecaGarble::En(get<1>(feds), finput);
-    auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds));
-    auto y = atecaGarble::De(Y, get<2>(feds));
+    auto [F,encodingInfo,decoding,secL,invVar,hashtype] = atecaFreeXOR::Gb(l, C,"RO");
+    auto encodedInput = atecaFreeXOR::En(encodingInfo, finput);
+    auto Y = atecaFreeXOR::Ev(F, encodedInput, C, secL, invVar);
+    auto y = atecaFreeXOR::De(Y, decoding);
     ::uint64_t bloodCompAns = bloodcompatibility::bloodCompLookup(lInput,rInput);
     BOOST_AUTO_TEST_CASE( decoding_Y )
     {
@@ -197,7 +156,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BloodComp_Alternate )
 BOOST_AUTO_TEST_SUITE_END()
 
 
-BOOST_AUTO_TEST_SUITE( adder64bit )
+BOOST_AUTO_TEST_SUITE( freexor_adder64bit )
 
     BOOST_AUTO_TEST_CASE( adder64Adding1And1 )
     {
@@ -207,10 +166,10 @@ BOOST_AUTO_TEST_SUITE( adder64bit )
                                   1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
         auto C = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
-        auto feds = atecaGarble::Gb(64, C,"RO");
-        auto encodedInput = atecaGarble::En(get<1>(feds), finput);
-        auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds));
-        auto y = atecaGarble::De(Y, get<2>(feds));
+        auto [F,encodingInfo,decoding,secL,invVar,hashtype] = atecaFreeXOR::Gb(64, C,"RO");
+        auto encodedInput = atecaFreeXOR::En(encodingInfo, finput);
+        auto Y = atecaFreeXOR::Ev(F, encodedInput, C, secL, invVar);
+        auto y = atecaFreeXOR::De(Y, decoding);
 
         //util::printUintVec(y);
 
@@ -218,7 +177,7 @@ BOOST_AUTO_TEST_SUITE( adder64bit )
         BOOST_TEST(y[0]==2);
     }
 
-    BOOST_AUTO_TEST_CASE( adder64AddingMaxWMax )
+    BOOST_AUTO_TEST_CASE( freexor_adder64AddingMaxWMax )
     {
         //least significant bit first :^)
         auto maxPlusMax = UINT64_MAX<<1;
@@ -227,10 +186,10 @@ BOOST_AUTO_TEST_SUITE( adder64bit )
                                   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
                                   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
         auto C = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
-        auto feds = atecaGarble::Gb(64, C,"RO");
-        auto encodedInput = atecaGarble::En(get<1>(feds), finput);
-        auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds));
-        auto y = atecaGarble::De(Y, get<2>(feds));
+        auto [F,encodingInfo,decoding,secL,invVar,hashtype] = atecaFreeXOR::Gb(64, C,"RO");
+        auto encodedInput = atecaFreeXOR::En(encodingInfo, finput);
+        auto Y = atecaFreeXOR::Ev(F, encodedInput, C, secL, invVar);
+        auto y = atecaFreeXOR::De(Y, decoding);
 
         //util::printUintVec(y);
 
@@ -240,28 +199,28 @@ BOOST_AUTO_TEST_SUITE( adder64bit )
 
 BOOST_AUTO_TEST_SUITE_END()
 
-BOOST_AUTO_TEST_SUITE( sub64 )
+BOOST_AUTO_TEST_SUITE( freexor_sub64 )
 
     BOOST_AUTO_TEST_CASE( adder64_2minus1 )
     {
-    //least significant bit first :^)
-    auto finput = vector<int>{0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                              0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                              1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                              0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-    auto C = circuitParser::parseCircuit("../tests/circuits/sub64.txt");
-    auto feds = atecaGarble::Gb(64, C,"RO");
-    auto encodedInput = atecaGarble::En(get<1>(feds), finput);
-    auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds));
-    auto y = atecaGarble::De(Y, get<2>(feds));
+        //least significant bit first :^)
+        auto finput = vector<int>{0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+        auto C = circuitParser::parseCircuit("../tests/circuits/sub64.txt");
+        auto [F,encodingInfo,decoding,secL,invVar,hashtype] = atecaFreeXOR::Gb(64, C,"RO");
+        auto encodedInput = atecaFreeXOR::En(encodingInfo, finput);
+        auto Y = atecaFreeXOR::Ev(F, encodedInput, C, secL, invVar);
+        auto y = atecaFreeXOR::De(Y, decoding);
 
-    util::printUintVec(y);
+        util::printUintVec(y);
 
-    BOOST_TEST(y.size()==1);
-    BOOST_TEST(y[0]==1);
+        BOOST_TEST(y.size()==1);
+        BOOST_TEST(y[0]==1);
     }
 
-    BOOST_AUTO_TEST_CASE( adder64_8448minus2051 )
+    BOOST_AUTO_TEST_CASE( freexor_adder64_8448minus2051 )
     {
         //least significant bit first :^)
         auto finput = vector<int>{0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -269,10 +228,10 @@ BOOST_AUTO_TEST_SUITE( sub64 )
                                   1,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
         auto C = circuitParser::parseCircuit("../tests/circuits/sub64.txt");
-        auto feds = atecaGarble::Gb(64, C,"RO");
-        auto encodedInput = atecaGarble::En(get<1>(feds), finput);
-        auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds));
-        auto y = atecaGarble::De(Y, get<2>(feds));
+        auto [F,encodingInfo,decoding,secL,invVar,hashtype] = atecaFreeXOR::Gb(64, C,"RO");
+        auto encodedInput = atecaFreeXOR::En(encodingInfo, finput);
+        auto Y = atecaFreeXOR::Ev(F, encodedInput, C, secL, invVar);
+        auto y = atecaFreeXOR::De(Y, decoding);
 
         util::printUintVec(y);
 

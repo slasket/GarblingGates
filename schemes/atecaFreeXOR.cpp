@@ -1,26 +1,28 @@
 //
-// Created by a on 21/02/2023.
+// Created by a on 10/03/2023.
 //
 
+#include "atecaFreeXOR.h"
 #include "atecaGarble.h"
 
-#include <utility>
+tuple<vector<vint>, vector<tuple<vint, vint>>, vector<vint>, int, tuple<vint, vint>,string>
+    atecaFreeXOR::Gb(int l, const vector<std::string> &C, string hashtype) {
 
 
-tuple<vector<vint>,vector<tuple<vint,vint>>,vector<vint>,int,tuple<vint,vint>>
-    atecaGarble::Gb(int l, const vector<std::string>& C, string hashtype) {
-
-    auto encodingInfo = Init(C, l);
-    auto invVar= genInvVar(l);
-    auto [F,D,Invvar] = GarbleCircuit(l, C, encodingInfo, invVar);
+    auto [encodingInfo,globalDelta] = Init(C, l);
+    auto invVar= genInvVar(l, globalDelta);
+    cout<<"garblefunc"<<endl;
+    auto [F,D,Invvar] = GarbleCircuit(l, C, encodingInfo, invVar, globalDelta);
+    cout<<"decoding"<<endl;
     auto decoding = DecodingInfo(D, l);
 
-    return {F, encodingInfo, decoding, l, invVar};
+
+    return {F,encodingInfo,decoding,l,invVar,hashtype};
 }
 
+tuple<vector<tuple<vint, vint>>, vint> atecaFreeXOR::Init(vector<std::string> C, int l) {
+    auto globalDelta = util::genBitsNonCrypto(l);
 
-
-vector<tuple<vint,vint>> atecaGarble::Init(vector<std::string> C, int l) {
     auto inputs = util::split(C[1], ' ');
     int inputWires = 0;
     for (int i = 1; i < inputs.size(); ++i) {
@@ -29,16 +31,23 @@ vector<tuple<vint,vint>> atecaGarble::Init(vector<std::string> C, int l) {
     vector<tuple<vint,vint>> e =vector<tuple<vint,vint>>(inputWires);
     for (int i = 0; i < inputWires; ++i) {
         vint lw0 = util::genBitsNonCrypto(l);
-        vint lw1 = util::vecXOR(util::genBitsNonCrypto(l), lw0);
+        vint lw1 = util::vecXOR(globalDelta, lw0);
         tuple<vint,vint> ew = {lw0,lw1};
         e[i] = ew;
     }
 
-    return e;
+    return {e,globalDelta};
 }
 
-tuple<vector<vint>,vector<tuple<vint,vint>>, tuple<vint,vint>>
-        atecaGarble::GarbleCircuit(int l, vector<std::string> C,vector<tuple<vint, vint>> encoding, const tuple<vint,vint>& invVar) {
+tuple<vint, vint> atecaFreeXOR::genInvVar(int l, vint globalDelta) {
+    vint lw0 = util::genBitsNonCrypto(l);
+    vint lw1 = util::vecXOR(globalDelta, lw0);
+    return {lw0,lw1};
+}
+
+tuple<vector<vint>, vector<tuple<vint, vint>>, tuple<vint, vint>>
+atecaFreeXOR::GarbleCircuit(int l, vector<std::string> C, vector<tuple<vint, vint>> encoding,
+                            const tuple<vint, vint> &invVar, vint globalDelta) {
     //get amount of gates, wires and output bits
     auto gatesAndWires=util::split(C[0], ' ');
     int outputBits =stoi( util::split(C[2], ' ')[1]);
@@ -52,7 +61,6 @@ tuple<vector<vint>,vector<tuple<vint,vint>>, tuple<vint,vint>>
     auto F = vector<vint>(amountOfWires);//too large remove input wires
     //decoding vector
     auto D = vector<tuple<vint,vint>>(outputBits);
-
     //output bits are defined as the last k wires, where k is the amount of output bits
     int firstOutputBit = amountOfWires - outputBits;
     vector<vint> garbledGate;
@@ -66,6 +74,7 @@ tuple<vector<vint>,vector<tuple<vint,vint>>, tuple<vint,vint>>
 
         int gateNo = (i - 3);
         //inverse gate hack
+        ///CHECK FOR XOR OR INVERSE
         if (gateInfo[4] == "INV") {
             int in0 = stoi(gateInfo[2]);
             //int in1 = stoi(gateInfo[3]);
@@ -73,9 +82,21 @@ tuple<vector<vint>,vector<tuple<vint,vint>>, tuple<vint,vint>>
             string type = gateInfo[4];
 
             //calculate Gb
-            garbledGate = Gate(wires[in0], invVar, type, gateNo, l);
+            ///must return L0, L1, Delta
+            auto l0= util::vecXOR(get<0>(wires[in0]),get<1>(invVar));
+            auto l1= util::vecXOR(get<1>(wires[in0]),get<1>(invVar));
+            garbledGate = {l0,l1};
 
-        }//normal gate
+        } else if(gateInfo[5] == "XOR"){
+            int in0 = stoi(gateInfo[2]);
+            int in1 = stoi(gateInfo[3]);
+            out = stoi(gateInfo[4]);
+            string type = gateInfo[5];
+
+            auto l0= util::vecXOR(get<0>(wires[in0]),get<0>(wires[in1]));
+            auto l1= util::vecXOR(get<0>(wires[in0]),get<1>(wires[in1]));
+            garbledGate = {l0,l1};
+        }//AndGate
         else {
             int in0 = stoi(gateInfo[2]);
             int in1 = stoi(gateInfo[3]);
@@ -83,10 +104,14 @@ tuple<vector<vint>,vector<tuple<vint,vint>>, tuple<vint,vint>>
             string type = gateInfo[5];
 
             //calculate Gb
-            garbledGate = Gate(wires[in0], wires[in1], type, gateNo, l);
+            garbledGate = Gate(wires[in0], wires[in1], type, gateNo, l, globalDelta);
         }
         //add Delta to F set for a Gate
-        F[gateNo] = garbledGate[2];
+        if (gateInfo[4]=="INV" ||gateInfo[5]=="XOR"){
+            F[gateNo] = {};
+        }else{
+            F[gateNo] = garbledGate[2];
+        }
         //the gates output labels
         wires[out] = {garbledGate[0], garbledGate[1]};
         //if g is an output Gate, add it to D
@@ -95,13 +120,14 @@ tuple<vector<vint>,vector<tuple<vint,vint>>, tuple<vint,vint>>
             D[out-firstOutputBit] = {garbledGate[0],garbledGate[1]};
         }
     }
+
     return {F,D, invVar};
 }
 
-
-vector<vint> atecaGarble::Gate(const tuple<vint, vint>& in0, const tuple<vint, vint>& in1,
-                          const string& typ, int gateNo, int l) {
-    int internalParam= l * 8;
+vector<vint>
+atecaFreeXOR::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, const string &typ, int gateNo, int l,
+                   vint globalDelta) {
+    int internalParam= l * 16;
     //the random oracles lol
     //THIS IS THE WRONG WAY OF TWEAKING!=!=!?!??!!
     vint l00 = get<0>(in0);
@@ -122,76 +148,25 @@ vector<vint> atecaGarble::Gate(const tuple<vint, vint>& in0, const tuple<vint, v
     vint X_10 = util::hash_variable(util::uintVec2Str(l10), internalParam);
     vint X_11 = util::hash_variable(util::uintVec2Str(l11), internalParam);
     auto delta = vint((internalParam+64-1)/64);
-    auto deltaHW =0;
 
-    //vint mask = masksForSlices(X_00,X_01,X_10,X_11,typ);
-
-    int j =0;
+    int j =0; int deltaHW =0;
     do {
-        string slice = util::sliceVecL2R(X_00,X_01,X_10,X_11,j);
-        if (typ == "AND"){
-            if (slice =="0000"|| slice =="0001"||slice=="1110"||slice=="1111"){//if (util::ithBitL2R(mask,j)){
-                //or the ith bit with 1
-                delta= util::setIthBitTo1L2R(delta,j);
-                deltaHW ++;
-            }
-        }else if(typ == "XOR"|| typ=="INV"){
-            if (slice =="0000"|| slice =="1001"||slice=="0110"||slice=="1111"){//if (util::ithBitL2R(mask,j)){
-                //update j'th bit of delta to 1
-                delta= util::setIthBitTo1L2R(delta,j);
-                deltaHW ++;
-            }
-        }else{
-            string a = "Gate not implemented: ";
-            a.append(typ);
-            throw invalid_argument(a);
+        string slice = util::sliceVecL2RAtecaFreeXorSpecial(globalDelta, X_00, X_01, X_10, X_11,deltaHW, j);
+        ///slices of importance "00000", "10001", "11110", "01111"
+        if (slice=="00000"||slice=="10001"||slice=="11110"||slice=="01111"){
+            delta=util::setIthBitTo1L2R(delta,j);
+            deltaHW++;
         }
         j++;
-    } while (deltaHW < l);
+    }while(deltaHW<l);
 
-    vint L0; vint L1;
+    vint L0 = atecaGarble::projection(X_00, delta);
+    vint L1 = atecaGarble::projection(X_11, delta);
 
-    if (typ=="AND"){
-        L0 = projection(X_00, delta);
-        L1 = projection(X_11, delta);
-    }else if (typ=="XOR"||typ=="INV"){
-        L0 = projection(X_00, delta);
-        L1 = projection(X_01,delta);
-    }
-    return {L0, L1, delta};
+    return {L0,L1,delta};
 }
 
-
-
-vint atecaGarble::projection(const vint& a, const vint& b) {
-    //projection A o B means take the bit A[i] if B[i]=1
-    int l = util::vecHW(b);
-    int uintsNeeded = l/64 + ((l%64!=0) ? 1 : 0);
-    auto projection = bitset<64>(0);
-    auto res = vint(uintsNeeded);
-    int bitsProjected =0; int j =0; int blockNum =0;
-    do {
-        if (util::ithBitL2R(b,j)==1){
-            auto ithBitA = util::ithBitL2R(a,j);
-            projection[bitsProjected]= ithBitA;
-            bitsProjected++;
-        }
-        j++;
-
-        if (bitsProjected%64==0 && bitsProjected !=0|| bitsProjected==l){
-            ::uint64_t projUint = projection.to_ullong();
-            res[blockNum] = projUint;
-            blockNum++;
-        }
-    }while(bitsProjected!=l);
-
-    return res;
-}
-
-
-
-
-vector<vint> atecaGarble::DecodingInfo(const vector<tuple<vint, vint>>& D, int l) {
+vector<vint> atecaFreeXOR::DecodingInfo(const vector<tuple<vint, vint>> &D, int l) {
     //RO from 2l->1
     vector<vint> d(D.size());
     for (int i = 0; i < D.size(); ++i) {
@@ -224,15 +199,14 @@ vector<vint> atecaGarble::DecodingInfo(const vector<tuple<vint, vint>>& D, int l
     return d;
 }
 
-//Evaluator functions
 
 vector<vint>
-atecaGarble::En(vector<tuple<vint, vint>> encoding,
-                        vector<int> input) {
+atecaFreeXOR::En(vector<tuple<vint, vint>> encoding,
+                vector<int> input) {
     auto X = vector<vint>(input.size());
     for (int i = 0; i < input.size(); ++i) {
         if (input[i]== 0){
-        X[i]=get<0>(encoding[i]);
+            X[i]=get<0>(encoding[i]);
         } else{
             X[i]=get<1>(encoding[i]);
         }
@@ -241,9 +215,8 @@ atecaGarble::En(vector<tuple<vint, vint>> encoding,
 }
 
 vector<vint>
-atecaGarble::Ev(const vector<vint>& F, const vector<vint>& X,
-                        vector<string> C, int l, tuple<vint,vint> invVar){
-    int internalSecParam = 8 * l;
+atecaFreeXOR::Ev(const vector<vint> &F, const vector<vint> &X, vector<string> C, int l, tuple<vint, vint> invVar) {
+    int internalSecParam = 16 * l;
     int outputBits =stoi( util::split(C[2], ' ')[1]);
     int amountOfWires = stoi(util::split(C[0], ' ')[1]);
     int firstOutputBit = amountOfWires - outputBits;
@@ -255,20 +228,30 @@ atecaGarble::Ev(const vector<vint>& F, const vector<vint>& X,
 
     for (int i = 3; i < C.size(); ++i) {
         auto gateInfo = util::split(C[i], ' ');
-        //int inAmount = stoi(gateInfo[0]); int outAmount = stoi(gateInfo[1]);
+
         int gateNo = (i-3);
         int out;
-        string hashInputLabel;
+        vint gateOut;
         if (gateInfo[4]=="INV"){
             int in0 = stoi(gateInfo[2]);
             out = stoi(gateInfo[3]);
             auto labelA = wires[in0];
             auto labelB = get<1>(invVar);
-            //hash input string
-            labelA.insert(labelA.end(), labelB.begin(), labelB.end());
-            labelA.push_back(gateNo);
-            hashInputLabel = util::uintVec2Str(labelA);
-        }else {
+            gateOut = util::vecXOR(labelA,labelB);
+            //perform the gate
+            wires[out]==gateOut;
+
+        }else if(gateInfo[5]=="XOR"){
+            int in0 = stoi(gateInfo[2]);
+            int in1 = stoi(gateInfo[3]);
+            out = stoi(gateInfo[4]);
+            auto labelA = wires[in0];
+            auto labelB = wires[in1];
+            gateOut = util::vecXOR(labelA,labelB);
+            //perform the gate
+            wires[out]==gateOut;
+
+        }else{//AND GATE
             int in0 = stoi(gateInfo[2]);
             int in1 = stoi(gateInfo[3]);
             out = stoi(gateInfo[4]);
@@ -277,21 +260,22 @@ atecaGarble::Ev(const vector<vint>& F, const vector<vint>& X,
             //hash input string
             labelA.insert(labelA.end(), labelB.begin(), labelB.end());
             labelA.push_back(gateNo);
-            hashInputLabel = util::uintVec2Str(labelA);
-        }
+            auto hashInputLabel = util::uintVec2Str(labelA);
             auto hashOut = util::hash_variable(hashInputLabel,internalSecParam);
             const auto& delta = F[gateNo];
-            auto gateOut = projection(hashOut, delta);
+            gateOut = atecaGarble::projection(hashOut, delta);
             wires[out] = gateOut;
-            if (out >= firstOutputBit){
-                outputY[out - firstOutputBit] = gateOut;
-            }
+        }
+        //add the output to the output vec
+        if (out >= firstOutputBit){
+            outputY[out - firstOutputBit] = gateOut;
+        }
 
     }
     return outputY;
 }
 
-vint atecaGarble::De(vector<vint> outputY, vector<vint> d) {
+vint atecaFreeXOR::De(vector<vint> outputY, vector<vint> d) {
     auto outbits = outputY.size();
     auto unit64sNeeded = outbits/64 + ((outbits%64!=0) ? 1 : 0);
     auto outputSets =  vector<bitset<64>>(unit64sNeeded);
@@ -311,47 +295,3 @@ vint atecaGarble::De(vector<vint> outputY, vector<vint> d) {
     return y;
 }
 
-tuple<vint, vint> atecaGarble::genInvVar(int l) {
-    vint lw0 = util::genBitsNonCrypto(l);
-    vint lw1 = util::vecXOR(util::genBitsNonCrypto(l), lw0);
-    return {lw0,lw1};
-}
-
-vint atecaGarble::masksForSlices(vint X_00, vint X_01, vint X_10, vint X_11, string typ) {
-//and all labels with 0 and uint_max
-    //l00a0 is X_00 inverted and l00a1 is X_00 anded with 1
-    auto l00a0 = util::vecInvert(X_00);
-    auto l00a1 = util::vecAndStatic(X_00, UINT64_MAX);
-    //l01a0 and l01a1
-    auto l01a0 = util::vecInvert(X_01);
-    auto l01a1 = util::vecAndStatic(X_01, UINT64_MAX);
-    //l01a0 and l01a1
-    auto l10a0 = util::vecInvert(X_10);
-    auto l10a1 = util::vecAndStatic(X_10, UINT64_MAX);
-    //l11a0 and l11a1
-    auto l11a0 = util::vecInvert(X_11);
-    auto l11a1 = util::vecAndStatic(X_11, UINT64_MAX);
-
-    //now that you have vectors with 1 for each 0 and 1 for each 1
-    //compute mask 0000 =  l00a0 ^ l01a0 ^ l10a0 ^ l11a0
-    //masks that and, xor share
-    auto mask0000 =  util::vecAND(util::vecAND(util::vecAND(l00a0, l01a0), l10a0), l11a0);///0000
-    auto mask1111 =  util::vecAND(util::vecAND(util::vecAND(l00a1, l01a1), l10a1), l11a1);///1111
-    //and specific masks
-    auto mask0001 =  util::vecAND(util::vecAND(util::vecAND(l00a0, l01a0), l10a0), l11a1);///0001
-    auto mask1110 =  util::vecAND(util::vecAND(util::vecAND(l00a1, l01a1), l10a1), l11a0);///1110
-    //xor specific masks
-    auto mask1001 =  util::vecAND(util::vecAND(util::vecAND(l00a1, l01a0), l10a0), l11a1);///1001
-    auto mask0110 =  util::vecAND(util::vecAND(util::vecAND(l00a0, l01a1), l10a1), l11a0);///0110
-
-    vector<::uint64_t> masksORed;
-    //or with 0000 0001 1110 or 1111
-    //if there is a one in this vector one of the masks had an 1 in the ith bit
-    if (typ=="AND"){
-        masksORed = util::vecOR(util::vecOR(util::vecOR(mask0000,mask1111),mask0001),mask1110);
-        //or with 0000 1001 0110 1111
-    }else if (typ=="XOR"| typ=="INV"){
-        masksORed =util::vecOR(util::vecOR(util::vecOR(mask0000,mask1111),mask1001),mask0110);
-    }
-    return masksORed;
-}

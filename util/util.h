@@ -286,14 +286,25 @@ public:
     }
 
     static string
-    sliceVecL2R(vector<uint64_t> X_00, vector<uint64_t> X_01, vector<uint64_t> X_10, vector<uint64_t> X_11,
-                int j) {
+    sliceVecL2R(vint X_00, vint X_01, vint X_10, vint X_11, int j) {
         int x00j = ithBitL2R(X_00,j);
         int x01j = ithBitL2R(X_01,j);
         int x10j = ithBitL2R(X_10,j);
         int x11j = ithBitL2R(X_11,j);
         return to_string(x00j).append(to_string(x01j)).append(to_string(x10j)).append(to_string(x11j));
     }
+
+    static string
+    sliceVecL2RAtecaFreeXorSpecial(vint globalDelta, vint X_00, vint X_01, vint X_10, vint X_11, int jprime, int j) {
+        int gdj = ithBitL2R(globalDelta,jprime);
+        int x00j = ithBitL2R(X_00,j);
+        int x01j = ithBitL2R(X_01,j);
+        int x10j = ithBitL2R(X_10,j);
+        int x11j = ithBitL2R(X_11,j);
+        return to_string(gdj).append(to_string(x00j)).append(to_string(x01j)).append(to_string(x10j)).append(to_string(x11j));
+    }
+
+
     static void getBits(string &f, int &numberOfInputBits) {
         numberOfInputBits= 0;
         auto split = util::split(f, ' ');

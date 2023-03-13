@@ -22,6 +22,8 @@ set(SOURCES
         HashFunctions.h
         schemes/atecaGarble.cpp
         schemes/atecaGarble.h
+        schemes/atecaFreeXOR.cpp
+        schemes/atecaFreeXOR.h
         schemes/toyExample/toyGarblingScheme.cpp
         schemes/toyExample/toyGarblingScheme.h
         schemes/baseGarble.cpp
@@ -41,7 +43,7 @@ set(TESTS
         HashFunctions.cpp
         schemes/atecaGarble.cpp
         tests/test_ateca.cpp
-        tests/test_threeHalves.cpp)
+        tests/test_threeHalves.cpp schemes/atecaFreeXOR.cpp schemes/atecaFreeXOR.h tests/test_atecaFreeXOR.cpp)
 
 
 add_executable(GarblingGates ${SOURCES} main.cpp)

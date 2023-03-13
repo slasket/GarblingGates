@@ -20,7 +20,7 @@ class atecaGarble {
 public:
     //garbler public function
     static tuple<vector<vint>, vector<tuple<vint,vint>>, vector<vint>, int, tuple<vint,vint>>
-            Gb(int l, const vector<std::string>& C);
+            Gb(int l, const vector<std::string>& C, string hashtype);
 
     //Evaluator functions
     static vector<vint> En(vector<tuple<vint,vint>> encoding, vector<int> input);
@@ -33,7 +33,7 @@ private:
     static tuple<vector<vint>,vector<tuple<vint,vint>>, tuple<vint,vint>> GarbleCircuit(int l, vector<std::string> C, vector<tuple<vint,vint>> encoding, const tuple<vint,vint>& invVar);
     //single Gate Gb
     static vector<vint> Gate(const tuple<vint, vint>&in0, const tuple<vint, vint>&in1, const string& typ, int gateNo, int l);
-    static vector<vint> DecodingInfo(const vector<tuple<vint,vint>>&D, int l, const tuple<vint,vint>& invVar);
+    static vector<vint> DecodingInfo(const vector<tuple<vint,vint>>&D, int l);
 
     static tuple<vint, vint> genInvVar(int l);
     static vint masksForSlices(vint X_00, vint X_01, vint X_10, vint X_11, string typ);
