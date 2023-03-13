@@ -325,6 +325,25 @@ public:
         string gateType = lineSplit[numInputWires + numOutputWires + 2];
         return make_tuple(inputWires, outputWires, gateType);
     }
+
+    static halfLabels halfLabelXOR(halfLabels input1, halfLabels input2) {
+        auto [left1, right1] = std::move(input1);
+        auto [left2, right2] = std::move(input2);
+        auto newLeft = vecXOR(left1, left2);
+        auto newRight = vecXOR(right1, right2);
+
+        return {newLeft, newRight};
+    }
+
+    static halfLabels prependBitsToHalfLabels(halfLabels halfLabel, uint64_t bit1, uint64_t  bit2) {
+        auto [left, right] = halfLabel;
+        left.push_back(bit1);
+        right.push_back(bit2);
+        return halfLabel;
+
+
+
+    }
 };
 
 

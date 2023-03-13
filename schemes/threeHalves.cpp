@@ -6,6 +6,8 @@
 #include <set>
 #include <utility>
 
+
+
 tuple<int, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<vint>> threeHalves::garble(int k, vector<string> f) {
     //get number of wires and gates
     auto &wireAndGates = f[0];
@@ -69,7 +71,8 @@ tuple<int, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<vint>> three
             auto B1Right = util::vecXOR(B0Right, deltaRight);
             halfLabels A1 = make_tuple(A1Left, A1Right);
             halfLabels B1 = make_tuple(B1Left, B1Right);
-
+            vector<halfLabels> Zij(4);
+            int ctr = 0;
             for (int j = 0; j<=1; ++j) {
                 for (int l = 0; l <=1; ++l) {
                     int index1 = 4*i+2*l;
@@ -89,19 +92,34 @@ tuple<int, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<vint>> three
                         BLeft = B1Left;
                         BRight = B1Right;
                     }
-
+                    halfLabels rS1AjBl, rS2AjBl;
                     if(r1 == 1){
                         /*
-                         * Calculate S1 * [Ai Bj]
+                         * Calculate S1 * [Aj Bl]
                          */
+                        auto left = util::vecXOR(util::vecXOR(BLeft, ARight), ALeft);
+                        auto right = util::vecXOR(BLeft, ALeft);
+                        rS1AjBl = {left, right};
+
+
 
                     }
                     if(r2 == 1){
                         /*
                          * Calculate S2 * [Ai Bj]
                          */
-
+                        auto left = util::vecXOR(BRight, ALeft);
+                        auto right = util::vecXOR(util::vecXOR(BRight, BLeft), ARight);
+                        rS2AjBl = {left, right};
                     }
+
+                    halfLabels Yij = util::halfLabelXOR(rS1AjBl, rS2AjBl);
+                    bool includeDelta = (permuteBitA ^ j) & (permuteBitB ^ l);
+                    if(includeDelta) {
+                        Yij = util::halfLabelXOR(Yij, delta);
+                    }
+
+                    Zij[ctr] = Yij;
                 }
             }
         }
