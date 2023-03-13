@@ -30,6 +30,10 @@ int main() {
     //testsubAteca();
 
     testFreexorAteca();
+
+
+
+
     return 0;
 
 }

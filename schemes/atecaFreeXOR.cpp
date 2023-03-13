@@ -83,8 +83,9 @@ atecaFreeXOR::GarbleCircuit(int l, vector<std::string> C, vector<tuple<vint, vin
 
             //calculate Gb
             ///must return L0, L1, Delta
-            auto l0= util::vecXOR(get<0>(wires[in0]),get<1>(invVar));
-            auto l1= util::vecXOR(get<1>(wires[in0]),get<1>(invVar));
+            
+            auto l0= util::vecXOR(get<1>(wires[in0]),get<1>(invVar));
+            auto l1= util::vecXOR(get<0>(wires[in0]),get<1>(invVar));
             garbledGate = {l0,l1};
 
         } else if(gateInfo[5] == "XOR"){
@@ -239,7 +240,7 @@ atecaFreeXOR::Ev(const vector<vint> &F, const vector<vint> &X, vector<string> C,
             auto labelB = get<1>(invVar);
             gateOut = util::vecXOR(labelA,labelB);
             //perform the gate
-            wires[out]==gateOut;
+            wires[out]=gateOut;
 
         }else if(gateInfo[5]=="XOR"){
             int in0 = stoi(gateInfo[2]);
@@ -249,7 +250,7 @@ atecaFreeXOR::Ev(const vector<vint> &F, const vector<vint> &X, vector<string> C,
             auto labelB = wires[in1];
             gateOut = util::vecXOR(labelA,labelB);
             //perform the gate
-            wires[out]==gateOut;
+            wires[out]=gateOut;
 
         }else{//AND GATE
             int in0 = stoi(gateInfo[2]);

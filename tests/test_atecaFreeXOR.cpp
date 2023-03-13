@@ -89,25 +89,121 @@ BOOST_AUTO_TEST_SUITE( Testing_freexor_decoding_garbled_Y )
 BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( freexor_xorGate_test )
-    auto finput1 = vector<int>{0,0};
+
+    BOOST_AUTO_TEST_CASE( xor_0w0 )
+    {
+        for (int i = 0; i < 10; ++i) {
+            auto finput1 = vector<int>{0,0};
+            auto C = circuitParser::parseCircuit("../tests/circuits/xorTest.txt");
+            int l = 64;
+            auto [F,encodingInfo,decoding,secL,invVar,hashtype] = atecaFreeXOR::Gb(l, C,"RO");
+            auto encodedInput = atecaFreeXOR::En(encodingInfo, finput1);
+            auto Y = atecaFreeXOR::Ev(F, encodedInput, C, secL, invVar);
+            auto y = atecaFreeXOR::De(Y, decoding);
+            //testCase
+            BOOST_TEST(y.size()==1);
+            BOOST_TEST(y[0]==0);
+        }
+    }
+    BOOST_AUTO_TEST_CASE( xor_0w1 )
+    {
+        for (int i = 0; i < 10; ++i) {
+            auto finput = vector<int>{0,1};
+            auto C = circuitParser::parseCircuit("../tests/circuits/xorTest.txt");
+            int l = 64;
+            auto [F,encodingInfo,decoding,secL,invVar,hashtype] = atecaFreeXOR::Gb(l, C,"RO");
+            auto encodedInput = atecaFreeXOR::En(encodingInfo, finput);
+            auto Y = atecaFreeXOR::Ev(F, encodedInput, C, secL, invVar);
+            auto y = atecaFreeXOR::De(Y, decoding);
+            //testCase
+            BOOST_TEST(y.size()==1);
+            BOOST_TEST(y[0]==1);
+        }
+    }
+BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE( freexor_andGate_test )
+
+    BOOST_AUTO_TEST_CASE( and_0w1 )
+    {
+        for (int i = 0; i < 10; ++i) {
+            auto finput1 = vector<int>{0,1};
+            auto C = circuitParser::parseCircuit("../tests/circuits/andTest.txt");
+            int l = 64;
+            auto [F,encodingInfo,decoding,secL,invVar,hashtype] = atecaFreeXOR::Gb(l, C,"RO");
+            auto encodedInput = atecaFreeXOR::En(encodingInfo, finput1);
+            auto Y = atecaFreeXOR::Ev(F, encodedInput, C, secL, invVar);
+            auto y = atecaFreeXOR::De(Y, decoding);
+            //testCase
+            BOOST_TEST(y.size()==1);
+            BOOST_TEST(y[0]==0);
+        }
+    }
+    BOOST_AUTO_TEST_CASE( and_1w1 )
+    {
+        for (int i = 0; i < 10; ++i) {
+            auto finput = vector<int>{1,1};
+            auto C = circuitParser::parseCircuit("../tests/circuits/andTest.txt");
+            int l = 64;
+            auto [F,encodingInfo,decoding,secL,invVar,hashtype] = atecaFreeXOR::Gb(l, C,"RO");
+            auto encodedInput = atecaFreeXOR::En(encodingInfo, finput);
+            auto Y = atecaFreeXOR::Ev(F, encodedInput, C, secL, invVar);
+            auto y = atecaFreeXOR::De(Y, decoding);
+            //testCase
+            BOOST_TEST(y.size()==1);
+            BOOST_TEST(y[0]==1);
+        }
+    }
+BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE( freexor_invGate_test )
+
+    BOOST_AUTO_TEST_CASE( inv_0 )
+    {
+        for (int i = 0; i < 10; ++i) {
+            auto finput1 = vector<int>{0};
+            auto C = circuitParser::parseCircuit("../tests/circuits/invTest.txt");
+            int l = 64;
+            auto [F,encodingInfo,decoding,secL,invVar,hashtype] = atecaFreeXOR::Gb(l, C,"RO");
+            auto encodedInput = atecaFreeXOR::En(encodingInfo, finput1);
+            auto Y = atecaFreeXOR::Ev(F, encodedInput, C, secL, invVar);
+            auto y = atecaFreeXOR::De(Y, decoding);
+            //testCase
+            BOOST_TEST(y.size()==1);
+            BOOST_TEST(y[0]==1);
+        }
+    }
+    BOOST_AUTO_TEST_CASE( inv_1 )
+    {
+        for (int i = 0; i < 10; ++i) {
+            auto finput = vector<int>{1};
+            auto C = circuitParser::parseCircuit("../tests/circuits/invTest.txt");
+            int l = 64;
+            auto [F,encodingInfo,decoding,secL,invVar,hashtype] = atecaFreeXOR::Gb(l, C,"RO");
+            auto encodedInput = atecaFreeXOR::En(encodingInfo, finput);
+            auto Y = atecaFreeXOR::Ev(F, encodedInput, C, secL, invVar);
+            auto y = atecaFreeXOR::De(Y, decoding);
+            //testCase
+            BOOST_TEST(y.size()==1);
+            BOOST_TEST(y[0]==0);
+        }
+    }
+BOOST_AUTO_TEST_SUITE_END()
+
+
+BOOST_AUTO_TEST_SUITE( freexor_xorGate_test2 )
     auto finput2 = vector<int>{0,1};
     auto C = circuitParser::parseCircuit("../tests/circuits/xorTest.txt");
     int l = 64;
     auto [F,encodingInfo,decoding,secL,invVar,hashtype] = atecaFreeXOR::Gb(l, C,"RO");
-    auto encodedInput = atecaFreeXOR::En(encodingInfo, finput1);
+    auto encodedInput = atecaFreeXOR::En(encodingInfo, finput2);
     auto Y = atecaFreeXOR::Ev(F, encodedInput, C, secL, invVar);
     auto y = atecaFreeXOR::De(Y, decoding);
-    BOOST_AUTO_TEST_CASE( encoding_choice )
-    {
-        BOOST_TEST(get<0>(encodingInfo[1])[0]==encodedInput[1][0]);
-        encodedInput = atecaFreeXOR::En(encodingInfo, finput2);
-        BOOST_TEST(get<1>(encodingInfo[1])[0]==encodedInput[1][0]);
-    }
 
     BOOST_AUTO_TEST_CASE( xor_Output )
     {
         BOOST_TEST(y.size()==1);
-        BOOST_TEST(y[0]==0);
+        BOOST_TEST(y[0]==1);
     }
 BOOST_AUTO_TEST_SUITE_END()
 
