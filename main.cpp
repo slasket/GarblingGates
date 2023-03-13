@@ -9,6 +9,7 @@
 #include "util/util.h"
 #include "schemes/baseGarble.h"
 #include "schemes/atecaGarble.h"
+#include "schemes/atecaFreeXOR.h"
 #include <bitset>
 #include <string>
 
@@ -22,16 +23,46 @@ using namespace std;
 
 
 void testsubAteca();
+void testFreexorAteca();
 void testBaseOT(int v, int k , int l, int elgamalKeySize);
 
 int main() {
-    testsubAteca();
+    //testsubAteca();
+
+    testFreexorAteca();
+
+
+
 
     return 0;
 
 }
 
 
+
+void testFreexorAteca() {
+    //least significant bit first :^)
+    //auto finput = vector<int>{0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    //                          0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    //                          0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    //                          0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    //auto C = circuitParser::parseCircuit("../tests/circuits/sub64.txt");
+    int lInput =6; int rInput = 1;
+    ::uint64_t bloodCompAns = bloodcompatibility::bloodCompLookup(lInput,rInput);
+    auto finput = vector<int>{1,1,0,0,0,1,1};
+    auto C = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
+
+    cout<<"garbling"<<endl;
+    auto [F,encodingInfo,decoding,secL,invVar,hashtype] = atecaFreeXOR::Gb(64, C,"RO");
+    cout<<"encoding"<<endl;
+    auto encodedInput = atecaFreeXOR::En(encodingInfo, finput);
+    cout<<"eval"<<endl;
+    auto Y = atecaFreeXOR::Ev(F, encodedInput, C, secL,invVar);
+    cout<<"decoding"<<endl;
+    auto y = atecaFreeXOR::De(Y, decoding);
+    util::printUintVec(y);
+    cout<< "bloodAns "<< bloodCompAns<<endl;
+}
 
 void testsubAteca() {
     //least significant bit first :^)
@@ -41,7 +72,7 @@ void testsubAteca() {
                               0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     auto C = circuitParser::parseCircuit("../tests/circuits/sub64.txt");
     cout<<"garbling"<<endl;
-    auto feds = atecaGarble::Gb(64, C);
+    auto feds = atecaGarble::Gb(64, C,"RO");
     cout<<"encoding"<<endl;
     auto encodedInput = atecaGarble::En(get<1>(feds), finput);
     cout<<"eval"<<endl;
