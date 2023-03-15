@@ -8,7 +8,7 @@
 
 
 
-tuple<int, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<vint>> threeHalves::garble(int k, vector<string> f) {
+tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<vint>> threeHalves::garble(int k, vector<string> f) {
     //get number of wires and gates
     auto &wireAndGates = f[0];
     auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
@@ -101,8 +101,6 @@ tuple<int, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<vint>> three
                         auto right = util::vecXOR(BLeft, ALeft);
                         rS1AjBl = {left, right};
 
-
-
                     }
                     if(r2 == 1){
                         /*
@@ -179,6 +177,8 @@ tuple<int, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<vint>> three
                 }
                 auto outputCipher = make_tuple(cipherLabel, permuteBitCipher);
                 labelAndPermuteBitPairs[i-3] = outputCipher;
+
+
             }
         }
         else if(gateType == "INV") {
@@ -219,7 +219,9 @@ tuple<int, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<vint>> three
     auto e = make_tuple(delta, labelAndPermuteBitPairs);
     auto d =  encryptedOutputLabels;
 
-    //Return F, e, d. //todo create F
+    //Return F, e, d.
+    // todo create F
+
     return make_tuple(0, e, d);
 }
 
