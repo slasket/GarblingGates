@@ -178,6 +178,14 @@ public:
         }
         return left;
     }
+
+    static vint vecXOR(const vector<vint>& vints){
+        vint res = vints[0];
+        for (int i = 1; i < vints.size(); ++i) {
+            res = vecXOR(res,vints[i]);
+        }
+        return res;
+    }
     static vector<::uint64_t> vecAND(vector<::uint64_t>left, const vector<::uint64_t>& right){
         for (int i = 0; i < left.size(); ++i) {
             left[i] = left[i] & right[i];
