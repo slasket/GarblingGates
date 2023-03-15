@@ -9,7 +9,7 @@
 #include "../util/util.h"
 using namespace std;
 using namespace customTypeSpace;
-typedef tuple<vector<vint>, vector<vint>> Ftype;
+typedef vector<tuple<vint, vint, vint, vector<uint8_t>>> Ftype;
 class threeHalves {
 public:
 

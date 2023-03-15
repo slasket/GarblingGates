@@ -260,7 +260,7 @@ public:
     //perform variable output length hash
     static vector<uint64_t> hash_variable(const std::string& input, int output_length_bits = 128)
     {
-        size_t output_length_bytes = output_length_bits / 8;
+        size_t output_length_bytes = (output_length_bits+7) / 8;
         EVP_MD_CTX* ctx = EVP_MD_CTX_create();
         EVP_DigestInit_ex(ctx, EVP_shake256(), NULL);
         EVP_DigestUpdate(ctx, input.c_str(), input.size());
@@ -271,8 +271,15 @@ public:
         vector<uint64_t> output_vector;
         for (int i = 0; i < output_length_bytes; i+=8) {
             uint64_t temp = 0;
-            for (int j = 0; j < 8; ++j) {
-                temp += (uint64_t)output[i+j] << (j*8);
+            auto rest = output_length_bytes%8;
+            if(rest != 0 && i >= output_length_bytes - 8 ){
+                for (int j = 0; j < rest; ++j) {
+                    temp += (uint64_t)output[i+j] << (j*8);
+                }
+            } else {
+                for (int j = 0; j < 8; ++j) {
+                    temp += (uint64_t)output[i+j] << (j*8);
+                }
             }
             output_vector.push_back(temp);
         }

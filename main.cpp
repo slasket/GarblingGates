@@ -28,8 +28,11 @@ void testBaseOT(int v, int k , int l, int elgamalKeySize);
 
 int main() {
     //testsubAteca();
+    size_t output_length_bytes = 129 / 8;
+    cout << output_length_bytes << endl;
 
-    testFreexorAteca();
+
+    //testFreexorAteca();
 
 
 
