@@ -8,7 +8,7 @@
 
 
 
-tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<vint>> threeHalves::garble(int k, vector<string> f) {
+tuple<int, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<vint>> threeHalves::garble(int k, vector<string> f) {
     //get number of wires and gates
     auto &wireAndGates = f[0];
     auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
@@ -92,7 +92,8 @@ tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<vint>> thr
                         BLeft = B1Left;
                         BRight = B1Right;
                     }
-                    halfLabels rS1AjBl, rS2AjBl;
+                    halfLabels rS1AjBl = {{0}, {0}};
+                    halfLabels rS2AjBl = {{0}, {0}};
                     if(r1 == 1){
                         /*
                          * Calculate S1 * [Aj Bl]
@@ -100,7 +101,6 @@ tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<vint>> thr
                         auto left = util::vecXOR(util::vecXOR(BLeft, ARight), ALeft);
                         auto right = util::vecXOR(BLeft, ALeft);
                         rS1AjBl = {left, right};
-
                     }
                     if(r2 == 1){
                         /*
@@ -119,67 +119,65 @@ tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<vint>> thr
 
 
                     Zij[ctr] = Yij;
+                    ctr++;
                 }
-
-                //Prepend rVec to Z
-                for (int l = 0; l < 4; ++l) {
-                    auto [left, right] = Zij[l];
-                    util::prependBitToVint(left, rVec[l*2]);
-                    util::prependBitToVint(right, rVec[(l*2)+1]);
-                }
-                //VInvZ is calculated per discord picture
-                vector<vint> VInvZ(5);
-                VInvZ[0] = get<0>(Zij[0]);
-                VInvZ[1] = get<1>(Zij[0]);
-                VInvZ[2] = util::vecXOR({get<0>(Zij[2]), get<1>(Zij[2]), get<0>(Zij[0]), get<1>(Zij[0])});
-                VInvZ[3] = util::vecXOR({get<0>(Zij[1]), get<1>(Zij[1]),get<0>(Zij[0]), get<1>(Zij[0]) });
-                VInvZ[4] = util::vecXOR(get<0>(Zij[3]), get<1>(Zij[3]));
-
-                //VInvRpABDelta is calculated per discord picture
-                vector<vint> VInvRpABDelta(5);
-                VInvRpABDelta[0] = B0Left;
-                VInvRpABDelta[1] = A0Right;
-                VInvRpABDelta[2] = util::vecXOR(deltaRight, B0Left);
-                VInvRpABDelta[3] = util::vecXOR(deltaLeft, A0Right);
-                VInvRpABDelta[4] = {0};
-                //Prepend 0's to all entries to make lenghts match (According to Lance)
-                for (int l = 0; l < 5; ++l) {
-                    util::prependBitToVint(VInvRpABDelta[l], 0);
-                }
-
-                //HVecPrime is calculated per discord picture
-                vint HA0 = util::hash_variable(util::halfLabelsToFullLabelString(A0) + to_string(((3*k)-3)), (k/2)+1);
-                vint HA1 = util::hash_variable(util::halfLabelsToFullLabelString(A1) + to_string(((3*k)-3)), (k/2)+1);
-                vint HB0 = util::hash_variable(util::halfLabelsToFullLabelString(B0) + to_string(((3*k)-2)), (k/2)+1);
-                vint HB1 = util::hash_variable(util::halfLabelsToFullLabelString(B1) + to_string(((3*k)-2)), (k/2)+1);
-                halfLabels A0xorB0 = {util::vecXOR(A0Left, B0Left), util::vecXOR(A0Right, B0Right)};
-                vint HA0xorB0 = util::hash_variable(util::halfLabelsToFullLabelString(A0xorB0) + to_string(((3*k)-1)), (k/2)+1);
-
-                //A0 XOR B0 XOR Delta = A0 XOR B1
-                halfLabels A0xorB0xorDelta = {util::vecXOR(A0Left, B1Left), util::vecXOR(A0Right, B1Right)};
-                vint HAxorB0xorDelta = util::hash_variable(util::halfLabelsToFullLabelString(A0xorB0xorDelta) + to_string(((3*k)-1)), (k/2)+1);
-                vector<vint> HVecPrime(5);
-                HVecPrime[0] = util::vecXOR(HA0, HA0xorB0);
-                HVecPrime[1] = util::vecXOR(HB0, HA0xorB0);
-                HVecPrime[2] = util::vecXOR(HA1, HA0);
-                HVecPrime[3] = util::vecXOR(HB1, HB0);
-                HVecPrime[4] = util::vecXOR(HAxorB0xorDelta, HA0xorB0);
-
-                //XOR stuff together
-                vector<vint> zVecConcatCG(5);
-                for (int l = 0; l < 5; ++l) {
-                    zVecConcatCG[i] = util::vecXOR({VInvZ[i], VInvRpABDelta[i], HVecPrime[i]});
-                }
-                uint64_t permuteBitCipher = zVecConcatCG[0][0] & 1;
-                halfLabels cipherLabel = {zVecConcatCG[0], zVecConcatCG[1]};
-                if(permuteBitCipher == 1) {
-                    util::halfLabelXOR(cipherLabel, delta);
-                }
-                auto outputCipher = make_tuple(cipherLabel, permuteBitCipher);
-                labelAndPermuteBitPairs[i-3] = outputCipher;
-
-
             }
+            //Prepend rVec to Z
+            for (int l = 0; l < 4; ++l) {
+                auto [left, right] = Zij[l];
+                util::prependBitToVint(left, util::checkIthBit(rVec, l*2));
+                util::prependBitToVint(right, util::checkIthBit(rVec, l*2+1));
+            }
+            //VInvZ is calculated per discord picture
+            vector<vint> VInvZ(5);
+            VInvZ[0] = get<0>(Zij[0]);
+            VInvZ[1] = get<1>(Zij[0]);
+            VInvZ[2] = util::vecXOR({get<0>(Zij[2]), get<1>(Zij[2]), get<0>(Zij[0]), get<1>(Zij[0])});
+            VInvZ[3] = util::vecXOR({get<0>(Zij[1]), get<1>(Zij[1]),get<0>(Zij[0]), get<1>(Zij[0]) });
+            VInvZ[4] = util::vecXOR(get<0>(Zij[3]), get<1>(Zij[3]));
+
+            //VInvRpABDelta is calculated per discord picture
+            vector<vint> VInvRpABDelta(5);
+            VInvRpABDelta[0] = B0Left;
+            VInvRpABDelta[1] = A0Right;
+            VInvRpABDelta[2] = util::vecXOR(deltaRight, B0Left);
+            VInvRpABDelta[3] = util::vecXOR(deltaLeft, A0Right);
+            VInvRpABDelta[4] = {0};
+            //Prepend 0's to all entries to make lenghts match (According to Lance)
+            for (int l = 0; l < 5; ++l) {
+                util::prependBitToVint(VInvRpABDelta[l], 0);
+            }
+
+            //HVecPrime is calculated per discord picture
+            vint HA0 = util::hash_variable(util::halfLabelsToFullLabelString(A0) + to_string(((3*k)-3)), (k/2)+1);
+            vint HA1 = util::hash_variable(util::halfLabelsToFullLabelString(A1) + to_string(((3*k)-3)), (k/2)+1);
+            vint HB0 = util::hash_variable(util::halfLabelsToFullLabelString(B0) + to_string(((3*k)-2)), (k/2)+1);
+            vint HB1 = util::hash_variable(util::halfLabelsToFullLabelString(B1) + to_string(((3*k)-2)), (k/2)+1);
+            halfLabels A0xorB0 = {util::vecXOR(A0Left, B0Left), util::vecXOR(A0Right, B0Right)};
+            vint HA0xorB0 = util::hash_variable(util::halfLabelsToFullLabelString(A0xorB0) + to_string(((3*k)-1)), (k/2)+1);
+
+            //A0 XOR B0 XOR Delta = A0 XOR B1
+            halfLabels A0xorB0xorDelta = {util::vecXOR(A0Left, B1Left), util::vecXOR(A0Right, B1Right)};
+            vint HAxorB0xorDelta = util::hash_variable(util::halfLabelsToFullLabelString(A0xorB0xorDelta) + to_string(((3*k)-1)), (k/2)+1);
+            vector<vint> HVecPrime(5);
+            HVecPrime[0] = util::vecXOR(HA0, HA0xorB0);
+            HVecPrime[1] = util::vecXOR(HB0, HA0xorB0);
+            HVecPrime[2] = util::vecXOR(HA1, HA0);
+            HVecPrime[3] = util::vecXOR(HB1, HB0);
+            HVecPrime[4] = util::vecXOR(HAxorB0xorDelta, HA0xorB0);
+
+            //XOR stuff together
+            vector<vint> zVecConcatCG(5);
+            for (int l = 0; l < 5; ++l) {
+                zVecConcatCG[l] = util::vecXOR({VInvZ[l], VInvRpABDelta[l], HVecPrime[l]});
+            }
+            uint64_t permuteBitCipher = zVecConcatCG[0][0] & 1;
+            halfLabels cipherLabel = {zVecConcatCG[0], zVecConcatCG[1]};
+            if(permuteBitCipher == 1) {
+                util::halfLabelXOR(cipherLabel, delta);
+            }
+            auto outputCipher = make_tuple(cipherLabel, permuteBitCipher);
+            labelAndPermuteBitPairs[i-3] = outputCipher;
         }
         else if(gateType == "INV") {
 
@@ -219,9 +217,7 @@ tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<vint>> thr
     auto e = make_tuple(delta, labelAndPermuteBitPairs);
     auto d =  encryptedOutputLabels;
 
-    //Return F, e, d.
-    // todo create F
-
+    //Return F, e, d. //todo create F
     return make_tuple(0, e, d);
 }
 
