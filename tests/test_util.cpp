@@ -251,5 +251,41 @@ BOOST_AUTO_TEST_SUITE( Testing_Gen_Halves )
 
 BOOST_AUTO_TEST_SUITE_END()
 
+BOOST_AUTO_TEST_SUITE( Testing_vecXORlist )
+
+    BOOST_AUTO_TEST_CASE( test_XORtwoVars )
+    {
+        for (int i = 0; i < 100; ++i) {
+            auto a = util::genBitsNonCrypto(128);
+            auto b = util::genBitsNonCrypto(128);
+            vint c = vint(a.size());
+            vint d = vint(a.size());
+            c = util::vecXOR(a, b);
+            d = util::vecXOR({a, b});
+            BOOST_TEST(c == d);
+        }
+    }
+
+    BOOST_AUTO_TEST_CASE( test_multipleVars )
+    {
+        bitset<1> one = {1};
+        for (int i = 0; i < 100; ++i) {
+            vector<vint> list;
+            vint res1 = vint(2);
+            for (int j = 0; j < 10; ++j) {
+                if(one==util::random_bitset<1>()) {
+                    auto a = util::genBitsNonCrypto(128);
+                    list.push_back(a);
+                    res1 = util::vecXOR(res1, a);
+                }
+            }
+            auto res2 = util::vecXOR(list);
+            BOOST_TEST(res1 == res2);
+        }
+    }
+
+BOOST_AUTO_TEST_SUITE_END()
+
+
 
 
