@@ -121,6 +121,37 @@ tuple<int, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<vint>> three
 
                     Zij[ctr] = Yij;
                 }
+                //VInvRpABDelta is calculated per discord picture
+                vector<vint> VInvRpABDelta(5);
+                VInvRpABDelta[0] = B0Left;
+                VInvRpABDelta[1] = A0Right;
+                VInvRpABDelta[2] = util::vecXOR(deltaRight, B0Left);
+                VInvRpABDelta[3] = util::vecXOR(deltaLeft, A0Right);
+                VInvRpABDelta[4] = {0};
+
+                //VInvZ is calculated per discord picture
+                vector<vint> VInvZ(5);
+                VInvZ[0] = get<0>(Zij[0]);
+                VInvZ[1] = get<1>(Zij[0]);
+                auto temp = util::vecXOR(get<0>(Zij[2]), get<1>(Zij[2]));
+                auto temp1 = util::vecXOR(get<0>(Zij[0]), get<1>(Zij[0]));
+                VInvZ[2] = util::vecXOR(temp, temp1);
+                temp = util::vecXOR(get<0>(Zij[1]), get<1>(Zij[1]));
+                temp1 = util::vecXOR(get<0>(Zij[0]), get<1>(Zij[0]));
+                VInvZ[3] = util::vecXOR(temp, temp1);
+                VInvZ[4] = util::vecXOR(get<0>(Zij[3]), get<1>(Zij[3]));
+
+                //HVecPrime is calculated per discord picture
+                vint H0 = util::hash_variable(util::halfLabelsToFullLabelString(A0) + to_string(((3*k)-3)), (k/2)+1);
+                vint H1 = util::hash_variable(util::halfLabelsToFullLabelString(A1) + to_string(((3*k)-3)), (k/2)+1);
+                vint H2 = util::hash_variable(util::halfLabelsToFullLabelString(B0) + to_string(((3*k)-2)), (k/2)+1);
+                vint H3 = util::hash_variable(util::halfLabelsToFullLabelString(B1) + to_string(((3*k)-2)), (k/2)+1);
+                halfLabels A0xorB0 = {util::vecXOR(A0Left, B0Left), util::vecXOR(A0Right, B0Right)};
+                vint H4 = util::hash_variable(util::halfLabelsToFullLabelString(A0xorB0) + to_string(((3*k)-1)), (k/2)+1);
+
+                //A0 XOR B0 XOR Delta = A0 XOR B1
+                halfLabels A0xorB1 = {util::vecXOR(A0Left, B1Left), util::vecXOR(A0Right, B1Right)};
+                vint H5 = util::hash_variable(util::halfLabelsToFullLabelString(A0xorB1) + to_string(((3*k)-1)), (k/2)+1);
             }
         }
         else if(gateType == "INV") {

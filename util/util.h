@@ -351,10 +351,12 @@ public:
         left.push_back(bit1);
         right.push_back(bit2);
         return halfLabel;
-
-
-
     }
+    static string halfLabelsToFullLabelString(halfLabels halfLabel){
+        auto [left, right] = std::move(halfLabel);
+        return uintVec2Str(left) + uintVec2Str(right);
+    }
+
 };
 
 
