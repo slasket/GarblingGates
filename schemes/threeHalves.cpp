@@ -63,19 +63,16 @@ tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<vint>> thr
             auto rVec = sampleR(permuteBitA, permuteBitB);
 
             //Compute A1 and B1
+            auto A1 = util::halfLabelXOR(A0, delta);
+            auto B1 = util::halfLabelXOR(B0, delta);
             auto [A0Left, A0Right] = A0;
             auto [B0Left, B0Right] = B0;
+            auto [A1Left, A1Right] = A1;
+            auto [B1Left, B1Right] = B1;
             auto [deltaLeft, deltaRight] = delta;
-            auto A1Left = util::vecXOR(A0Left, deltaLeft);
-            auto A1Right = util::vecXOR(A0Right, deltaRight);
-            auto B1Left = util::vecXOR(B0Left, deltaLeft);
-            auto B1Right = util::vecXOR(B0Right, deltaRight);
-            halfLabels A1 = make_tuple(A1Left, A1Right);
-            halfLabels B1 = make_tuple(B1Left, B1Right);
 
             //Calculate Zij
             auto Zij = calcZij(A0, B0, A1, B1, rVec, permuteBitA, permuteBitB, delta, i);
-
 
             //Prepend rVec to Z
             for (int l = 0; l < 4; ++l) {
