@@ -44,13 +44,13 @@ tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels
             A0AndPermuteBit = labelAndPermuteBitPairs[inputWires[0]];
             B0AndPermuteBit = labelAndPermuteBitPairs[inputWires[1]];
 
-            auto A0 = get<0>(A0AndPermuteBit);
-            auto B0 = get<0>(B0AndPermuteBit);
-            auto leftHalf = util::vecXOR(get<0>(A0), get<0>(B0));
-            auto rightHalf = util::vecXOR(get<1>(A0), get<1>(B0));
-            auto APermuteBit = get<1>(A0AndPermuteBit);
-            auto BPermuteBit = get<1>(B0AndPermuteBit);
-            auto permuteBitXOR = APermuteBit ^ BPermuteBit;
+            halfLabels A0 = get<0>(A0AndPermuteBit);
+            halfLabels B0 = get<0>(B0AndPermuteBit);
+            vint leftHalf = util::vecXOR(get<0>(A0), get<0>(B0));
+            vint rightHalf = util::vecXOR(get<1>(A0), get<1>(B0));
+            int APermuteBit = get<1>(A0AndPermuteBit);
+            int BPermuteBit = get<1>(B0AndPermuteBit);
+            int permuteBitXOR = APermuteBit ^ BPermuteBit;
 
             halfLabels outputLabel = {leftHalf, rightHalf};
             auto outputCipher = make_tuple(outputLabel, permuteBitXOR);
@@ -65,66 +65,17 @@ tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels
             auto rVec = sampleR(permuteBitA, permuteBitB);
 
             //Compute A1 and B1
+            auto A1 = util::halfLabelXOR(A0, delta);
+            auto B1 = util::halfLabelXOR(B0, delta);
             auto [A0Left, A0Right] = A0;
             auto [B0Left, B0Right] = B0;
+            auto [A1Left, A1Right] = A1;
+            auto [B1Left, B1Right] = B1;
             auto [deltaLeft, deltaRight] = delta;
-            auto A1Left = util::vecXOR(A0Left, deltaLeft);
-            auto A1Right = util::vecXOR(A0Right, deltaRight);
-            auto B1Left = util::vecXOR(B0Left, deltaLeft);
-            auto B1Right = util::vecXOR(B0Right, deltaRight);
-            halfLabels A1 = make_tuple(A1Left, A1Right);
-            halfLabels B1 = make_tuple(B1Left, B1Right);
-            vector<halfLabels> Zij(4);
-            int ctr = 0;
-            for (int j = 0; j<=1; ++j) {
-                for (int l = 0; l <=1; ++l) {
-                    int index1 = 4*i+2*l;
-                    int index2 = 4*1+2*l+1;
 
-                    int r1 = util::checkIthBit(rVec, index1);
-                    int r2 = util::checkIthBit(rVec, index2);
-                    vint ALeft = A0Left;
-                    vint ARight = A0Right;
-                    vint BLeft = B0Left;
-                    vint BRight = B0Right;
-                    if(i == 1){
-                        ALeft = A1Left;
-                        ARight = A1Right;
-                    }
-                    if(j == 1){
-                        BLeft = B1Left;
-                        BRight = B1Right;
-                    }
-                    halfLabels rS1AjBl = {{0}, {0}};
-                    halfLabels rS2AjBl = {{0}, {0}};
-                    if(r1 == 1){
-                        /*
-                         * Calculate S1 * [Aj Bl]
-                         */
-                        auto left = util::vecXOR(util::vecXOR(BLeft, ARight), ALeft);
-                        auto right = util::vecXOR(BLeft, ALeft);
-                        rS1AjBl = {left, right};
-                    }
-                    if(r2 == 1){
-                        /*
-                         * Calculate S2 * [Ai Bj]
-                         */
-                        auto left = util::vecXOR(BRight, ALeft);
-                        auto right = util::vecXOR(util::vecXOR(BRight, BLeft), ARight);
-                        rS2AjBl = {left, right};
-                    }
+            //Calculate Zij
+            auto Zij = calcZij(A0, B0, A1, B1, rVec, permuteBitA, permuteBitB, delta, i);
 
-                    halfLabels Yij = util::halfLabelXOR(rS1AjBl, rS2AjBl);
-                    bool includeDelta = (permuteBitA ^ j) & (permuteBitB ^ l);
-                    if(includeDelta) {
-                        Yij = util::halfLabelXOR(Yij, delta);
-                    }
-
-
-                    Zij[ctr] = Yij;
-                    ctr++;
-                }
-            }
             //Prepend rVec to Z
             for (int l = 0; l < 4; ++l) {
                 auto [left, right] = Zij[l];
@@ -177,10 +128,10 @@ tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels
             HVecPrime[3] = util::vecXOR(HB1, HB0);
             HVecPrime[4] = util::vecXOR(HAxorB0xorDelta, HA0xorB0);
 
-            //XOR stuff together
+
             vector<vint> CG(5);
             vector<uint8_t> zVec(5);
-
+            //XOR stuff together
             for (int l = 0; l < 5; ++l) {
                 auto zConcatCG = util::vecXOR({VInvZ[l], VInvRpABDelta[l], HVecPrime[l]});
                 zVec[l] = (zConcatCG[zConcatCG.size()-1]);
@@ -413,4 +364,64 @@ vint threeHalves::sampleR(int permuteBitA, int permuteBitB) {
     R$ = bit1 * 85 + bit2 * 170;
     uint64_t rVec = (a*RaBar) ^ (b*RbBar) ^ R$;
     return {rVec};
+}
+
+vector<halfLabels> threeHalves::calcZij(halfLabels &A0, halfLabels &B0, halfLabels &A1, halfLabels &B1, vint &rVec, int permuteBitA, int permuteBitB, halfLabels &delta, int i){
+    vector<halfLabels> Zij(4);
+    int ctr = 0;
+    auto [A0Left, A0Right] = A0;
+    auto [B0Left, B0Right] = B0;
+    auto [A1Left, A1Right] = A1;
+    auto [B1Left, B1Right] = B1;
+
+    for (int j = 0; j<=1; ++j) {
+        for (int l = 0; l <=1; ++l) {
+            int index1 = 4*i+2*l;
+            int index2 = 4*i+2*l+1;
+
+            int r1 = util::checkIthBit(rVec, index1);
+            int r2 = util::checkIthBit(rVec, index2);
+            vint ALeft = A0Left;
+            vint ARight = A0Right;
+            vint BLeft = B0Left;
+            vint BRight = B0Right;
+            if(i == 1){
+                ALeft = A1Left;
+                ARight = A1Right;
+            }
+            if(j == 1){
+                BLeft = B1Left;
+                BRight = B1Right;
+            }
+            halfLabels rS1AjBl = {{0}, {0}};
+            halfLabels rS2AjBl = {{0}, {0}};
+            if(r1 == 1){
+                /*
+                 * Calculate S1 * [Aj Bl]
+                 */
+                auto left = util::vecXOR(util::vecXOR(BLeft, ARight), ALeft);
+                auto right = util::vecXOR(BLeft, ALeft);
+                rS1AjBl = {left, right};
+            }
+            if(r2 == 1){
+                /*
+                 * Calculate S2 * [Ai Bj]
+                 */
+                auto left = util::vecXOR(BRight, ALeft);
+                auto right = util::vecXOR(util::vecXOR(BRight, BLeft), ARight);
+                rS2AjBl = {left, right};
+            }
+
+            halfLabels Yij = util::halfLabelXOR(rS1AjBl, rS2AjBl);
+            bool includeDelta = (permuteBitA ^ j) & (permuteBitB ^ l);
+            if(includeDelta) {
+                Yij = util::halfLabelXOR(Yij, delta);
+            }
+
+
+            Zij[ctr] = Yij;
+            ctr++;
+        }
+    }
+    return Zij;
 }

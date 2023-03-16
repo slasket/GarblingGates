@@ -71,7 +71,8 @@ public:
     static vector<int> decode(vector<halfLabels> d, vector<halfLabels> Y, vector<string> f, int k);
     static vint sampleR(int permuteBitA, int permuteBitB);
     static vint hashPrime(const vint& input, int k, int tweak);
-
+private:
+    static vector<halfLabels> calcZij(halfLabels &A0, halfLabels &B0, halfLabels &A1, halfLabels &B1, vint &rVec, int permuteBitA, int permuteBitB, halfLabels &delta, int i);
 
 };
 
