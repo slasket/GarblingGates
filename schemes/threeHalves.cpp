@@ -8,7 +8,7 @@
 
 
 
-tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<vint>> threeHalves::garble(int k, vector<string> f) {
+tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels>> threeHalves::garble(int k, vector<string> f) {
     //get number of wires and gates
     auto &wireAndGates = f[0];
     auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
@@ -21,11 +21,13 @@ tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<vint>> thr
     util::getBits(f[2], numberOfOutputBits);
     halfDelta delta = util::genDeltaHalves(k);
     vector<tuple<halfLabels, int>> labelAndPermuteBitPairs(numberOfWires);
-    vector<vint> encryptedOutputLabels(numberOfOutputBits);
+    vector<tuple<halfLabels, int>> inputLabelAndPermuteBitPairs(numberOfInputBits); //testing
+    vector<halfLabels> encryptedOutputLabels(numberOfOutputBits);
     for (int i = 0; i < numberOfInputBits; i++){
         auto label0 = util::genLabelHalves(k);
         auto permuteBit = (int)util::random_bitset<1>().to_ulong();
         labelAndPermuteBitPairs[i] = {label0, permuteBit};
+        inputLabelAndPermuteBitPairs[i] = {label0, permuteBit};
     }
     Ftype F;
     for (int i = 3; i < f.size(); ++i) {
@@ -215,37 +217,151 @@ tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<vint>> thr
         auto label0 = get<0>(halfLabels);
         auto label1 = get<1>(halfLabels);
         label0.insert(label0.end(), label1.begin(), label1.end());
-        int randomJ = (int)util::random_bitset<1>().to_ulong();
-        int jXORPermuteBit = randomJ ^ permuteBit;
-        if(jXORPermuteBit == 1){
-            auto deltaLeft = get<0>(delta);
-            auto deltaRight = get<1>(delta);
-            deltaLeft.insert(deltaLeft.end(), deltaRight.begin(), deltaRight.end());
-            label0 = util::vecXOR(label0, deltaLeft);
+        vint encryptedOutputLabel0;
+        vint encryptedOutputLabel1;
+        tuple<vint, vint> decodePair;
+        for (int j = 0; j < 2; ++j) {
+            int jXORPermuteBit = j ^ permuteBit;
+            if(jXORPermuteBit == 1){
+                //Calculate tweak as 3*|f| + 2k
+                int tweak = (numberOfWires * 3) + (2 * i);
+                encryptedOutputLabel0 = hashPrime(label0, k, tweak);
+                auto deltaLeft = get<0>(delta);
+                auto deltaRight = get<1>(delta);
+                deltaLeft.insert(deltaLeft.end(), deltaRight.begin(), deltaRight.end());
+                label0 = util::vecXOR(label0, deltaLeft);
+                encryptedOutputLabel1 = hashPrime(label0, k, tweak);
+            }
+            else {
+                //Calculate tweak as 3*|f| + 2k
+                int tweak = (numberOfWires * 3) + (2 * i);
+                encryptedOutputLabel1 = hashPrime(label0, k, tweak);
+                auto deltaLeft = get<0>(delta);
+                auto deltaRight = get<1>(delta);
+                deltaLeft.insert(deltaLeft.end(), deltaRight.begin(), deltaRight.end());
+                label0 = util::vecXOR(label0, deltaLeft);
+                encryptedOutputLabel0 = hashPrime(label0, k, tweak);
+            }
         }
-        //Calculate tweak as 3*|f| + 2k
-        int tweak = (numberOfWires * 3) + (2 * i);
-        auto encryptedOutputLabel = hashPrime(label0, k, tweak);
-        encryptedOutputLabels[i-(numberOfWires-1)] = encryptedOutputLabel;
+        encryptedOutputLabels[i-(numberOfWires-1)] = make_tuple(encryptedOutputLabel0, encryptedOutputLabel1);
     }
 
-    auto e = make_tuple(delta, labelAndPermuteBitPairs);
+    auto e = make_tuple(delta, inputLabelAndPermuteBitPairs);
     auto d =  encryptedOutputLabels;
 
     //Return F, e, d. //todo create F
     return make_tuple(F, e, d);
 }
 
-int threeHalves::encode(int e, int x) {
-    return 0;
+vector<halfLabels> threeHalves::encode(tuple<halfDelta, vector<tuple<halfLabels, int>>> e, vector<int> x) {
+    vector<halfLabels> Y;
+    halfDelta delta = get<0>(e);
+    vector<tuple<halfLabels, int>> labelAndPermuteBitPairs = get<1>(e);
+    for (int i = 0; i < labelAndPermuteBitPairs.size(); ++i) {
+        auto labelAndPermuteBit = labelAndPermuteBitPairs[i];
+        auto halfLabels = get<0>(labelAndPermuteBit);
+        auto permuteBit = get<1>(labelAndPermuteBit);
+        permuteBit = permuteBit ^ x[i];
+        auto [label0, label1] = halfLabels;
+        //label0.insert(label0.end(), label1.begin(), label1.end());
+        if(permuteBit == 1){
+            auto deltaLeft = get<0>(delta);
+            auto deltaRight = get<1>(delta);
+            //deltaLeft.insert(deltaLeft.end(), deltaRight.begin(), deltaRight.end());
+            label0 = util::vecXOR(label0, deltaLeft);
+            label1 = util::vecXOR(label1, deltaRight);
+        }
+        halfLabels = {label0, label1};
+        Y.emplace_back(halfLabels);
+    }
+    return Y;
 }
 
-int threeHalves::eval(Ftype F, int X) {
-    return 0;
+vector<halfLabels> threeHalves::eval(Ftype F, vector<halfLabels> X, vector<string> f, int k) {
+    vector<halfLabels> Y;
+    auto &wireAndGates = f[0];
+    auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
+    int numberOfWires = stoi(gatesAndWiresSplit[1]);
+    for (int i = 3; i < f.size(); ++i) {
+        //////////////////////// Getting out gate from string //////////////////////////
+        auto &line = f[i];
+        auto gateInfo = util::extractGate(line);              // "2 1 0 1 2 XOR"
+        auto inputWires = get<0>(gateInfo);         // [ ..., 0, 1]
+        auto outputWires = get<1>(gateInfo);        // [..., 1, ..., 2]
+        auto gateType = get<2>(gateInfo);               // "XOR"
+
+        auto gate = F[i-3];
+        auto [Al, Ar] = X[inputWires[0]];
+        auto [Bl, Br] = X[inputWires[1]];
+        auto ApermuteBit = get<1>(gate)[0];
+        auto BpermuteBit = get<1>(gate)[1];
+
+        halfLabels outputCipher;
+        if (gateType == "XOR") {
+            auto cl = util::vecXOR(Al, Bl);
+            auto cr = util::vecXOR(Ar, Br);
+            outputCipher = {cl, cr};
+        } else if (gateType == "AND") {
+            //big math
+            vector<uint8_t> z = get<3>(gate);
+            auto g0 = get<0>(gate);
+            auto g1 = get<1>(gate);
+            auto g2 = get<2>(gate);
+
+
+            vector<vint> gVec = {g0, g1, g2};
+            //append z[j] to g0, g1, g2
+            for (int j = 0; j < 3; ++j) {
+                gVec[j].emplace_back(z[j+2]); //z[0] and z[1] are for cl cr
+            }
+
+            // Vij (zk || [G])
+            vector<vint> vzgVec;
+            switch (ApermuteBit * 2 + BpermuteBit) {
+                case 0:
+                    vzgVec = {};
+                    break;
+                case 1:
+                    vzgVec = {gVec[2], util::vecXOR(gVec[2], gVec[1])};
+                    break;
+                case 2:
+                    vzgVec = {util::vecXOR(gVec[2], gVec[0]), gVec[2]};
+                    break;
+                case 3:
+                    vzgVec = {gVec[0], gVec[1]};
+                    break;
+            }
+
+        }
+    }
+
+
+    return Y;
 }
 
-int threeHalves::decode(int d, int Y) {
-    return 0;
+vector<int> threeHalves::decode(vector<halfLabels> d, vector<halfLabels> Y, vector<string> f, int k) {
+    auto &wireAndGates = f[0];
+    auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
+    int numberOfWires = stoi(gatesAndWiresSplit[1]);
+    vector<int> y;
+    for (int i = 0; i < Y.size(); ++i) {
+        auto halfLabels = Y[i];
+        auto [label0, label1] = halfLabels;
+        label0.insert(label0.end(), label1.begin(), label1.end());
+        auto encryptedOutputLabel0 = get<0>(d[i]);
+        auto encryptedOutputLabel1 = get<1>(d[i]);
+        if(label0 == encryptedOutputLabel0) {
+            y.emplace_back(0);
+        }
+        else if(label0 == encryptedOutputLabel1) {
+            y.emplace_back(1);
+        }
+        else {
+            cout << "Something went wrong" << endl;
+            //exit(2);
+        }
+    }
+    return y;
 }
 
 vector<uint64_t> threeHalves::hashPrime(const vint& input, int k, int tweak) {

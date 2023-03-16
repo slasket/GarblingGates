@@ -25,6 +25,22 @@ public:
      */
     const static uint8_t S2 = 233;
 
+    constexpr static uint8_t V[4][2][5] =
+            {
+                    {
+                        {1,0,0,0,0},
+                        {0,1,0,0,0}},
+                    {
+                        {1,0,0,0,1},
+                        {0,1,0,1,1}},
+                    {
+                        {1,0,1,0,1},
+                        {0,1,0,0,1}},
+                    {
+                        {1,0,1,0,0},
+                        {0,1,0,1,0}}
+            };
+
     constexpr static uint8_t VInv[5][8] =
             {
                     {1,0,0,0,0,0,0,0},
@@ -49,10 +65,10 @@ public:
                     {0,0,1,1,0,0},
                     {0,0,0,0,1,1}
             };
-    static tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<vint>>  garble(int k, vector<string> f);
-    static int encode(int e, int x);
-    static int eval(Ftype F, int X);
-    static int decode(int d, int Y);
+    static tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels>>  garble(int k, vector<string> f);
+    static vector<halfLabels> encode(tuple<halfDelta, vector<tuple<halfLabels, int>>> e, vector<int> x);
+    static vector<halfLabels> eval(Ftype F, vector<halfLabels> X, vector<string> f, int k);
+    static vector<int> decode(vector<halfLabels> d, vector<halfLabels> Y, vector<string> f, int k);
     static vint sampleR(int permuteBitA, int permuteBitB);
     static vint hashPrime(const vint& input, int k, int tweak);
 

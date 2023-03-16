@@ -43,3 +43,32 @@ BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesAnd )
         BOOST_TEST(d.size() == 1);
     }
 BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEncode )
+
+    vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 AND"};
+    auto output = threeHalves::garble(128, smalltest);
+    auto x = vector<int>{1, 1};
+    auto e = get<1>(output);
+    auto encLabels = threeHalves::encode(e, x);
+
+    BOOST_AUTO_TEST_CASE( test_EncodeSize )
+    {
+        BOOST_TEST(encLabels.size() == 2);
+        BOOST_TEST((get<0>(encLabels[0]))[0] != 0);
+        BOOST_TEST((get<0>(encLabels[1]))[0] != 0);
+    }
+
+    auto d = get<2>(output);
+    vector<halfLabels> Y = {{{1}, {1}}}; //input to get the right size output
+    auto y = threeHalves::decode(d, Y, smalltest, 128);
+    BOOST_AUTO_TEST_CASE( test_Decode )
+    {
+        BOOST_TEST(y.size() == 1);
+    }
+
+
+
+
+
+BOOST_AUTO_TEST_SUITE_END()
