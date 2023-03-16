@@ -74,6 +74,7 @@ public:
 private:
     static vector<halfLabels> calcZij(halfLabels &A0, halfLabels &B0, halfLabels &A1, halfLabels &B1, vint &rVec, int permuteBitA, int permuteBitB, halfLabels &delta, int i);
 
+    static halfLabels decodeR(vector<uint64_t> rVec, halfLabels Aperm, halfLabels Bperm);
 };
 
 
