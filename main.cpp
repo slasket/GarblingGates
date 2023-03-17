@@ -20,6 +20,7 @@
 using namespace std;
 
 #include <openssl/sha.h>
+#include "schemes/threeHalves.h"
 
 
 void testsubAteca();
@@ -28,8 +29,15 @@ void testBaseOT(int v, int k , int l, int elgamalKeySize);
 
 int main() {
     //testsubAteca();
-    size_t output_length_bytes = 129 / 8;
-    cout << output_length_bytes << endl;
+    vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 AND"};
+    auto output = threeHalves::garble(128, smalltest);
+    auto x = vector<int>{1, 1};
+    auto F = get<0>(output);
+    auto e = get<1>(output);
+    auto d = get<2>(output);
+    auto encLabels = threeHalves::encode(e, x);
+    auto Y = threeHalves::eval(F, encLabels, smalltest, 128);
+    auto y = threeHalves::decode(d, Y, smalltest, 128);
 
 
     //testFreexorAteca();
