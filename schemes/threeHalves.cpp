@@ -309,3 +309,15 @@ vector<halfLabels> threeHalves::calcZij(halfLabels &A0, halfLabels &B0, halfLabe
     }
     return Zij;
 }
+
+vector<int> threeHalves::computeT(int permuteBitA, int permuteBitB, const string& gateType) {
+    if(gateType == "XOR"){
+        return {permuteBitA ^ permuteBitB, permuteBitA ^ (1-permuteBitB), (1-permuteBitA) ^ permuteBitB, (1-permuteBitA) ^ (1-permuteBitB)};
+    }
+    else if(gateType == "AND") {
+        return {permuteBitA & permuteBitB, permuteBitA & (1-permuteBitB), (1-permuteBitA) & permuteBitB, (1-permuteBitA) & (1-permuteBitB)};
+    }
+    else {
+        cout << "Unknown gatetype in computeT" << endl;
+    }
+}

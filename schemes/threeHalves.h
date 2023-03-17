@@ -54,6 +54,7 @@ public:
     static int eval(Ftype F, int X);
     static int decode(int d, int Y);
     static vint sampleR(int permuteBitA, int permuteBitB);
+    static vector<int> computeT(int permuteBitA, int permuteBitB, const string& gateType);
     static vint hashPrime(const vint& input, int k, int tweak);
 private:
     static vector<halfLabels> calcZij(halfLabels &A0, halfLabels &B0, halfLabels &A1, halfLabels &B1, vint &rVec, int permuteBitA, int permuteBitB, halfLabels &delta, int i);
