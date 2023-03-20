@@ -72,9 +72,11 @@ public:
     static vint sampleR(int permuteBitA, int permuteBitB);
     static vint hashPrime(const vint& input, int k, int tweak);
 private:
-    static vector<halfLabels> calcZij(halfLabels &A0, halfLabels &B0, halfLabels &A1, halfLabels &B1, vint &rVec, int permuteBitA, int permuteBitB, halfLabels &delta, int i);
+    static vector<halfLabels>
+    calcZij(halfLabels &A0, halfLabels &B0, halfLabels &A1, halfLabels &B1, vint &rVec, int permuteBitA,
+            int permuteBitB, halfLabels &delta);
 
-    static halfLabels decodeR(vector<uint64_t> rVec, halfLabels Aperm, halfLabels Bperm);
+    static halfLabels decodeR(vector<uint64_t> rVec, halfLabels A, halfLabels B, int Aperm, int Bperm);
 };
 
 
