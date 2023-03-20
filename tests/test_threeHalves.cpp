@@ -122,19 +122,21 @@ BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalAND )
 
     vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 AND"};
-    auto output = threeHalves::garble(128, smalltest);
-    auto x = vector<int>{1, 1};
-    auto F = get<0>(output);
-    auto e = get<1>(output);
-    auto d = get<2>(output);
-    auto encLabels = threeHalves::encode(e, x);
-    auto Y = threeHalves::eval(F, encLabels, smalltest, 128);
-    auto y = threeHalves::decode(d, Y, smalltest, 128);
 
     BOOST_AUTO_TEST_CASE( test_Eval1and1 )
     {
-        BOOST_TEST(y.size() == 1);
-        if(y.size() == 1) BOOST_TEST(y[0] == 1);
+        for (int i = 0; i < 10; ++i) {
+            auto output = threeHalves::garble(128, smalltest);
+            auto x = vector<int>{1, 1};
+            auto F = get<0>(output);
+            auto e = get<1>(output);
+            auto d = get<2>(output);
+            auto encLabels = threeHalves::encode(e, x);
+            auto Y = threeHalves::eval(F, encLabels, smalltest, 128);
+            auto y = threeHalves::decode(d, Y, smalltest, 128);
+            BOOST_TEST(y.size() == 1);
+            if(y.size() == 1) BOOST_TEST(y[0] == 1);
+        }
     }
 
 BOOST_AUTO_TEST_SUITE_END()
