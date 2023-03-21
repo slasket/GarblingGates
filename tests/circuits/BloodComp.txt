@@ -1,3 +1,6 @@
+//this is the blood compatibility circuit
+// can compare blood types, has hardcoded inverse gates with a constant
+//
 11 18
 3 3 3 1
 1 1

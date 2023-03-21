@@ -6,6 +6,7 @@
 #include "../bloodcompatibility.h"
 #include "../schemes/atecaFreeXOR.h"
 #include "../schemes/atecaGarble.h"
+#include "../util/circuitParser.h"
 
 using namespace boost::unit_test;
 
