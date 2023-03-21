@@ -31,7 +31,7 @@ tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels
     }
 
     //invConst
-    halfLabels invConst = util::genLabelHalves(k);
+    halfLabels invConst = genLabelHalves(k);
 
     Ftype F(numberOfWires);
     for (int i = 3; i < f.size(); ++i) {

@@ -239,6 +239,9 @@ BOOST_AUTO_TEST_SUITE( Testing_vecXORlist )
             vector<vint> list;
             vint res1 = vint(2);
             for (int j = 0; j < 10; ++j) {
+                auto b = util::genBitsNonCrypto(128);
+                list.push_back(b);
+                res1 = util::vecXOR(res1, b);
                 if(one==util::random_bitset<1>()) {
                     auto a = util::genBitsNonCrypto(128);
                     list.push_back(a);

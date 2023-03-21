@@ -3,6 +3,7 @@
 //
 #include <boost/test/unit_test.hpp>
 #include "../util/util.h"
+#include "../util/circuitParser.h"
 #include "../schemes/threeHalves.h"
 #include "../bloodcompatibility.h"
 
