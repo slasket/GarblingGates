@@ -65,9 +65,9 @@ public:
                     {0,0,1,1,0,0},
                     {0,0,0,0,1,1}
             };
-    static tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels>>  garble(int k, vector<string> f);
+    static tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels>, halfLabels>  garble(int k, vector<string> f);
     static vector<halfLabels> encode(tuple<halfDelta, vector<tuple<halfLabels, int>>> e, vector<int> x);
-    static vector<halfLabels> eval(Ftype F, vector<halfLabels> X, vector<string> f, int k, vector<halfLabels> d);
+    static vector<halfLabels> eval(Ftype F, vector<halfLabels> X, vector<string> f, int k, const halfLabels& invConst);
     static vector<int> decode(vector<halfLabels> d, vector<halfLabels> Y, vector<string> f, int k);
     static vint sampleR(int permuteBitA, int permuteBitB);
     static vint hashPrime(const vint& input, int k, int tweak);
