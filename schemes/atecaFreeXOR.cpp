@@ -83,7 +83,7 @@ atecaFreeXOR::GarbleCircuit(int l, vector<std::string> C, vector<tuple<vint, vin
 
             //calculate Gb
             ///must return L0, L1, Delta
-            
+
             auto l0= util::vecXOR(get<1>(wires[in0]),get<1>(invVar));
             auto l1= util::vecXOR(get<0>(wires[in0]),get<1>(invVar));
             garbledGate = {l0,l1};
