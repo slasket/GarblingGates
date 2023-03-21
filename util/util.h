@@ -8,7 +8,6 @@
 #include <vector>
 #include <iterator>
 #include <iostream>
-#include "circuitParser.h"
 #include <bitset>
 #include <random>
 #include "otUtil/otUtil.h"
@@ -59,11 +58,6 @@ public:
         stringstream res;
         copy(vec.begin(),vec.end(),ostream_iterator<::uint64_t>(res));
         return res.str();
-    }
-
-    static void printCircuit(const std::string& path){
-        auto res = circuitParser::parseCircuit(path);
-        util::printStrVec(res);
     }
 
     static tuple<vector<uint64_t>,

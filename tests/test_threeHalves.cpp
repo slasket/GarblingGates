@@ -81,7 +81,7 @@ BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalXOR )
     {
         auto x = vector<int>{1, 1};
         auto encLabels = threeHalves::encode(e, x);
-        auto Y = threeHalves::eval(F, encLabels, smalltest, 128);
+        auto Y = threeHalves::eval(F, encLabels, smalltest, 128, d);
         auto y = threeHalves::decode(d, Y, smalltest, 128);
         BOOST_TEST(Y.size() == 1);
         BOOST_TEST(y.size() == 1);
@@ -91,7 +91,7 @@ BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalXOR )
     {
         auto x = vector<int>{0, 1};
         auto encLabels = threeHalves::encode(e, x);
-        auto Y = threeHalves::eval(F, encLabels, smalltest, 128);
+        auto Y = threeHalves::eval(F, encLabels, smalltest, 128, d);
         auto y = threeHalves::decode(d, Y, smalltest, 128);
         BOOST_TEST(y.size() == 1);
         BOOST_TEST(y[0] == 1);
@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalXOR )
     {
         auto x = vector<int>{1, 0};
         auto encLabels = threeHalves::encode(e, x);
-        auto Y = threeHalves::eval(F, encLabels, smalltest, 128);
+        auto Y = threeHalves::eval(F, encLabels, smalltest, 128, d);
         auto y = threeHalves::decode(d, Y, smalltest, 128);
         BOOST_TEST(y.size() == 1);
         BOOST_TEST(y[0] == 1);
@@ -109,7 +109,7 @@ BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalXOR )
     {
         auto x = vector<int>{0, 0};
         auto encLabels = threeHalves::encode(e, x);
-        auto Y = threeHalves::eval(F, encLabels, smalltest, 128);
+        auto Y = threeHalves::eval(F, encLabels, smalltest, 128, d);
         auto y = threeHalves::decode(d, Y, smalltest, 128);
         BOOST_TEST(y.size() == 1);
         BOOST_TEST(y[0] == 0);
@@ -125,6 +125,7 @@ BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalAND )
 
     BOOST_AUTO_TEST_CASE( test_Eval1and1 )
     {
+        int ctr = 0;
         for (int i = 0; i < 10; ++i) {
             auto output = threeHalves::garble(128, smalltest);
             auto x = vector<int>{1, 1};
@@ -132,11 +133,15 @@ BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalAND )
             auto e = get<1>(output);
             auto d = get<2>(output);
             auto encLabels = threeHalves::encode(e, x);
-            auto Y = threeHalves::eval(F, encLabels, smalltest, 128);
+            auto Y = threeHalves::eval(F, encLabels, smalltest, 128, d);
             auto y = threeHalves::decode(d, Y, smalltest, 128);
             BOOST_TEST(y.size() == 1);
-            if(y.size() == 1) BOOST_TEST(y[0] == 1);
+            if(y.size() == 1) {
+                ctr++;
+                BOOST_TEST(y[0] == 1);
+            }
         }
+        cout << "num of correct ctr: " << ctr << endl;
     }
 
 BOOST_AUTO_TEST_SUITE_END()

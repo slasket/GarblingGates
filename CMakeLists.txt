@@ -9,7 +9,6 @@ set(CMAKE_CXX_FLAGS -O2)
 set(SOURCES
         bloodcompatibility.cpp
         bloodcompatibility.h
-        util/circuitParser.cpp
         util/circuitParser.h
         util/util.h
         util/otUtil/elgamal.cpp

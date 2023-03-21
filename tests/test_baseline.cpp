@@ -3,6 +3,7 @@
 //
 #include <boost/test/unit_test.hpp>
 #include "../schemes/baseGarble.h"
+#include "../util/circuitParser.h"
 
 
 using namespace boost::unit_test;
