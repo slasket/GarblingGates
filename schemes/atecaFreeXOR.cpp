@@ -11,9 +11,9 @@ tuple<vector<vint>, vector<tuple<vint, vint>>, vector<vint>, int, tuple<vint, vi
 
     auto [encodingInfo,globalDelta] = Init(C, l);
     auto invVar= genInvVar(l, globalDelta);
-    cout<<"garblefunc"<<endl;
+    //cout<<"garblefunc"<<endl;
     auto [F,D,Invvar] = GarbleCircuit(l, C, encodingInfo, invVar, globalDelta);
-    cout<<"decoding"<<endl;
+    //cout<<"decoding"<<endl;
     auto decoding = DecodingInfo(D, l);
 
 
@@ -148,21 +148,35 @@ atecaFreeXOR::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, c
     vint X_01 = util::hash_variable(util::uintVec2Str(l01), internalParam);
     vint X_10 = util::hash_variable(util::uintVec2Str(l10), internalParam);
     vint X_11 = util::hash_variable(util::uintVec2Str(l11), internalParam);
-    auto delta = vint((internalParam+64-1)/64);
+    auto delta = vint((internalParam+63)/64);
 
     int j =0; int deltaHW =0;
     do {
-        string slice = util::sliceVecL2RAtecaFreeXorSpecial(globalDelta, X_00, X_01, X_10, X_11,deltaHW, j);
+        string slice = util::sliceVecL2RAtecaFreeXorSpecial(globalDelta, X_00, X_01, X_10, X_11, deltaHW, j);
         ///slices of importance "00000", "10001", "11110", "01111"
         if (slice=="00000"||slice=="10001"||slice=="11110"||slice=="01111"){
             delta=util::setIthBitTo1L2R(delta,j);
             deltaHW++;
         }
         j++;
-    }while(deltaHW<l);
+    }while(deltaHW!=l);
 
     vint L0 = atecaGarble::projection(X_00, delta);
     vint L1 = atecaGarble::projection(X_11, delta);
+
+    auto shouldBeGlobalDelta = util::vecXOR(L0,L1);
+
+    if (shouldBeGlobalDelta[0] != globalDelta[0]){
+        cout<<endl;
+        util::printUintVec(L0);
+        util::printUintVec(L1);
+        cout<<"xor of L0,L1 should be global delta"<<endl;
+        util::printUintVec(shouldBeGlobalDelta);
+        cout<<"global delta"<<endl;
+        util::printUintVec(globalDelta);
+
+        //::exit(2);
+    }
 
     return {L0,L1,delta};
 }
