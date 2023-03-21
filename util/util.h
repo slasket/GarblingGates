@@ -8,7 +8,6 @@
 #include <vector>
 #include <iterator>
 #include <iostream>
-#include "circuitParser.h"
 #include <bitset>
 #include <random>
 #include "otUtil/otUtil.h"
@@ -61,11 +60,6 @@ public:
         return res.str();
     }
 
-    static void printCircuit(const std::string& path){
-        auto res = circuitParser::parseCircuit(path);
-        util::printStrVec(res);
-    }
-
     static tuple<vector<uint64_t>,
             vector<tuple<vector<uint64_t>, vector<uint64_t>>>>
             generateRandomLabels(int k, vector<uint64_t>& globalDelta,
@@ -85,22 +79,6 @@ public:
         vector<uint64_t> globalDelta = otUtil::genBitsNonCrypto(k);
         globalDelta[0] = globalDelta[0] | 1;
         return globalDelta;
-    }
-
-    static halfDelta genDeltaHalves(int k) {
-        vector<uint64_t> leftDeltaHalf = otUtil::genBitsNonCrypto(k/2);
-        leftDeltaHalf[0] = leftDeltaHalf[0] | 1;
-        vector<uint64_t> rightDeltaHalf = otUtil::genBitsNonCrypto(k/2);
-
-        return {leftDeltaHalf, rightDeltaHalf};
-    }
-
-    static halfDelta genLabelHalves(int k) {
-        vector<uint64_t> leftLabelHalf = otUtil::genBitsNonCrypto(k/2);
-        leftLabelHalf[0] = leftLabelHalf[0] & (UINT64_MAX << 1);
-        vector<uint64_t> rightLabelHalf = otUtil::genBitsNonCrypto(k/2);
-
-        return {leftLabelHalf, rightLabelHalf};
     }
 
     static void labelPointAndPermute(int k,
