@@ -104,17 +104,17 @@ vector<vint> atecaGarble::Gate(const tuple<vint, vint>& in0, const tuple<vint, v
     int internalParam= l * 8;
     //the random oracles lol
     //THIS IS THE WRONG WAY OF TWEAKING!=!=!?!??!!
-    vint l00 = get<0>(in0);
-    l00.insert(l00.end(), get<0>(in1).begin(), get<0>(in1).end());
+    auto [l00,l11] = in0;
+    auto [l_0,l_1] = in1;
+    l00.insert(l00.end(), l_0.begin(), l_0.end());
     l00.push_back(gateNo);
     auto l01 = get<0>(in0);
-    l01.insert(l01.end(), get<1>(in1).begin(), get<1>(in1).end());
+    l01.insert(l01.end(), l_1.begin(), l_1.end());
     l01.push_back(gateNo);
     auto l10 = get<1>(in0);
-    l10.insert(l10.end(), get<0>(in1).begin(), get<0>(in1).end());
+    l10.insert(l10.end(), l_0.begin(), l_0.end());
     l10.push_back(gateNo);
-    auto l11 = get<1>(in0);
-    l11.insert(l11.end(), get<1>(in1).begin(), get<1>(in1).end());
+    l11.insert(l11.end(), l_1.begin(), l_1.end());
     l11.push_back(gateNo);
     //actually compute the hashes
     vint X_00 = util::hash_variable(util::uintVec2Str(l00), internalParam);
@@ -195,8 +195,7 @@ vector<vint> atecaGarble::DecodingInfo(const vector<tuple<vint, vint>>& D, int l
     //RO from 2l->1
     vector<vint> d(D.size());
     for (int i = 0; i < D.size(); ++i) {
-        auto L0 = get<0>(D[i]);
-        auto L1 = get<1>(D[i]);
+        auto[L0,L1] =D[i];
         vint L0wdi;
         vint L1wdi;
         vint di;
@@ -247,7 +246,7 @@ atecaGarble::Ev(const vector<vint>& F, const vector<vint>& X,
     int outputBits =stoi( util::split(C[2], ' ')[1]);
     int amountOfWires = stoi(util::split(C[0], ' ')[1]);
     int firstOutputBit = amountOfWires - outputBits;
-
+    auto [unused, invTrue] = std::move(invVar);
     auto wires = X;
     wires.resize(amountOfWires);
 
@@ -263,7 +262,7 @@ atecaGarble::Ev(const vector<vint>& F, const vector<vint>& X,
             int in0 = stoi(gateInfo[2]);
             out = stoi(gateInfo[3]);
             auto labelA = wires[in0];
-            auto labelB = get<1>(invVar);
+            auto labelB = invTrue;
             //hash input string
             labelA.insert(labelA.end(), labelB.begin(), labelB.end());
             labelA.push_back(gateNo);

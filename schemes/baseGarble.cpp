@@ -41,10 +41,10 @@ baseGarble::garble(vector<string> f, const vint& invConst, int k) {
     for (int i = 3; i < f.size(); ++i) {
         //////////////////////// Getting out gate from string //////////////////////////
         auto &line = f[i];
-        auto gateInfo = util::extractGate(line);              // "2 1 0 1 2 XOR"
-        auto inputWires = get<0>(gateInfo);         // [ ..., 0, 1]
-        auto outputWires = get<1>(gateInfo);        // [..., 1, ..., 2]
-        auto gateType = get<2>(gateInfo);               // "XOR"
+        auto [inputWires,outputWires,gateType] = util::extractGate(line);              // "2 1 0 1 2 XOR"
+        //auto inputWires = get<0>(gateInfo);         // [ ..., 0, 1]
+        //auto outputWires = get<1>(gateInfo);        // [..., 1, ..., 2]
+        //auto gateType = get<2>(gateInfo);               // "XOR"
 
         ////////////////////////////// Garbling gate ///////////////////////////////////
         vector<::uint64_t> gate0;
@@ -84,27 +84,27 @@ baseGarble::garbleGate(const vint &invConst, int k, const vector<::uint64_t> &gl
     }
 
     //get input labels
-    auto ALabels = wireLabels[input0];
-    auto BLabels = wireLabels[input1];
+    auto [A0,A1] = wireLabels[input0];
+    auto [B0,B1] = wireLabels[input1];
     //calculate permute bits
-    int permuteBitA = (get<0>(ALabels)[0]) & 1;
-    int permuteBitB = (get<0>(BLabels)[0]) & 1;
+    int permuteBitA = A0[0] & 1;
+    int permuteBitB = B0[0] & 1;
     vint AF; vint AT;
     vint BF; vint BT;
     //set permuted labels to T and F
     if(permuteBitA == 1){
-        AF = (get<1>(ALabels));
-        AT = (get<0>(ALabels));
+        AF = A1;
+        AT = A0;
     } else {
-        AF = (get<0>(ALabels));
-        AT = (get<1>(ALabels));
+        AF = A0;
+        AT = A1;
     }
     if(permuteBitB == 1){
-        BF = (get<1>(BLabels));
-        BT = (get<0>(BLabels));
+        BF = B1;
+        BT = B0;
     } else {
-        BF = (get<0>(BLabels));
-        BT = (get<1>(BLabels));
+        BF = B0;
+        BT = B1;
     }
 
     //garble gate by calculating ciphertext(false) and gate ciphertexts
@@ -209,10 +209,10 @@ vector<vint> baseGarble::eval(tuple<vector<labelPair>, vector<labelPair>, vector
     for (int i = 0; i < garbledCircuit.size(); ++i) {
         //////////////////////// Getting out gate from string //////////////////////////
         auto &line = f[i+3];
-        auto gateInfo = util::extractGate(line);              // "2 1 0 1 2 XOR"
-        auto inputWires = get<0>(gateInfo);         // [ ..., 0, 1]
-        auto outputWires = get<1>(gateInfo);        // [..., 1, ..., 2]
-        auto gateType = get<2>(gateInfo);               // "XOR"
+        auto [inputWires, outputWires, gateType] = util::extractGate(line);              // "2 1 0 1 2 XOR"
+        //auto inputWires = get<0>(gateInfo);         // [ ..., 0, 1]
+        //auto outputWires = get<1>(gateInfo);        // [..., 1, ..., 2]
+        //auto gateType = get<2>(gateInfo);               // "XOR"
         //////////////////////// Evaluation of gate //////////////////////////
 
         //check if input labels for gate is calculated
@@ -263,8 +263,7 @@ vint baseGarble::evalGate(const vint &invConst, int k,
         auto colorBitA = (A[0]) & 1;
         auto colorBitB = (B[0]) & 1;
         //get gate ciphertexts
-        vint gate0 = get<0>(garbledCircuit[i]);
-        vint gate1 = get<1>(garbledCircuit[i]);
+        auto [gate0,gate1] = garbledCircuit[i];
         //evaluate gate
         if (colorBitA == 0 && colorBitB == 0) {
             cipher = hashXOR(A, B, k);
