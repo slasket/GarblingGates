@@ -137,7 +137,6 @@ BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalAND )
                 BOOST_TEST(y[0] == 1);
             }
         }
-        cout << "num of correct ctr: " << ctr << endl;
     }
 BOOST_AUTO_TEST_SUITE_END()
 
@@ -160,7 +159,6 @@ BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalINV )
                 BOOST_TEST(y[0] == 1);
             }
         }
-        cout << "num of correct ctr: " << ctr << endl;
     }
 BOOST_AUTO_TEST_SUITE_END()
 
@@ -183,7 +181,6 @@ BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalXORAND )
                 BOOST_TEST(y[0] == 0);
             }
         }
-        cout << "num of correct ctr: " << ctr << endl;
     }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -207,7 +204,6 @@ BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalANDXOR )
                 BOOST_TEST(y[0] == 1);
             }
         }
-        cout << "num of correct ctr: " << ctr << endl;
     }
 
 BOOST_AUTO_TEST_SUITE_END()
