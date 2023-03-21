@@ -19,12 +19,12 @@ tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels
     util::getBits(f[1], numberOfInputBits);
     int numberOfOutputBits;
     util::getBits(f[2], numberOfOutputBits);
-    halfDelta delta = util::genDeltaHalves(k);
+    halfDelta delta = genDeltaHalves(k);
     vector<tuple<halfLabels, int>> labelAndPermuteBitPairs(numberOfWires);
     vector<tuple<halfLabels, int>> inputLabelAndPermuteBitPairs(numberOfInputBits); //testing
     vector<halfLabels> encryptedOutputLabels(numberOfOutputBits);
     for (int i = 0; i < numberOfInputBits; i++){
-        auto label0 = util::genLabelHalves(k);
+        auto label0 = genLabelHalves(k);
         auto permuteBit = (int)util::random_bitset<1>().to_ulong();
         labelAndPermuteBitPairs[i] = {label0, permuteBit};
         inputLabelAndPermuteBitPairs[i] = {label0, permuteBit};

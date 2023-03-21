@@ -5,6 +5,17 @@
 #ifndef GARBLINGGATES_THREEHALVES_H
 #define GARBLINGGATES_THREEHALVES_H
 
+
+#include <openssl/evp.h>
+#include <openssl/aes.h>
+#include <openssl/sha.h>
+#include <random>
+#include <bitset>
+#include <iostream>
+#include <iterator>
+#include <vector>
+#include <sstream>
+#include <string>
 #include <tuple>
 #include "../util/util.h"
 using namespace std;
@@ -72,6 +83,22 @@ public:
     static vint sampleR(int permuteBitA, int permuteBitB);
     static vector<int> computeT(int permuteBitA, int permuteBitB, const string& gateType);
     static vint hashPrime(const vint& input, int k, int tweak);
+
+    static halfDelta genDeltaHalves(int k) {
+        vector<uint64_t> leftDeltaHalf = otUtil::genBitsNonCrypto(k/2);
+        leftDeltaHalf[0] = leftDeltaHalf[0] | 1;
+        vector<uint64_t> rightDeltaHalf = otUtil::genBitsNonCrypto(k/2);
+        return {leftDeltaHalf, rightDeltaHalf};
+    }
+
+    static halfDelta genLabelHalves(int k) {
+        vector<uint64_t> leftLabelHalf = otUtil::genBitsNonCrypto(k/2);
+        leftLabelHalf[0] = leftLabelHalf[0] & (UINT64_MAX << 1);
+        vector<uint64_t> rightLabelHalf = otUtil::genBitsNonCrypto(k/2);
+
+        return {leftLabelHalf, rightLabelHalf};
+    }
+
 private:
     static vector<halfLabels>
     calcZij(halfLabels &A0, halfLabels &B0, halfLabels &A1, halfLabels &B1, vint &rVec, int permuteBitA,
