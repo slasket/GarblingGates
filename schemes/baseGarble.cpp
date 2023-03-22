@@ -60,7 +60,9 @@ baseGarble::garble(vector<string> f, const vint& invConst, int k) {
 
         //create output d //todo change to how ateca does it
         if(outputWires[0] >= numberOfWires - numberOfOutputBits){
-            auto outputLabel = wireLabels[outputWires[0]];
+            string outputStrF = util::uintVec2Str(get<0>(wireLabels[outputWires[0]]));
+            string outputStrT = util::uintVec2Str(get<1>(wireLabels[outputWires[0]]));
+            tuple<vint,vint> outputLabel = {util::hash_variable(outputStrF), util::hash_variable(outputStrT)};
             encOutputLabels.emplace_back(outputLabel);
         }
 
@@ -281,9 +283,11 @@ vint baseGarble::evalGate(const vint &invConst, int k,
 vector<int> baseGarble::decode(vector<labelPair> d, vector<vint> Y) {
     vector<int> y;
     for (int i = 0; i < Y.size(); ++i) {
-        if (Y[i] == get<0>(d[i])) {
+        string ystring = util::uintVec2Str(Y[i]);
+        auto yhash = util::hash_variable(ystring, 128);
+        if (yhash == get<0>(d[i])) {
             y.push_back(0);
-        } else if (Y[i] == get<1>(d[i])){
+        } else if (yhash == get<1>(d[i])){
             y.push_back(1);
         } else {
             cout << "Could not decode as encrypted output was invalid" << endl;
