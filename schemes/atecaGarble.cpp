@@ -173,7 +173,7 @@ vint atecaGarble::projection(const vint& a, const vint& b) {
     do {
         if (util::ithBitL2R(b,j)==1){
             auto ithBitA = util::ithBitL2R(a,j);
-            projection[bitsProjected]= ithBitA;
+            projection[(63-bitsProjected)]= ithBitA;
             bitsProjected++;
         }
         j++;

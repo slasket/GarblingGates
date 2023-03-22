@@ -28,18 +28,53 @@ void testFreexorAteca();
 void testBaseOT(int v, int k , int l, int elgamalKeySize);
 
 int main() {
+    vint globalDelta ={12249790986447749120};
+    vint l00 = {86, 62, 2};
+    vint l01 = {86, 148, 2};
+    vint l10 = {252, 62, 2};
+    vint l11 = {252, 148, 2};
+    int internalParam= 8 * 16;
+
+    vint X_00 = util::hash_variable(util::uintVec2Str(l00), internalParam);
+    vint X_01 = util::hash_variable(util::uintVec2Str(l01), internalParam);
+    vint X_10 = util::hash_variable(util::uintVec2Str(l10), internalParam);
+    vint X_11 = util::hash_variable(util::uintVec2Str(l11), internalParam);
+    util::printUintVec(X_00);
+    util::printUintVec(X_01);
+    util::printUintVec(X_10);
+    util::printUintVec(X_11);
+    auto delta = vint((internalParam+63)/64);
+
+    int j =0; int deltaHW =0;
+    do {
+        string slice = util::sliceVecL2RAtecaFreeXorSpecial(globalDelta, X_00, X_01, X_10, X_11, deltaHW, j);
+        ///slices of importance "00000", "10001", "11110", "01111"
+        if (slice=="00000"||slice=="10001"||slice=="11110"||slice=="01111"){
+            delta=util::setIthBitTo1L2R(delta,j);
+            deltaHW++;
+        }
+        j++;
+    }while(deltaHW!=8);
+    util::printUintVec(delta);
+
+    vint L0 = atecaGarble::projection(X_00, delta);
+    vint Lx01 = atecaGarble::projection(X_01, delta);
+    vint Lx10 = atecaGarble::projection(X_10, delta);
+
+    vint L1 = atecaGarble::projection(X_11, delta);
+    util::printUintVec(L0);
+    util::printUintVec(Lx01);
+    util::printUintVec(Lx10);
+    util::printUintVec(L1);
+
+    cout<<"this is delta"<<endl;
+    util::printUintVec(util::vecXOR(L0,L1));
+
+
+
+
+
     //testsubAteca();
-    vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 AND"};
-    auto output = threeHalves::garble(128, smalltest);
-    auto x = vector<int>{1, 1};
-    auto F = get<0>(output);
-    auto e = get<1>(output);
-    auto d = get<2>(output);
-    auto encLabels = threeHalves::encode(e, x);
-    auto Y = threeHalves::eval(F, encLabels, smalltest, 128);
-    auto y = threeHalves::decode(d, Y, smalltest, 128);
-
-
     //testFreexorAteca();
 
 
