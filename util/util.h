@@ -118,17 +118,8 @@ public:
         int block = i / 64;
         return checkBit(ui[block],bit);
     }
-    //find ith bit the slow way
-    //static int findIthBit(vector<::uint64_t> ui, int i){
-    //    //ith bit
-    //    int bit = i%64;
-    //    //find block
-    //    int block = i / 64;
-    //    string blockStr = bitset<64>(ui[block]).to_string();
-    //    return blockStr[bit] - '0';
-    //}
 
-    static int checkBit(::uint64_t num, int i){  //# From https://stackoverflow.com/questions/18111488/convert-integer-to-binary-in-python-and-compare-the-bits
+    static inline int checkBit(::uint64_t num, int i){  //# From https://stackoverflow.com/questions/18111488/convert-integer-to-binary-in-python-and-compare-the-bits
         return (num >> i) & 1;
     }
 
@@ -141,7 +132,6 @@ public:
     static int checkBitL2R(::uint64_t num, int i){  //# From https://stackoverflow.com/questions/18111488/convert-integer-to-binary-in-python-and-compare-the-bits
         return (num >> (63-(i%64))) & 1;
     }
-
 
     static vector<::uint64_t> setIthBitTo1L2R(vector<::uint64_t> vec, int pos){
         int block = pos / 64;

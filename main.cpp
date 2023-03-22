@@ -39,10 +39,6 @@ int main() {
     vint X_01 = util::hash_variable(util::uintVec2Str(l01), internalParam);
     vint X_10 = util::hash_variable(util::uintVec2Str(l10), internalParam);
     vint X_11 = util::hash_variable(util::uintVec2Str(l11), internalParam);
-    util::printUintVec(X_00);
-    util::printUintVec(X_01);
-    util::printUintVec(X_10);
-    util::printUintVec(X_11);
     auto delta = vint((internalParam+63)/64);
 
     int j =0; int deltaHW =0;
@@ -55,25 +51,12 @@ int main() {
         }
         j++;
     }while(deltaHW!=8);
-    util::printUintVec(delta);
 
     vint L0 = atecaGarble::projection(X_00, delta);
     vint Lx01 = atecaGarble::projection(X_01, delta);
     vint Lx10 = atecaGarble::projection(X_10, delta);
-
     vint L1 = atecaGarble::projection(X_11, delta);
-    util::printUintVec(L0);
-    util::printUintVec(Lx01);
-    util::printUintVec(Lx10);
     util::printUintVec(L1);
-
-    cout<<"this is delta"<<endl;
-    util::printUintVec(util::vecXOR(L0,L1));
-
-
-
-
-
     //testsubAteca();
     //testFreexorAteca();
 
