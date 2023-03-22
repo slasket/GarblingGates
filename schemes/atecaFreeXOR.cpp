@@ -133,21 +133,25 @@ atecaFreeXOR::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, c
     //THIS IS THE WRONG WAY OF TWEAKING!=!=!?!??!!
     vint l00 = get<0>(in0);
     l00.insert(l00.end(), get<0>(in1).begin(), get<0>(in1).end());
+    l00.push_back(gateNo);
     auto l01 = get<0>(in0);
     l01.insert(l01.end(), get<1>(in1).begin(), get<1>(in1).end());
+    l01.push_back(gateNo);
     auto l10 = get<1>(in0);
     l10.insert(l10.end(), get<0>(in1).begin(), get<0>(in1).end());
+    l10.push_back(gateNo);
     auto l11 = get<1>(in0);
     l11.insert(l11.end(), get<1>(in1).begin(), get<1>(in1).end());
+    l11.push_back(gateNo);
     //actually compute the hashes
-    vint X_00 = util::hash_variable(util::uintVec2Str(l00) + to_string(gateNo), internalParam);
-    vint X_01 = util::hash_variable(util::uintVec2Str(l01) + to_string(gateNo), internalParam);
-    vint X_10 = util::hash_variable(util::uintVec2Str(l10) + to_string(gateNo), internalParam);
-    vint X_11 = util::hash_variable(util::uintVec2Str(l11) + to_string(gateNo), internalParam);
-    auto delta = vint(internalParam/ 64);
+    vint X_00 = util::hash_variable(util::uintVec2Str(l00), internalParam);
+    vint X_01 = util::hash_variable(util::uintVec2Str(l01), internalParam);
+    vint X_10 = util::hash_variable(util::uintVec2Str(l10), internalParam);
+    vint X_11 = util::hash_variable(util::uintVec2Str(l11), internalParam);
+    auto delta = vint((internalParam+64-1)/64);
 
     int j =0; int deltaHW =0;
-    while (deltaHW!=l) {
+    do {
         string slice = util::sliceVecL2RAtecaFreeXorSpecial(globalDelta, X_00, X_01, X_10, X_11,deltaHW, j);
         ///slices of importance "00000", "10001", "11110", "01111"
         if (slice=="00000"||slice=="10001"||slice=="11110"||slice=="01111"){
@@ -155,15 +159,10 @@ atecaFreeXOR::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, c
             deltaHW++;
         }
         j++;
-    };
+    }while(deltaHW<l);
 
     vint L0 = atecaGarble::projection(X_00, delta);
     vint L1 = atecaGarble::projection(X_11, delta);
-
-    //auto test = util::vecXOR(L0, L1);
-    //if (test != delta) {
-    //    cout << "ERROR: X_00 XOR X_01 != delta" << endl;
-    //}
 
     return {L0,L1,delta};
 }
@@ -261,8 +260,9 @@ atecaFreeXOR::Ev(const vector<vint> &F, const vector<vint> &X, vector<string> C,
             auto labelB = wires[in1];
             //hash input string
             labelA.insert(labelA.end(), labelB.begin(), labelB.end());
+            labelA.push_back(gateNo);
             auto hashInputLabel = util::uintVec2Str(labelA);
-            auto hashOut = util::hash_variable(hashInputLabel+ to_string(gateNo),internalSecParam);
+            auto hashOut = util::hash_variable(hashInputLabel,internalSecParam);
             const auto& delta = F[gateNo];
             gateOut = atecaGarble::projection(hashOut, delta);
             wires[out] = gateOut;
