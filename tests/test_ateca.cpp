@@ -56,7 +56,8 @@ BOOST_AUTO_TEST_SUITE( Test_projection )
     {
         auto res = atecaGarble::projection(a,b);
         BOOST_TEST(res.size()==1);
-        BOOST_TEST(res[0]==9);
+        // this is equivilant to 1001 with 60 zeros after
+        BOOST_TEST(res[0]==10376293541461622784);
     }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -72,9 +73,9 @@ BOOST_AUTO_TEST_SUITE( Test_large_projection )
     {
         auto res = atecaGarble::projection(a,b);
         BOOST_TEST(res.size()==1);
-        BOOST_TEST(res[0]==9);
+        BOOST_TEST(res[0]==10376293541461622784);
         res = atecaGarble::projection(a1,b1);
-        BOOST_TEST(res[0]==5107);
+        BOOST_TEST(res[0]==14972216961193213952);
 
     }
 BOOST_AUTO_TEST_SUITE_END()

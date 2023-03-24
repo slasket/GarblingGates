@@ -12,7 +12,6 @@
 #include "schemes/atecaFreeXOR.h"
 #include <bitset>
 #include <string>
-#include <utility>
 
 #include <emmintrin.h>
 #include <immintrin.h>
@@ -64,8 +63,7 @@ void sliceTest() {
     util::printUintVec(X_11);
     auto delta = vint((internalParam+63)/64);
 
-    int j =0;
-    int deltaHW =0;
+    int j =0; int deltaHW =0;
     do {
         string slice = util::sliceVecL2RAtecaFreeXorSpecial(globalDelta, X_00, X_01, X_10, X_11, deltaHW, j);
         ///slices of importance "00000", "10001", "11110", "01111"

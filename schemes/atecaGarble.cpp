@@ -162,7 +162,14 @@ vector<vint> atecaGarble::Gate(const tuple<vint, vint>& in0, const tuple<vint, v
 }
 
 
-
+/* This projection is left to right meaning the projected bits are placed at the left most index of the bitset
+ * Example:
+ *     a 1010 1010 0000 ...
+ *     b 0111 0110 0000 ...
+ * a o b  010  01       ...
+ * moved up
+ * a o b 0100 1000 0000 ...
+ */
 vint atecaGarble::projection(const vint& a, const vint& b) {
     //projection A o B means take the bit A[i] if B[i]=1
     int l = util::vecHW(b);
