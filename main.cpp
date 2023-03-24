@@ -12,9 +12,11 @@
 #include "schemes/atecaFreeXOR.h"
 #include <bitset>
 #include <string>
+#include <utility>
 
 #include <emmintrin.h>
 #include <immintrin.h>
+#include "util/hashRTCCR.h"
 
 
 using namespace std;
@@ -27,7 +29,24 @@ void testsubAteca();
 void testFreexorAteca();
 void testBaseOT(int v, int k , int l, int elgamalKeySize);
 
+void sliceTest();
+
+
 int main() {
+    //sliceTest();
+    //jeg er syg i hovedet
+    hashRTCCR::testHashRTCCR();
+    hashRTCCR::testDecrypt();
+
+    //testsubAteca();
+    //testFreexorAteca();
+    return 0;
+
+}
+
+
+
+void sliceTest() {
     vint globalDelta ={12249790986447749120};
     vint l00 = {86, 62, 2};
     vint l01 = {86, 148, 2};
@@ -45,7 +64,8 @@ int main() {
     util::printUintVec(X_11);
     auto delta = vint((internalParam+63)/64);
 
-    int j =0; int deltaHW =0;
+    int j =0;
+    int deltaHW =0;
     do {
         string slice = util::sliceVecL2RAtecaFreeXorSpecial(globalDelta, X_00, X_01, X_10, X_11, deltaHW, j);
         ///slices of importance "00000", "10001", "11110", "01111"
@@ -69,19 +89,8 @@ int main() {
 
     cout<<"this is delta"<<endl;
     util::printUintVec(util::vecXOR(L0,L1));
-
-
-
-
-
-    //testsubAteca();
-    //testFreexorAteca();
-
-
-
-    return 0;
-
 }
+
 
 
 
