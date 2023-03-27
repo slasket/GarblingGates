@@ -8,7 +8,7 @@
 
 
 
-tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels>, halfLabels> threeHalves::garble(int k, vector<string> f) {
+tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels>, halfLabels, hashRTCCR> threeHalves::garble(int k, vector<string> f, int h) {
     //get number of wires and gates
     auto &wireAndGates = f[0];
     auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
@@ -29,6 +29,11 @@ tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels
         labelAndPermuteBitPairs[i] = {label0, permuteBit};
         inputLabelAndPermuteBitPairs[i] = {label0, permuteBit};
     }
+
+
+    vint key = util::genBitsNonCrypto(256);
+    vint iv = util::genBitsNonCrypto(256);
+    hashRTCCR hashRTCCR(key, iv, 256);
 
     //invConst
     halfLabels invConst = genLabelHalves(k);
@@ -76,7 +81,7 @@ tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels
 
             labelAndPermuteBitPairs[outputWires[0]] = outputCipher;
         }
-        else if( gateType == "AND"){
+        else if( gateType == "AND") {
             A0AndPermuteBit = labelAndPermuteBitPairs[inputWires[0]];
             B0AndPermuteBit = labelAndPermuteBitPairs[inputWires[1]];
             auto [A0, permuteBitA] = A0AndPermuteBit;
@@ -102,8 +107,8 @@ tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels
             //Prepend rVec to Z
             for (int l = 0; l < 4; ++l) {
                 auto [left, right] = Zij[l];
-                left = util::prependBitToVint(left, util::checkIthBit(rVec, l*2));
-                right = util::prependBitToVint(right, util::checkIthBit(rVec, l*2+1));
+                left = util::prependBitToVint(left, util::checkIthBit(rVec, l * 2));
+                right = util::prependBitToVint(right, util::checkIthBit(rVec, l * 2 + 1));
                 Zij[l] = {left, right};
             }
             //VInvZ is calculated per discord picture
@@ -111,7 +116,7 @@ tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels
             VInvZ[0] = get<0>(Zij[0]);
             VInvZ[1] = get<1>(Zij[0]);
             VInvZ[2] = util::vecXOR({get<0>(Zij[2]), get<1>(Zij[2]), get<0>(Zij[0]), get<1>(Zij[0])});
-            VInvZ[3] = util::vecXOR({get<0>(Zij[1]), get<1>(Zij[1]),get<0>(Zij[0]), get<1>(Zij[0]) });
+            VInvZ[3] = util::vecXOR({get<0>(Zij[1]), get<1>(Zij[1]), get<0>(Zij[0]), get<1>(Zij[0])});
             VInvZ[4] = util::vecXOR(get<0>(Zij[3]), get<0>(Zij[2]));
 
             //VInvRpABDelta is calculated per discord picture
@@ -120,38 +125,83 @@ tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels
             VInvRpABDelta[1] = A0Right;
             VInvRpABDelta[2] = util::vecXOR(deltaRight, B0Left);
             VInvRpABDelta[3] = util::vecXOR(deltaLeft, A0Right);
-            VInvRpABDelta[4] = {0};
+            vint zeroes(A0Left.size());
+            VInvRpABDelta[4] = zeroes;
             //Prepend 0's to all entries to make lenghts match (According to Lance)
             for (int l = 0; l < 5; ++l) {
                 util::prependBitToVint(VInvRpABDelta[l], 0);
             }
 
             //HVecPrime is calculated per discord picture
-            vint HA0 = util::hash_variable(util::halfLabelsToFullLabelString(A0) + to_string(((3*k)-3)), (k/2)+8);
-            vint HA1 = util::hash_variable(util::halfLabelsToFullLabelString(A1) + to_string(((3*k)-3)), (k/2)+8);
-            vint HB0 = util::hash_variable(util::halfLabelsToFullLabelString(B0) + to_string(((3*k)-2)), (k/2)+8);
-            vint HB1 = util::hash_variable(util::halfLabelsToFullLabelString(B1) + to_string(((3*k)-2)), (k/2)+8);
+            vint hashA0;
+            vint hashA1;
+            vint hashB0;
+            vint hashB1;
+            vint hashA0xorB0;
+            vint hashA0xorB0xorDelta;
+            vector<vint> hashes({hashA0, hashA1, hashB0, hashB1, hashA0xorB0, hashA0xorB0xorDelta});
             halfLabels A0xorB0 = {util::vecXOR(A0Left, B0Left), util::vecXOR(A0Right, B0Right)};
-            vint HA0xorB0 = util::hash_variable(util::halfLabelsToFullLabelString(A0xorB0) + to_string(((3*k)-1)), (k/2)+8);
-
             //A0 XOR B0 XOR Delta = A0 XOR B1
             halfLabels A0xorB0xorDelta = {util::vecXOR(A0Left, B1Left), util::vecXOR(A0Right, B1Right)};
-            vint HA0xorB0xorDelta = util::hash_variable(util::halfLabelsToFullLabelString(A0xorB0xorDelta) + to_string(((3 * k) - 1)), (k / 2) + 8);
+            if (h==0) {
+            hashes[0] = util::hash_variable(util::halfLabelsToFullLabelString(A0) + to_string(((3 * k) - 3)),   (k / 2) + 8);
+            hashes[1] = util::hash_variable(util::halfLabelsToFullLabelString(A1) + to_string(((3 * k) - 3)),   (k / 2) + 8);
+            hashes[2] = util::hash_variable(util::halfLabelsToFullLabelString(B0) + to_string(((3 * k) - 2)),   (k / 2) + 8);
+            hashes[3] = util::hash_variable(util::halfLabelsToFullLabelString(B1) + to_string(((3 * k) - 2)),   (k / 2) + 8);
+            hashes[4] = util::hash_variable(util::halfLabelsToFullLabelString(A0xorB0) + to_string(((3 * k) - 1)),     (k / 2) + 8);
+            hashes[5] = util::hash_variable(                    util::halfLabelsToFullLabelString(A0xorB0xorDelta) + to_string(((3 * k) - 1)), (k / 2) + 8);
+            } else if(h==1){
+                get<0>(A0).emplace_back(0);
+                get<1>(A0).emplace_back(0);
+                get<0>(A1).emplace_back(0);
+                get<1>(A1).emplace_back(0);
+                get<0>(B0).emplace_back(0);
+                get<1>(B0).emplace_back(0);
+                get<0>(B1).emplace_back(0);
+                get<1>(B1).emplace_back(0);
+                get<0>(A0xorB0).emplace_back(0);
+                get<1>(A0xorB0).emplace_back(0);
+                get<0>(A0xorB0xorDelta).emplace_back(0);
+                get<1>(A0xorB0xorDelta).emplace_back(0);
+                auto tweak0 = static_cast<unsigned long long>((3 * k) - 3);
+                auto tweak1 = static_cast<unsigned long long>((3 * k) - 2);
+                auto tweak2 = static_cast<unsigned long long>((3 * k) - 1);
+                hashes[0] = hashRTCCR::hash(A0, {0,0,0,tweak0}, key, iv, hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
+                hashes[1] = hashRTCCR::hash(A1, {0,0,0,tweak0}, key, iv, hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
+                hashes[2] = hashRTCCR::hash(B0, {0,0,0,tweak1}, key, iv, hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
+                hashes[3] = hashRTCCR::hash(B1, {0,0,0,tweak1}, key, iv, hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
+                hashes[4] = hashRTCCR::hash(A0xorB0, {0,0,0,tweak2}, key, iv, hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
+                hashes[5] = hashRTCCR::hash(A0xorB0xorDelta, {0,0,0,tweak2}, key, iv, hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
+
+                int size = hashes[0].size()-(A0Left.size()+1);
+                for (int j = 0; j < size; ++j) {
+                    for (int hIx = 0; hIx < hashes.size(); ++hIx) {
+                        hashes[hIx].pop_back();
+                    }
+                }
+            }
+            vint HA0 = hashes[0];
+            vint HA1 = hashes[1];
+            vint HB0 = hashes[2];
+            vint HB1 = hashes[3];
+            vint HA0xorB0 = hashes[4];
+            vint HA0xorB0xorDelta = hashes[5];
+
             //make sure hash vectors extra bit is only one bit
-            HA0[HA0.size()-1] = HA0[HA0.size()-1] & 1;
-            HA1[HA1.size()-1] = HA1[HA1.size()-1] & 1;
-            HB0[HB0.size()-1] = HB0[HB0.size()-1] & 1;
-            HB1[HB1.size()-1] = HB1[HB1.size()-1] & 1;
-            HA0xorB0[HA0xorB0.size()-1] = HA0xorB0[HA0xorB0.size()-1] & 1;
+            HA0[HA0.size() - 1] = HA0[HA0.size() - 1] & 1;
+            HA1[HA1.size() - 1] = HA1[HA1.size() - 1] & 1;
+            HB0[HB0.size() - 1] = HB0[HB0.size() - 1] & 1;
+            HB1[HB1.size() - 1] = HB1[HB1.size() - 1] & 1;
+            HA0xorB0[HA0xorB0.size() - 1] = HA0xorB0[HA0xorB0.size() - 1] & 1;
             HA0xorB0xorDelta[HA0xorB0xorDelta.size() - 1] = HA0xorB0xorDelta[HA0xorB0xorDelta.size() - 1] & 1;
 
-            //cout << "GARBLE HASHES" << endl;
-            //util::printUintVec(HA0);
-            //util::printUintVec(HA1);
-            //util::printUintVec(HB0);
-            //util::printUintVec(HB1);
-            //util::printUintVec(HA0xorB0);
-            //util::printUintVec(HA0xorB0xorDelta);
+            cout << "GARBLE HASHES" << endl;
+            util::printUintVec(HA0);
+            util::printUintVec(HA1);
+            util::printUintVec(HB0);
+            util::printUintVec(HB1);
+            util::printUintVec(HA0xorB0);
+            util::printUintVec(HA0xorB0xorDelta);
 
             vector<vint> HVecPrime(5);
             HVecPrime[0] = util::vecXOR(HA0, HA0xorB0);
@@ -200,11 +250,6 @@ tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels
         }
     }
 
-
-
-
-
-
     for (int i = numberOfWires - numberOfOutputBits; i < numberOfWires; ++i) {
         auto labelAndPermuteBit = labelAndPermuteBitPairs[i];
         auto [label0, label1] = get<0>(labelAndPermuteBit);
@@ -232,8 +277,8 @@ tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels
     auto e = make_tuple(delta, inputLabelAndPermuteBitPairs);
     auto d =  encryptedOutputLabels;
 
-    //Return F, e, d. //todo create F
-    return make_tuple(F, e, d, invConst);
+    //Return F, e, d.
+    return make_tuple(F, e, d, invConst, hashRTCCR);
 }
 
 vector<halfLabels> threeHalves::encode(tuple<halfDelta, vector<tuple<halfLabels, int>>> e, vector<int> x) {
@@ -260,7 +305,7 @@ vector<halfLabels> threeHalves::encode(tuple<halfDelta, vector<tuple<halfLabels,
     return X;
 }
 
-vector<halfLabels> threeHalves::eval(Ftype F, vector<halfLabels> X, vector<string> f, int k, const halfLabels& invConst) {
+vector<halfLabels> threeHalves::eval(Ftype F, vector<halfLabels> X, vector<string> f, int k, const halfLabels& invConst, const hashRTCCR& hash, int h) {
     auto &wireAndGates = f[0];
     auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
     int numberOfWires = stoi(gatesAndWiresSplit[1]);
@@ -278,6 +323,7 @@ vector<halfLabels> threeHalves::eval(Ftype F, vector<halfLabels> X, vector<strin
         auto permuteBit = (get<0>(X[i])[0]) & 1;
         labelAndPermuteBitPairs[i] = {X[i], permuteBit};
     }
+
     for (int i = 3; i < f.size(); ++i) {
         //////////////////////// Getting out gate from string //////////////////////////
         auto &line = f[i];
@@ -327,8 +373,8 @@ vector<halfLabels> threeHalves::eval(Ftype F, vector<halfLabels> X, vector<strin
             auto g1 = get<1>(gate);
             auto g2 = get<2>(gate);
 
-
-            vector<vint> gVec = {{0}, {0}, g0, g1, g2};
+            vint zeroes(Al.size());
+            vector<vint> gVec = {zeroes, zeroes, g0, g1, g2};
             //append z[j] to g0, g1, g2
             for (int j = 0; j < 5; ++j) {
                 gVec[j].emplace_back(z[j]); //z[0] and z[1] are for cl cr
@@ -376,20 +422,60 @@ vector<halfLabels> threeHalves::eval(Ftype F, vector<halfLabels> X, vector<strin
             //Hashes
             vector<vint> hVec;
 
-            vint HA = util::hash_variable(util::halfLabelsToFullLabelString(A) + to_string(((3 * k) - 3)), (k / 2) + 8);
-            vint HB = util::hash_variable(util::halfLabelsToFullLabelString(B) + to_string(((3 * k) - 2)), (k / 2) + 8);
+
+            //vint HA;
+            //vint HB;
+            //vint HAxorB;
+            vector<vint> hashes(3);
             halfLabels AxorB = {util::vecXOR(Al, Bl), util::vecXOR(Ar, Br)};
-            vint HAxorB = util::hash_variable(util::halfLabelsToFullLabelString(AxorB) + to_string(((3*k)-1)), (k/2)+8);
+            vector<halfLabels> inputs({A, B, AxorB});
+            if(h==0) {
+                hashes[0] = util::hash_variable(util::halfLabelsToFullLabelString(A) + to_string(((3 * k) - 3)),
+                                              (k / 2) + 8);
+                hashes[1] = util::hash_variable(util::halfLabelsToFullLabelString(B) + to_string(((3 * k) - 2)),
+                                              (k / 2) + 8);
+                hashes[2] = util::hash_variable(util::halfLabelsToFullLabelString(AxorB) + to_string(((3 * k) - 1)),
+                                                  (k / 2) + 8);
+            } else if(h==1){
+                vint key = hash.getKey();
+                vint iv = hash.getIv();
+                for (halfLabels lbl:inputs) {
+                    get<0>(lbl).emplace_back(0);
+                    get<1>(lbl).emplace_back(0);
+                }
+                //get<0>(A).emplace_back(0);
+                //get<1>(A).emplace_back(0);
+                //get<0>(B).emplace_back(0);
+                //get<1>(B).emplace_back(0);
+                //get<0>(AxorB).emplace_back(0);
+                //get<1>(AxorB).emplace_back(0);
+                auto tweak0 = static_cast<unsigned long long>((3 * k) - 3);
+                auto tweak1 = static_cast<unsigned long long>((3 * k) - 2);
+                auto tweak2 = static_cast<unsigned long long>((3 * k) - 1);
+
+                hashes[0] = hashRTCCR::hash(inputs[0], {0,0,0,tweak0}, key, iv, hash.getE(), hash.getAlpha(), hash.getU1(), hash.getU2());
+                hashes[1] = hashRTCCR::hash(inputs[1], {0,0,0,tweak1}, key, iv, hash.getE(), hash.getAlpha(), hash.getU1(), hash.getU2());
+                hashes[2] = hashRTCCR::hash(inputs[2], {0,0,0,tweak2}, key, iv, hash.getE(), hash.getAlpha(), hash.getU1(), hash.getU2());
+                int size = hashes[0].size()-(Al.size()+1);
+                for (int j = 0; j < size; ++j) {
+                    for (int hIx = 0; hIx < hashes.size(); ++hIx) {
+                        hashes[hIx].pop_back();
+                    }
+                }
+            }
+            vint HA = hashes[0];
+            vint HB = hashes[1];
+            vint HAxorB = hashes[2];
 
             //make sure hash vectors extra bit is only one bit
             HA[HA.size()-1] = HA[HA.size()-1] & 1;
             HB[HB.size()-1] = HB[HB.size()-1] & 1;
             HAxorB[HAxorB.size()-1] = HAxorB[HAxorB.size()-1] & 1;
 
-            //cout << "EVAL HASHES:" << endl;
-            //util::printUintVec(HA);
-            //util::printUintVec(HB);
-            //util::printUintVec(HAxorB);
+            cout << "EVAL HASHES:" << endl;
+            util::printUintVec(HA);
+            util::printUintVec(HB);
+            util::printUintVec(HAxorB);
 
             hVec = {util::vecXOR(HA, HAxorB),       // { HA,  0, HAB },
                     util::vecXOR(HB, HAxorB)};      // {  0, HB, HAB }
@@ -625,8 +711,8 @@ threeHalves::calcZij(halfLabels &A0, halfLabels &B0, halfLabels &A1, halfLabels 
                 BLeft = B1Left;
                 BRight = B1Right;
             }
-            halfLabels rS1AjBl = {{0}, {0}};
-            halfLabels rS2AjBl = {{0}, {0}};
+            halfLabels rS1AjBl = zeroes(ALeft.size());
+            halfLabels rS2AjBl = zeroes(ALeft.size());
             if(r1 == 1){
                 /*
                  * Calculate S1 * [Aj Bl]
@@ -725,4 +811,9 @@ vector<int> threeHalves::computeT(int permuteBitA, int permuteBitB, const string
     else {
         cout << "Unknown gatetype in computeT" << endl;
     }
+}
+
+halfLabels threeHalves::zeroes(unsigned __int64 size) {
+    vint zeroes(size);
+    return {zeroes, zeroes};
 }

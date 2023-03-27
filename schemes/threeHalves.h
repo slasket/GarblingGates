@@ -18,6 +18,7 @@
 #include <string>
 #include <tuple>
 #include "../util/util.h"
+#include "../util/hashRTCCR.h"
 using namespace std;
 using namespace customTypeSpace;
 typedef vector<tuple<vint, vint, vint, vector<uint8_t>>> Ftype;
@@ -76,9 +77,9 @@ public:
                     {0,0,1,1,0,0},
                     {0,0,0,0,1,1}
             };
-    static tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels>, halfLabels>  garble(int k, vector<string> f);
+    static tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels>, halfLabels, hashRTCCR>  garble(int k, vector<string> f, int h = 1);
     static vector<halfLabels> encode(tuple<halfDelta, vector<tuple<halfLabels, int>>> e, vector<int> x);
-    static vector<halfLabels> eval(Ftype F, vector<halfLabels> X, vector<string> f, int k, const halfLabels& invConst);
+    static vector<halfLabels> eval(Ftype F, vector<halfLabels> X, vector<string> f, int k, const halfLabels& invConst, const hashRTCCR& hash, int h = 1);
     static vector<int> decode(vector<halfLabels> d, vector<halfLabels> Y, vector<string> f, int k);
     static vint sampleR(int permuteBitA, int permuteBitB);
     static vector<int> computeT(int permuteBitA, int permuteBitB, const string& gateType);
@@ -105,6 +106,8 @@ private:
             int permuteBitB, halfLabels &delta);
 
     static halfLabels decodeR(vector<uint64_t> rVec, halfLabels A, halfLabels B, int Aperm, int Bperm);
+
+    static halfLabels zeroes(unsigned __int64 size);
 };
 
 

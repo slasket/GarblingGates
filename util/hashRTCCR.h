@@ -9,11 +9,56 @@
 #include <emmintrin.h>
 #include <immintrin.h>
 
+#include <utility>
+
 
 using namespace std;
 
 class hashRTCCR {
 public:
+    vint key;
+
+    const vint &getKey() const {
+        return key;
+    }
+
+    const vint &getIv() const {
+        return iv;
+    }
+
+    vint iv;
+    vint alpha;
+    vint u1;
+
+    const vint &getAlpha() const {
+        return alpha;
+    }
+
+    const vint &getU1() const {
+        return u1;
+    }
+
+    const vint &getU2() const {
+        return u2;
+    }
+
+    vint u2;
+    EVP_CIPHER_CTX *e;
+
+    EVP_CIPHER_CTX *getE() const {
+        return e;
+    }
+
+    hashRTCCR(const vint& key, vint iv, int k){
+        if(k < 256) k=256;
+        this->key = key;
+        this->iv = iv;
+        this->alpha = util::genBitsNonCrypto(   (k/2)+1);
+        this->u1 = util::genBitsNonCrypto(      (k/2)+1);
+        this->u2 = util::genBitsNonCrypto(      (k/2)+1);
+        this-> e = AES_vint_init(key);
+    }
+
     static uint64_t gfmulPCF(uint64_t a, uint64_t b){
         auto aepi64 = _mm_set_epi64x(0,a);
         auto bepi64 = _mm_set_epi64x(0,b);
@@ -31,7 +76,7 @@ public:
     }
 
     static vint gfmul(uint64_t a, uint64_t b){
-        vint res = {0,0};
+        vint res = {0};
         uint64_t mask = 1;
         for (int i = 0; i < 64; ++i) {
             if (b & mask){
@@ -64,16 +109,16 @@ public:
     }
 
 //change to halflabels
-    static vint sigmaFunc(vint input, const vint& alpha){
+    static vint sigmaFunc(halfLabels input, const vint& alpha){
         //gfmul half of input with alpha
-        vint halfInput1;
-        vint halfInput2;
-        for (int i = 0; i < input.size()/2; ++i) {
-            halfInput1.push_back(input[i]);
-            halfInput2.push_back(input[i + input.size()/2]);
-        }
-        vint res1 = gfmulPCF(halfInput1, alpha);
-        vint res2 = gfmulPCF(halfInput2, alpha);
+        //vint halfInput1;
+        //vint halfInput2;
+        //for (int i = 0; i < input.size()/2; ++i) {
+        //    halfInput1.push_back(input[i]);
+        //    halfInput2.push_back(input[i + input.size()/2]);
+        //}
+        vint res1 = gfmulPCF(get<0>(input), alpha);
+        vint res2 = gfmulPCF(get<1>(input), alpha);
         res1.insert(res1.end(), res2.begin(), res2.end());
         return res1;
     }
@@ -92,7 +137,6 @@ public:
         //iv
         auto *iv = static_cast<unsigned char *>(malloc(AES_BLOCK_SIZE));
         memset(iv, 0, AES_BLOCK_SIZE);
-        cout << "iv: " << iv << endl;
         EVP_CIPHER_CTX *e;
         e = EVP_CIPHER_CTX_new();
         //EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, iv);
@@ -171,20 +215,25 @@ public:
 
 
 //randomized tweakable circular correlation robust hash function
-    static vint hash(const vint& input, const vint& tweak, const vint& key, const vint& iv, EVP_CIPHER_CTX *e, const vint& sigmaValue, vint u1, vint u2){
-        auto len = input.size();
+    static vint hash(halfLabels &input, const vint& tweak, const vint& key, const vint& iv, EVP_CIPHER_CTX *e, const vint& alpha, vint u1, vint u2){
         //generate two random GF(2^len/2) elements
         //vint u1 = randomGF2(len/2);
         //vint u2 = randomGF2(len/2);
         //instantiate sigma as a random GF(2^len/2) element
-        auto u1tweak = gfmulPCF(std::move(u1), tweak);
-        auto u2tweak = gfmulPCF(std::move(u2), tweak);
-        u1tweak.insert(u1tweak.end(), u2tweak.begin(), u2tweak.end());
-        vint Utweak = u1tweak;
-        auto XxorUtweak = util::vecXOR(input, Utweak);
-        auto sigma = sigmaFunc(XxorUtweak, sigmaValue);
-        auto AESXxorUtweak = AES_vint_encrypt(XxorUtweak, key, iv, e);
-        auto res = util::vecXOR(AESXxorUtweak, sigma);
+        auto u1tweak = gfmulPCF((u1), tweak);
+        auto u2tweak = gfmulPCF((u2), tweak);
+        //u1tweak.insert(u1tweak.end(), u2tweak.begin(), u2tweak.end());
+        //vint Utweak = u1tweak;
+        halfLabels Utweak = {u1tweak, u2tweak};
+        auto XxorUtweak = util::halfLabelXOR(input, Utweak);
+        //auto XxorUtweakL = util::vecXOR(get<0>(input), Utweak);
+        //auto XxorUtweakR = util::vecXOR(get<1>(input), Utweak);
+        auto sigma = sigmaFunc(XxorUtweak, alpha);
+        vint XxorUtweakVint;
+        XxorUtweakVint.insert(XxorUtweakVint.end(), get<0>(XxorUtweak).begin(), get<0>(XxorUtweak).end());
+        XxorUtweakVint.insert(XxorUtweakVint.end(), get<1>(XxorUtweak).begin(), get<1>(XxorUtweak).end());
+        auto AESXxorUtweak = AES_vint_encrypt(XxorUtweakVint, key, iv, e);
+        auto res = util::vecXOR(sigma, AESXxorUtweak);
         return res;
     }
 
@@ -206,11 +255,13 @@ public:
         auto key = util::genBitsNonCrypto(k);
         vint iv = util::genBitsNonCrypto(128);
         auto e = AES_vint_init(key);
-        vint input = util::genBitsNonCrypto(k);
-        auto tweak = util::genBitsNonCrypto(k);
-        vint sigmaValue = util::genBitsNonCrypto((input.size()/2)*64);
-        vint u1 = util::genBitsNonCrypto((input.size()/2)*64);
-        vint u2 = util::genBitsNonCrypto((input.size()/2)*64);
+        auto inputL = util::genBitsNonCrypto(k/2);
+        auto inputR = util::genBitsNonCrypto(k/2);
+        halfLabels input = make_tuple(inputL, inputR);
+        auto tweak = util::genBitsNonCrypto(k/2);
+        vint sigmaValue = util::genBitsNonCrypto(k/2);
+        vint u1 = util::genBitsNonCrypto(k/2);
+        vint u2 = util::genBitsNonCrypto(k/2);
 
 
         auto res = hash(input, tweak, key, iv, e, sigmaValue, u1, u2);
@@ -219,8 +270,10 @@ public:
         res = hash(input, tweak, key, iv, e, sigmaValue, u1, u2);
         cout << "res: " << util::uintVec2Str(res) << endl;
         util::printUintVec(res);
-        auto input2 = util::genBitsNonCrypto(k);
-        auto tweak2 = util::genBitsNonCrypto(k);
+        auto inputL2 = util::genBitsNonCrypto(k/2);
+        auto inputR2 = util::genBitsNonCrypto(k/2);
+        halfLabels input2 = make_tuple(inputL2, inputR2);
+        auto tweak2 = util::genBitsNonCrypto(k/2);
         auto key2 = util::genBitsNonCrypto(k);
         auto res2 = hash(input2, tweak2, key, iv, e, sigmaValue, u1, u2);
         cout << "res2: " << util::uintVec2Str(res2) << endl;

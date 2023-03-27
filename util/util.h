@@ -141,8 +141,14 @@ public:
     }
 
     static vector<::uint64_t> vecXOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
-        for (int i = 0; i < left.size(); ++i) {
-            left[i] = left[i] ^ right[i];
+        int size = max(left.size(),right.size());
+        for (int i = 0; i < size; ++i) {
+            if(i<left.size() && i<right.size()){
+                left[i] = left[i] ^ right[i];
+            }
+            else if(right.size()>left.size()){
+                left.emplace_back(right[i]);
+            }
         }
         return left;
     }
