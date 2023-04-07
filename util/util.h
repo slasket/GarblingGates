@@ -30,14 +30,14 @@ public:
     //template for splitting strings taken from:
     // https://stackoverflow.com/questions/236129/how-do-i-iterate-over-the-words-of-a-string
     template <typename Out>
-    static void split(const std::string &s, char delim, Out result) {
+    static inline void split(const std::string &s, char delim, Out result) {
         std::istringstream iss(s);
         std::string item;
         while (std::getline(iss, item, delim)) {
             *result++ = item;
         }
     }
-    static std::vector<std::string> split(const std::string &s, char delim) {
+    static inline std::vector<std::string> split(const std::string &s, char delim) {
         std::vector<std::string> elems;
         split(s, delim, std::back_inserter(elems));
         return elems;
@@ -54,7 +54,7 @@ public:
             std::cout<< i << std::endl;
         }
     }
-    static string uintVec2Str(vector<::uint64_t>vec){
+    static inline string uintVec2Str(vector<::uint64_t>vec){
         stringstream res;
         copy(vec.begin(),vec.end(),ostream_iterator<::uint64_t>(res));
         return res.str();
@@ -100,7 +100,7 @@ public:
         wiresLabel = make_pair(a0, a1);
     }
 
-    static vector <::uint64_t> genBitsNonCrypto(int bits) {
+    static inline vector <::uint64_t> genBitsNonCrypto(int bits) {
         auto res = vector<::uint64_t>((bits+64-1)/64);
         for (int blockNum = 0; blockNum <(bits+64-1)/64; ++blockNum) {
             res[blockNum] = random_bitset<64>().to_ullong();
@@ -111,7 +111,7 @@ public:
     }
     //ith bit of vector might have fucked up indexing, nice (:
     //checks right to left
-    static int checkIthBit(vector<uint64_t> ui, int i) {
+    static inline int checkIthBit(vector<uint64_t> ui, int i) {
         //ith bit
         int bit = i%64;
         //find block
@@ -123,24 +123,24 @@ public:
         return (num >> i) & 1;
     }
 
-    static int ithBitL2R(vector<uint64_t> v, int i){
+    static inline int ithBitL2R(vector<uint64_t> v, int i){
         int block = i / 64;
         return  checkBitL2R(v[block],i);
     }
     //this has reverse index, will check from the left most bit
     //checks left to right
-    static int checkBitL2R(::uint64_t num, int i){  //# From https://stackoverflow.com/questions/18111488/convert-integer-to-binary-in-python-and-compare-the-bits
+    static inline int checkBitL2R(::uint64_t num, int i){  //# From https://stackoverflow.com/questions/18111488/convert-integer-to-binary-in-python-and-compare-the-bits
         return (num >> (63-(i%64))) & 1;
     }
 
-    static vector<::uint64_t> setIthBitTo1L2R(vector<::uint64_t> vec, int pos){
+    static inline vector<::uint64_t> setIthBitTo1L2R(vector<::uint64_t> vec, int pos){
         int block = pos / 64;
         auto oneshifted = ((uint64_t)1) << (63-(pos%64));
         vec[block] |= oneshifted;
         return vec;
     }
 
-    static vector<::uint64_t> vecXOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
+    static inline vector<::uint64_t> vecXOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
         int size = max(left.size(),right.size());
         for (int i = 0; i < size; ++i) {
             if(i<left.size() && i<right.size()){
@@ -153,20 +153,20 @@ public:
         return left;
     }
 
-    static vint vecXOR(const vector<vint>& vints){
+    static inline vint vecXOR(const vector<vint>& vints){
         vint res = vints[0];
         for (int i = 1; i < vints.size(); ++i) {
             res = vecXOR(res,vints[i]);
         }
         return res;
     }
-    static vector<::uint64_t> vecAND(vector<::uint64_t>left, const vector<::uint64_t>& right){
+    static inline vector<::uint64_t> vecAND(vector<::uint64_t>left, const vector<::uint64_t>& right){
         for (int i = 0; i < left.size(); ++i) {
             left[i] = left[i] & right[i];
         }
         return left;
     }
-    static vector<::uint64_t> vecOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
+    static inline vector<::uint64_t> vecOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
         for (int i = 0; i < left.size(); ++i) {
             left[i] = left[i] | right[i];
         }
@@ -180,7 +180,7 @@ public:
         return v;
     }
     //computes the nor operation
-    static uint64_t norOP(uint64_t a, uint64_t b){
+    static inline uint64_t norOP(uint64_t a, uint64_t b){
         return ~(~(~(a) & ~(b)));
     }
 
@@ -201,7 +201,7 @@ public:
 
     //taken from https://www.appsloveworld.com/cplus/100/112/c-efficient-way-to-generate-random-bitset-with-configurable-mean-1s-to-0s-r
     template< size_t size>
-    static typename std::bitset<size> random_bitset( double p = 0.5) {
+    static inline typename std::bitset<size> random_bitset( double p = 0.5) {
 
         typename std::bitset<size> bits;
         std::random_device rd;
@@ -260,10 +260,60 @@ public:
         return output_vector;
     }
 
-    static ::uint64_t leftShiftFill1(::uint64_t x){
+    //source: https://stackoverflow.com/questions/75652101/aes-with-openssl-in-c
+    static vector<::uint64_t> anotherHash(const string& plaintext){
+
+        const std::string key="Error generating random IV";
+        unsigned char iv[EVP_MAX_IV_LENGTH]; // zero initialization
+        static unsigned char ivStatic[EVP_MAX_IV_LENGTH];
+        const EVP_CIPHER* cipher;
+        cipher = EVP_get_cipherbyname("aes-128-cbc");
+
+        EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
+        EVP_CIPHER_CTX_init(ctx);
+        EVP_EncryptInit_ex(ctx, cipher, nullptr, reinterpret_cast<const unsigned char*>(key.c_str()), iv);
+
+        int len = 0, ciphertext_len = 0;
+        int plaintext_len = plaintext.length();
+
+        std::string ciphertext(plaintext_len + EVP_CIPHER_block_size(cipher), '\0');
+        unsigned char* ciphertext_ptr = reinterpret_cast<unsigned char*>(&ciphertext[0]);
+
+        EVP_EncryptUpdate(ctx, ciphertext_ptr, &len, reinterpret_cast<const unsigned char*>(plaintext.c_str()), plaintext_len);
+        ciphertext_len += len;
+
+        EVP_EncryptFinal_ex(ctx, ciphertext_ptr + len, &len);
+        ciphertext_len += len;
+
+        EVP_CIPHER_CTX_free(ctx);
+
+        string outString = ciphertext.substr(0, ciphertext_len);
+        auto outputInBytes = outString.size();
+        cout<<outputInBytes<<endl;
+        vector<uint64_t> output_vector;
+        for (int i = 0; i < outputInBytes; i+=8) {
+            uint64_t temp = 0;
+            auto rest = outputInBytes%8;
+            if(rest != 0 && i >= outputInBytes - 8 ){
+                for (int j = 0; j < rest; ++j) {
+                    temp += (uint64_t)ciphertext[i+j] << (j*8);
+                }
+            } else {
+                for (int j = 0; j < 8; ++j) {
+                    temp += (uint64_t)ciphertext[i+j] << (j*8);
+                }
+            }
+            output_vector.push_back(temp);
+        }
+        return output_vector;
+        ///return ciphertext.substr(0, ciphertext_len);
+
+    }
+
+    static inline ::uint64_t leftShiftFill1(::uint64_t x){
         return ~((~x)<<1);
     }
-    static vector<bitset<64>> insertBitVecBitset(vector<bitset<64>> vec, int bit, int i){
+    static inline vector<bitset<64>> insertBitVecBitset(vector<bitset<64>> vec, int bit, int i){
 
         int block = i/64;
         //for left to right insertion
@@ -274,7 +324,7 @@ public:
         return vec;
     }
 
-    static string
+    static inline  string
     sliceVecL2R(vint X_00, vint X_01, vint X_10, vint X_11, int j) {
         int x00j = ithBitL2R(X_00,j);
         int x01j = ithBitL2R(X_01,j);
@@ -283,7 +333,7 @@ public:
         return to_string(x00j).append(to_string(x01j)).append(to_string(x10j)).append(to_string(x11j));
     }
 
-    static string
+    static inline string
     sliceVecL2RAtecaFreeXorSpecial(vint globalDelta, vint X_00, vint X_01, vint X_10, vint X_11, int jprime, int j) {
         int gdj = ithBitL2R(globalDelta,jprime);
         int x00j = ithBitL2R(X_00,j);
@@ -294,7 +344,7 @@ public:
     }
 
 
-    static void getBits(string &f, int &numberOfInputBits) {
+    static inline void getBits(string &f, int &numberOfInputBits) {
         numberOfInputBits= 0;
         auto split = util::split(f, ' ');
         int numberOfInputWires = stoi(split[0]);
@@ -326,7 +376,7 @@ public:
         return make_tuple(inputWires, outputWires, gateType);
     }
 
-    static halfLabels halfLabelXOR(halfLabels &input1, halfLabels &input2) {
+    static inline halfLabels halfLabelXOR(halfLabels &input1, halfLabels &input2) {
         auto [left1, right1] = input1;
         auto [left2, right2] = input2;
         auto newLeft = vecXOR(left1, left2);
@@ -334,11 +384,11 @@ public:
 
         return {newLeft, newRight};
     }
-    static vint prependBitToVint(vint &label, uint64_t bit) {
+    static inline vint prependBitToVint(vint &label, uint64_t bit) {
         label.push_back(bit);
         return label;
     }
-    static string halfLabelsToFullLabelString(halfLabels &halfLabel){
+    static inline string halfLabelsToFullLabelString(halfLabels &halfLabel){
         auto [left, right] = halfLabel;
         return uintVec2Str(left) + uintVec2Str(right);
     }

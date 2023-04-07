@@ -8,14 +8,10 @@
 tuple<vector<vint>, vector<tuple<vint, vint>>, vector<vint>, int, tuple<vint, vint>,string>
     atecaFreeXOR::Gb(int l, const vector<std::string> &C, string hashtype) {
 
-
     auto [encodingInfo,globalDelta] = Init(C, l);
     auto invVar= genInvVar(l, globalDelta);
-    //cout<<"garblefunc"<<endl;
     auto [F,D,Invvar] = GarbleCircuit(l, C, encodingInfo, invVar, globalDelta);
-    //cout<<"decoding"<<endl;
     auto decoding = DecodingInfo(D, l);
-
 
     return {F,encodingInfo,decoding,l,invVar,hashtype};
 }
@@ -83,7 +79,6 @@ atecaFreeXOR::GarbleCircuit(int l, vector<std::string> C, vector<tuple<vint, vin
 
             //calculate Gb
             ///must return L0, L1, Delta
-
             auto l0= util::vecXOR(get<1>(wires[in0]),get<1>(invVar));
             auto l1= util::vecXOR(get<0>(wires[in0]),get<1>(invVar));
             garbledGate = {l0,l1};
