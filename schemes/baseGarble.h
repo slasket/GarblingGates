@@ -17,13 +17,13 @@ public:
     tuple<vector<labelPair>,
             vector<tuple<vint, vint>>,
             vector<tuple<vint, vint>>>
-    garble(vector<string> f, const vint& invConst = {874537361747324275,15596160569201595389}, int k = 128);
+    garble(vector<string> f, vint invConst = {874537361747324275,15596160569201595389}, int k = 128);
     static vector<vint> encode(vector<labelPair> e, vector<int> x);
     static vector<vint> eval(tuple<vector<labelPair>,
             vector<labelPair>,
             vector<labelPair>> F, vector<vint> X, vector<string> f,
                              const vint& invConst = {874537361747324275,15596160569201595389}, int k = 128);
-    static vector<int> decode(vector<labelPair> d, vector<vint> Y);
+    static vector<int> decodeBits(vector<labelPair> d, vector<vint> Y);
     static vint hashFunc(vint x, int k);
 
     static void
@@ -40,15 +40,17 @@ public:
     static vint hashXOR(vint &labelA, vint &labelB, int k);
 
 
-    static void
+    static tuple<vector<::uint64_t>, vector<::uint64_t>>
     garbleGate(const vint &invConst, int k, const vector<::uint64_t> &globalDelta, vector<int> inputWires,
                const string& gateType, vector<labelPair> &wireLabels,
-               vector<int> &outputWires, vector<::uint64_t> &gate0, vector<::uint64_t> &gate1);
+               vector<int> &outputWires);
 
     static vint evalGate(const vint &invConst, int k,
                          const vector<labelPair> &garbledCircuit,
                          const vector<vint> &wireValues, int i, vector<int> inputWires,
                          const string& gateType);
+
+    static vint decode(vector<labelPair> d, vector<vint> Y);
 };
 
 

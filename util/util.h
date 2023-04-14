@@ -60,19 +60,20 @@ public:
         return res.str();
     }
 
-    static tuple<vector<uint64_t>,
-            vector<tuple<vector<uint64_t>, vector<uint64_t>>>>
+    static  vector<tuple<vector<uint64_t>, vector<uint64_t>>>
             generateRandomLabels(int k, vector<uint64_t>& globalDelta,
-                                     vector<tuple<vector<uint64_t>, vector<uint64_t>>>& wiresLabels) {
+                                     int size) {
+                auto wiresLabels = vector<tuple<vector<uint64_t>, vector<uint64_t>>>(size);
+
                 //generate new global delta if non is given
-                if(globalDelta[0]==0){
-                    globalDelta = genDelta(k);
-                }
+                //if(globalDelta[0]==0){
+                //    globalDelta = genDelta(k);
+                //}
                 //generate input labels
                 for(auto & wiresLabel : wiresLabels){
                     labelPointAndPermute(k, wiresLabel, globalDelta);
                 }
-                return make_tuple(globalDelta, wiresLabels);
+                return wiresLabels;
     }
 
     static vector<uint64_t> genDelta(int k) {
@@ -344,14 +345,15 @@ public:
     }
 
 
-    static inline void getBits(string &f, int &numberOfInputBits) {
-        numberOfInputBits= 0;
+    static inline int getBits(string &f) {
+        int numberOfInputBits= 0;
         auto split = util::split(f, ' ');
         int numberOfInputWires = stoi(split[0]);
         for (int i = 0; i < numberOfInputWires; ++i) {
             int numberOfBits = stoi(split[i + 1]);
             numberOfInputBits += numberOfBits;
         }
+        return numberOfInputBits;
     }
 
     static tuple<vector<int>, vector<int>, string> extractGate(const string &line) {

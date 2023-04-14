@@ -14,15 +14,13 @@ BOOST_AUTO_TEST_SUITE( Testing_generateRandomLabels )
     vector<tuple<vector<uint64_t>, vector<uint64_t>>> outputWiresLabels =
             vector<tuple<vector<uint64_t>, vector<uint64_t>>>(2);
     vector<uint64_t> globalDelta = vector<uint64_t>(2);
-    auto output = util::generateRandomLabels(128, globalDelta, inputWiresLabels);
-    vector<uint64_t> output0 = get<0>(output);
-    vector<tuple<vector<uint64_t>, vector<uint64_t>>> output1 = get<1>(output);
+    vector<uint64_t> output0 = util::genDelta(128);
+    vector<tuple<vector<uint64_t>, vector<uint64_t>>> output1  = util::generateRandomLabels(128, globalDelta, 2);
 
 
     BOOST_AUTO_TEST_CASE( test_globalDelta )
     {
         BOOST_TEST( output0[0] != 0);
-        BOOST_TEST( globalDelta[0] != 0);
         BOOST_TEST( (output0[0] & 1) == 1);
 
     }

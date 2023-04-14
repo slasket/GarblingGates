@@ -11,28 +11,29 @@
 tuple<vector<labelPair>,
         vector<labelPair>,
         vector<labelPair>>
-baseGarble::garble(vector<string> f, const vint& invConst, int k) {
+baseGarble::garble(vector<string> f, vint invConst, int k) {
     //get number of wires and gates
     auto &wireAndGates = f[0];
     auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
     int numberOfWires = stoi(gatesAndWiresSplit[1]);
 
     //get number of input and output bits
-    int numberOfInputBits;
-    util::getBits(f[1], numberOfInputBits);
-    int numberOfOutputBits;
-    util::getBits(f[2], numberOfOutputBits);
+    int numberOfInputBits  = util::getBits(f[1]);
+    int numberOfOutputBits = util::getBits(f[2]);
 
     //initialize variables
     auto garbledCircuit = vector<tuple< vint, vint>>();
-    auto encOutputLabels = vector<labelPair>();
+    auto encOutputLabels = vector<labelPair>(numberOfOutputBits);
 
     //generate global delta
     auto globalDelta = util::genDelta(k);
 
+    //generate invConst
+    if(invConst.empty())
+        invConst = util::genBitsNonCrypto(k);
+
     //generate all input labels and insert into wireLabels
-    auto inputWiresLabels = vector<labelPair>(numberOfInputBits);
-    auto deltaAndLabels = util::generateRandomLabels(k, globalDelta, inputWiresLabels);
+    auto inputWiresLabels = util::generateRandomLabels(k, globalDelta, numberOfInputBits);
     auto wireLabels = vector<labelPair>(numberOfWires);
     for (int i = 0; i < numberOfInputBits; ++i) {
         wireLabels[i] = inputWiresLabels[i];
@@ -47,9 +48,9 @@ baseGarble::garble(vector<string> f, const vint& invConst, int k) {
         //auto gateType = get<2>(gateInfo);               // "XOR"
 
         ////////////////////////////// Garbling gate ///////////////////////////////////
-        vector<::uint64_t> gate0;
-        vector<::uint64_t> gate1;
-        garbleGate(invConst, k, globalDelta, inputWires, gateType, wireLabels, outputWires, gate0, gate1);
+        //vector<::uint64_t> gate0;
+        //vector<::uint64_t> gate1;
+        auto [gate0, gate1] = garbleGate(invConst, k, globalDelta, inputWires, gateType, wireLabels, outputWires);
 
         ////////////////////////////// Construct output {F,e,d} ///////////////////////////////////
         //create output F with gates
@@ -58,22 +59,23 @@ baseGarble::garble(vector<string> f, const vint& invConst, int k) {
 
         //output e is inputWireLabels
 
-        //create output d //todo change to how ateca does it
+        //create output d
         if(outputWires[0] >= numberOfWires - numberOfOutputBits){
             string outputStrF = util::uintVec2Str(get<0>(wireLabels[outputWires[0]]));
             string outputStrT = util::uintVec2Str(get<1>(wireLabels[outputWires[0]]));
             tuple<vint,vint> outputLabel = {util::hash_variable(outputStrF), util::hash_variable(outputStrT)};
-            encOutputLabels.emplace_back(outputLabel);
+            encOutputLabels[outputWires[0] - (numberOfWires - numberOfOutputBits)] = outputLabel;
         }
 
     }
     return {garbledCircuit, inputWiresLabels, encOutputLabels};
 }
 
-void
+tuple<vector<::uint64_t>, vector<::uint64_t>>
 baseGarble::garbleGate(const vint &invConst, int k, const vector<::uint64_t> &globalDelta, vector<int> inputWires,
                        const string& gateType, vector<labelPair> &wireLabels,
-                       vector<int> &outputWires, vector<::uint64_t> &gate0, vector<::uint64_t> &gate1) {
+                       vector<int> &outputWires) {
+    vector<::uint64_t> gate0; vector<::uint64_t> gate1;
     auto outputWiresLabels = vector<labelPair>();
     //get input wires
     int input0 = inputWires[0];
@@ -119,6 +121,7 @@ baseGarble::garbleGate(const vint &invConst, int k, const vector<::uint64_t> &gl
         invGate(permuteBitA, AF, AT, ciphertext, invConst);
     //insert output labels into wireLabels
     wireLabels[outputWires[0]] = make_tuple(ciphertext, util::vecXOR(ciphertext, globalDelta));
+    return {gate0, gate1};
 }
 
 
@@ -176,8 +179,6 @@ vector<vint> baseGarble::encode(vector<labelPair> e, vector<int> x) {
 
 vector<vint> baseGarble::eval(tuple<vector<labelPair>, vector<labelPair>, vector<labelPair>> F,
                               vector<vint> X, vector<string> f, const vint& invConst, int k) {
-    //result vector
-    vector<vint> Y;
     //garbled circuit
     auto garbledCircuit = get<0>(F);
     auto inputLabels = get<1>(F);
@@ -188,12 +189,10 @@ vector<vint> baseGarble::eval(tuple<vector<labelPair>, vector<labelPair>, vector
     auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
     int numberOfGates = stoi(gatesAndWiresSplit[0]);
     int numberOfWires = stoi(gatesAndWiresSplit[1]);
-    int numberOfInputBits;
-    util::getBits(f[1], numberOfInputBits);
+    int numberOfInputBits = util::getBits(f[1]);
     auto &outputs = f[2]; //number of outputs and how many bits each output is
     auto outputSplit = util::split(outputs, ' ');
-    int numberOfOutputBits;
-    util::getBits(f[2], numberOfOutputBits);
+    int numberOfOutputBits = util::getBits(f[2]);
 
     //get input labels from X and put them in wireValues
     auto wireValues = vector< vint>(numberOfWires);
@@ -206,6 +205,9 @@ vector<vint> baseGarble::eval(tuple<vector<labelPair>, vector<labelPair>, vector
         cout << "garbledCircuit.size() != f.size()-3 != " << numberOfGates  << " != " << garbledCircuit.size() << " != " << f.size()-3 << endl;
         //exit(1);
     }
+
+    //result vector
+    vector<vint> Y = vector<vint>(numberOfOutputBits);
 
     //evaluate the garbled circuit
     for (int i = 0; i < garbledCircuit.size(); ++i) {
@@ -230,7 +232,7 @@ vector<vint> baseGarble::eval(tuple<vector<labelPair>, vector<labelPair>, vector
         wireValues[outputWires[0]] = cipher;
         //save output value in Y if output wire
         if (outputWires[0] >= numberOfWires - numberOfOutputBits) {
-            Y.push_back(cipher);
+            Y[outputWires[0] - (numberOfWires - numberOfOutputBits)] = cipher;
         }
     }
     return Y;
@@ -280,17 +282,40 @@ vint baseGarble::evalGate(const vint &invConst, int k,
     return cipher;
 }
 
-vector<int> baseGarble::decode(vector<labelPair> d, vector<vint> Y) {
+vint baseGarble::decode(vector<labelPair> d, vector<vint> Y) {
+    auto outbits = Y.size();
+    auto unit64sNeeded = outbits/64 + ((outbits%64!=0) ? 1 : 0);
+    auto outputSets =  vector<bitset<64>>(unit64sNeeded);
+
+    for (int i = 0; i < outbits; ++i) {
+        //get the lsb of the hash
+        string ystring = util::uintVec2Str(Y[i]);
+        auto yhash = util::hash_variable(ystring, 128);
+        if (yhash == get<0>(d[i])) {
+            outputSets = util::insertBitVecBitset(outputSets,0,i);
+        } else if (yhash == get<1>(d[i])){
+            outputSets = util::insertBitVecBitset(outputSets,1,i);
+        } else {
+            cout << "Could not decodeBits as encrypted output was invalid" << endl;
+        }
+    }
+    auto y = vint(unit64sNeeded);
+    for (int i = 0; i < unit64sNeeded; ++i) {
+        y[i] = outputSets[i].to_ullong();
+    }
+    return y;
+}
+vector<int> baseGarble::decodeBits(vector<labelPair> d, vector<vint> Y) {
     vector<int> y;
     for (int i = 0; i < Y.size(); ++i) {
         string ystring = util::uintVec2Str(Y[i]);
         auto yhash = util::hash_variable(ystring, 128);
         if (yhash == get<0>(d[i])) {
             y.push_back(0);
-        } else if (yhash == get<1>(d[i])){
+        } else if (yhash == get<1>(d[i])) {
             y.push_back(1);
         } else {
-            cout << "Could not decode as encrypted output was invalid" << endl;
+            cout << "Could not decodeBits as encrypted output was invalid" << endl;
         }
     }
     return y;

@@ -80,7 +80,7 @@ public:
     static tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels>, halfLabels, hashRTCCR>  garble(int k, vector<string> f, int h = 1);
     static vector<halfLabels> encode(tuple<halfDelta, vector<tuple<halfLabels, int>>> e, vector<int> x);
     static vector<halfLabels> eval(Ftype F, vector<halfLabels> X, vector<string> f, int k, const halfLabels& invConst, const hashRTCCR& hash, int h = 1);
-    static vector<int> decode(vector<halfLabels> d, vector<halfLabels> Y, vector<string> f, int k);
+    static vector<int> decodeBits(vector<halfLabels> d, vector<halfLabels> Y, vector<string> f, int k);
     static vint sampleR(int permuteBitA, int permuteBitB);
     static vector<int> computeT(int permuteBitA, int permuteBitB, const string& gateType);
     static vint hashPrime(const vint& input, int k, int tweak);
@@ -100,6 +100,8 @@ public:
         return {leftLabelHalf, rightLabelHalf};
     }
 
+    static vector<uint64_t> decode(vector<halfLabels> d, vector<halfLabels> Y, vector<string> f, int k);
+
 private:
     static vector<halfLabels>
     calcZij(halfLabels &A0, halfLabels &B0, halfLabels &A1, halfLabels &B1, vint &rVec, int permuteBitA,
@@ -108,6 +110,7 @@ private:
     static halfLabels decodeR(vector<uint64_t> rVec, halfLabels A, halfLabels B, int Aperm, int Bperm);
 
     static halfLabels zeroes(unsigned __int64 size);
+
 };
 
 

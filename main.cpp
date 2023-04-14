@@ -34,60 +34,14 @@ void sliceTest();
 int main() {
     //sliceTest();
     //jeg er syg i hovedet
-    hashRTCCR::testHashRTCCR();
-    hashRTCCR::testDecrypt();
-
-
-    int lInput =6; int rInput = 1;
-    auto xb = vector<int>{1,1,0,0,0,1,1};
-    auto Cb = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
-    int lb = 64;
-    auto [Fb, eb, db, icb, hashb] = threeHalves::garble(128, Cb);
-    auto encLabelsb = threeHalves::encode(eb, xb);
-    auto Yb = threeHalves::eval(Fb, encLabelsb, Cb, 128, icb, hashb);
-    auto yb = threeHalves::decode(db, Yb, Cb, 128);
-    ::uint64_t bloodCompAns = bloodcompatibility::bloodCompLookup(lInput,rInput);
-
-    cout << (yb[0]==bloodCompAns) << endl;
-
-    vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 AND"};
-    int k = 256;
-    int h = 1;
-    auto [F,e,d,ic, hash] = threeHalves::garble(k, smalltest, h);
-    auto x = vector<int>{1, 1};
-    auto encLabels = threeHalves::encode(e, x);
-    auto Y = threeHalves::eval(F, encLabels, smalltest, k, ic, hash, h);
-    auto y = threeHalves::decode(d, Y, smalltest, k);
-    (y.size() == 1);
-    if(y.size() == 1) {
-        cout << y[0] << endl;
-    }
-    k = 128;
-    auto [F1,e1,d1,ic1, hash1] = threeHalves::garble(k, smalltest, h);
-    encLabels = threeHalves::encode(e1, x);
-    Y = threeHalves::eval(F1, encLabels, smalltest, k, ic1, hash1, h);
-    y = threeHalves::decode(d1, Y, smalltest, k);
-    (y.size() == 1);
-    if(y.size() == 1) {
-        cout << y[0] << endl;
-    }
+    //hashRTCCR::testHashRTCCR();
+    //hashRTCCR::testDecrypt();
 
 
 
-    auto a = util::genBitsNonCrypto(128);
-    auto b = util::genBitsNonCrypto(128);
-    halfLabels A = {a, b};
-    auto HA = hashRTCCR::hash(A, {0,0,0,1}, hash.getKey(), hash.getIv(), hash.getE(), hash.getAlpha(), hash.getU1(), hash.getU2());
-    util::printUintVec(a);
-    util::printUintVec(b);
-    util::printUintVec(hash.getAlpha());
-    util::printUintVec(hash.getU1());
-    util::printUintVec(hash.getU2());
-    cout << "hash1" << endl;
-    util::printUintVec(HA);
-    HA = hashRTCCR::hash(A, {0,0,0,1}, hash.getKey(), hash.getIv(), hash.getE(), hash.getAlpha(), hash.getU1(), hash.getU2());
-    cout << "hash2" << endl;
-    util::printUintVec(HA);
+
+
+
     //testsubAteca();
     //testFreexorAteca();
     return 0;

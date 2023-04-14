@@ -47,10 +47,8 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineCipher )
     vector<tuple<vector<uint64_t>, vector<uint64_t>>> inputWiresLabels = vector<tuple<vector<uint64_t>, vector<uint64_t>>>(inputWires.size());
     vector<tuple<vector<uint64_t>, vector<uint64_t>>> outputWiresLabels = vector<tuple<vector<uint64_t>, vector<uint64_t>>>(outputWires.size());
     int k = 128;
-    auto globalDelta = vector<uint64_t>(k);
-    auto deltaAndLabels = util::generateRandomLabels(k, globalDelta, inputWiresLabels);
-    auto delta = get<0>(deltaAndLabels);
-    auto labels = get<1>(deltaAndLabels);
+    auto delta = util::genDelta(k);
+    auto labels = util::generateRandomLabels(k, delta, 2);
     int permuteBitA = (int)((get<0>(labels[0])[0]) & 1);
     int permuteBitB = (int)((get<0>(labels[1])[0]) & 1);
     vector<uint64_t> A0;
@@ -78,7 +76,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineCipher )
         vector<uint64_t> ciphertext;
         vector<uint64_t> gate0;
         vector<uint64_t> gate1;
-        baseGarble::andGate(globalDelta, permuteBitA, permuteBitB, A0, A1, B0, B1, ciphertext, gate0, gate1, k);
+        baseGarble::andGate(delta, permuteBitA, permuteBitB, A0, A1, B0, B1, ciphertext, gate0, gate1, k);
 
         if(permuteBitA == 0 | permuteBitB == 0) {
             BOOST_TEST(ciphertext == util::vecXOR(baseGarble::hashFunc(A0, k),
@@ -198,7 +196,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalXOR )
             auto smallCircuit = baseGarble::garble( smalltest);
             auto X00 = baseGarble::encode(get<1>(smallCircuit), {0, 0});
             auto Y00 = baseGarble::eval(smallCircuit, X00, smalltest);
-            auto y00 = baseGarble::decode(get<2>(smallCircuit), Y00);
+            auto y00 = baseGarble::decodeBits(get<2>(smallCircuit), Y00);
             BOOST_TEST(y00[0] == 0);
         }
     }
@@ -208,7 +206,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalXOR )
         auto smallCircuit = baseGarble::garble(smalltest);
         auto X01 = baseGarble::encode(get<1>(smallCircuit), {0, 1});
         auto Y01 = baseGarble::eval(smallCircuit, X01, smalltest);
-        auto y01 = baseGarble::decode(get<2>(smallCircuit), Y01);
+        auto y01 = baseGarble::decodeBits(get<2>(smallCircuit), Y01);
         BOOST_TEST(y01[0] == 1);
     }
 
@@ -217,7 +215,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalXOR )
         auto smallCircuit = baseGarble::garble( smalltest);
         auto X10 = baseGarble::encode(get<1>(smallCircuit), {1, 0});
         auto Y10 = baseGarble::eval(smallCircuit, X10, smalltest);
-        auto y10 = baseGarble::decode(get<2>(smallCircuit), Y10);
+        auto y10 = baseGarble::decodeBits(get<2>(smallCircuit), Y10);
         BOOST_TEST(y10[0] == 1);
     }
 
@@ -226,7 +224,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalXOR )
         auto smallCircuit = baseGarble::garble(smalltest);
         auto X11 = baseGarble::encode(get<1>(smallCircuit), {1, 1});
         auto Y11 = baseGarble::eval(smallCircuit, X11, smalltest);
-        auto y11 = baseGarble::decode(get<2>(smallCircuit), Y11);
+        auto y11 = baseGarble::decodeBits(get<2>(smallCircuit), Y11);
         BOOST_TEST(y11[0] == 0);
     }
 BOOST_AUTO_TEST_SUITE_END()
@@ -237,7 +235,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalAND )
     auto smallCircuit = baseGarble::garble(smalltest);
     auto X00 = baseGarble::encode(get<1>(smallCircuit), {0, 0});
     auto Y00 = baseGarble::eval(smallCircuit, X00, smalltest);
-    auto y00 = baseGarble::decode(get<2>(smallCircuit), Y00);
+    auto y00 = baseGarble::decodeBits(get<2>(smallCircuit), Y00);
     BOOST_AUTO_TEST_CASE( test_encode_small00 )
     {
         BOOST_TEST(y00[0] == 0);
@@ -245,7 +243,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalAND )
 
     auto X01 = baseGarble::encode(get<1>(smallCircuit), {0, 1});
     auto Y01 = baseGarble::eval(smallCircuit, X01, smalltest);
-    auto y01 = baseGarble::decode(get<2>(smallCircuit), Y01);
+    auto y01 = baseGarble::decodeBits(get<2>(smallCircuit), Y01);
     BOOST_AUTO_TEST_CASE( test_encode_small01 )
     {
         BOOST_TEST(y01[0] == 0);
@@ -253,7 +251,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalAND )
 
     auto X10 = baseGarble::encode(get<1>(smallCircuit), {1, 0});
     auto Y10 = baseGarble::eval(smallCircuit, X10, smalltest);
-    auto y10 = baseGarble::decode(get<2>(smallCircuit), Y10);
+    auto y10 = baseGarble::decodeBits(get<2>(smallCircuit), Y10);
     BOOST_AUTO_TEST_CASE( test_encode_small10 )
     {
         BOOST_TEST(y10[0] == 0);
@@ -261,7 +259,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalAND )
 
     auto X11 = baseGarble::encode(get<1>(smallCircuit), {1, 1});
     auto Y11 = baseGarble::eval(smallCircuit, X11, smalltest);
-    auto y11 = baseGarble::decode(get<2>(smallCircuit), Y11);
+    auto y11 = baseGarble::decodeBits(get<2>(smallCircuit), Y11);
     BOOST_AUTO_TEST_CASE( test_encode_small11 )
     {
         BOOST_TEST(y11[0] == 1);
@@ -278,7 +276,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalINV )
             auto smallCircuit = baseGarble::garble(smalltest);
             auto X0 = baseGarble::encode(get<1>(smallCircuit), {0});
             auto Y0 = baseGarble::eval(smallCircuit, X0, smalltest);
-            auto y0 = baseGarble::decode(get<2>(smallCircuit), Y0);
+            auto y0 = baseGarble::decodeBits(get<2>(smallCircuit), Y0);
             BOOST_TEST(y0[0] == 1);
         }
     }
@@ -288,7 +286,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalINV )
             auto smallCircuit = baseGarble::garble(smalltest);
             auto X1 = baseGarble::encode(get<1>(smallCircuit), {1});
             auto Y1 = baseGarble::eval(smallCircuit, X1, smalltest);
-            auto y1 = baseGarble::decode(get<2>(smallCircuit), Y1);
+            auto y1 = baseGarble::decodeBits(get<2>(smallCircuit), Y1);
             BOOST_TEST(y1[0] == 0);
         }
     }
@@ -301,7 +299,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalTwoGates )
     vector<int> inputLabels = {0, 0};
     auto X = baseGarble::encode(get<1>(circuit), inputLabels);
     auto Y = baseGarble::eval(circuit, X, smalltest);
-    auto y = baseGarble::decode(get<2>(circuit), Y);
+    auto y = baseGarble::decodeBits(get<2>(circuit), Y);
 
     BOOST_AUTO_TEST_CASE( test_encode_two_gates )
     {
@@ -316,7 +314,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalTwoGates )
         vector<int> inputLabels = {0, 1};
         auto X = baseGarble::encode(get<1>(circuit), inputLabels);
         auto Y = baseGarble::eval(circuit, X, smalltest);
-        auto y = baseGarble::decode(get<2>(circuit), Y);
+        auto y = baseGarble::decodeBits(get<2>(circuit), Y);
         BOOST_TEST(y.size() == 1);
         BOOST_TEST(y[0] == 0);
     }
@@ -328,7 +326,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalTwoGates )
         vector<int> inputLabels = {0, 1, 0, 1};
         auto X = baseGarble::encode(get<1>(circuit), inputLabels);
         auto Y = baseGarble::eval(circuit, X, smalltest);
-        auto y = baseGarble::decode(get<2>(circuit), Y);
+        auto y = baseGarble::decodeBits(get<2>(circuit), Y);
         BOOST_TEST(y.size() == 1);
         BOOST_TEST(y[0] == 0);
     }
@@ -343,7 +341,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalBlood )
                                     1};
     auto XBlood = baseGarble::encode(get<1>(bloodCircuit), inputLabelsBlood);
     auto YBlood = baseGarble::eval(bloodCircuit, XBlood, bloodtest);
-    auto yBlood = baseGarble::decode(get<2>(bloodCircuit), YBlood);
+    auto yBlood = baseGarble::decodeBits(get<2>(bloodCircuit), YBlood);
 
     BOOST_AUTO_TEST_CASE( test_encode_blood )
     {
@@ -366,7 +364,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalBig )
                                        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
     auto XBig = baseGarble::encode(get<1>(bigCircuit), inputLabelsBig);
     auto YBig = baseGarble::eval(bigCircuit, XBig, bigtest);
-    auto yBig = baseGarble::decode(get<2>(bigCircuit), YBig);
+    auto yBig = baseGarble::decodeBits(get<2>(bigCircuit), YBig);
 
     BOOST_AUTO_TEST_CASE( test_encode_big_ones )
     {
@@ -387,7 +385,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalBig )
                                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}; //000...000 + 100...000
     auto XBig_zeroes = baseGarble::encode(get<1>(bigCircuit), inputLabelsBig_zeroes);
     auto YBig_zeroes = baseGarble::eval(bigCircuit, XBig_zeroes, bigtest);
-    auto yBig_zeroes = baseGarble::decode(get<2>(bigCircuit), YBig_zeroes);
+    auto yBig_zeroes = baseGarble::decodeBits(get<2>(bigCircuit), YBig_zeroes);
 
     BOOST_AUTO_TEST_CASE( test_encode_big_zeroes )
     {
@@ -416,7 +414,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalBigSub )
                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1}; //100...000 - 100...000
     auto XBig = baseGarble::encode(get<1>(bigCircuit), inputLabelsBig);
     auto YBig = baseGarble::eval(bigCircuit, XBig, bigtest);
-    auto yBig = baseGarble::decode(get<2>(bigCircuit), YBig);
+    auto yBig = baseGarble::decodeBits(get<2>(bigCircuit), YBig);
 
     BOOST_AUTO_TEST_CASE( test_encode_big_ones )
     {

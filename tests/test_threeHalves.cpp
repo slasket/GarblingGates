@@ -63,7 +63,7 @@ BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEncode )
 
     /*auto d = get<2>(output);
     vector<halfLabels> Y = {{{1}, {1}}}; //input to get the right size output
-    auto y = threeHalves::decode(d, Y, smalltest, 128);
+    auto y = threeHalves::decodeBits(d, Y, smalltest, 128);
     BOOST_AUTO_TEST_CASE( test_Decode )
     {
         BOOST_TEST(y.size() == 1);
@@ -81,7 +81,7 @@ BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalXOR )
         auto x = vector<int>{1, 1};
         auto encLabels = threeHalves::encode(e, x);
         auto Y = threeHalves::eval(F, encLabels, smalltest, 128, ic, hash);
-        auto y = threeHalves::decode(d, Y, smalltest, 128);
+        auto y = threeHalves::decodeBits(d, Y, smalltest, 128);
         BOOST_TEST(Y.size() == 1);
         BOOST_TEST(y.size() == 1);
         BOOST_TEST(y[0] == 0);
@@ -91,7 +91,7 @@ BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalXOR )
         auto x = vector<int>{0, 1};
         auto encLabels = threeHalves::encode(e, x);
         auto Y = threeHalves::eval(F, encLabels, smalltest, 128, ic, hash);
-        auto y = threeHalves::decode(d, Y, smalltest, 128);
+        auto y = threeHalves::decodeBits(d, Y, smalltest, 128);
         BOOST_TEST(y.size() == 1);
         BOOST_TEST(y[0] == 1);
     }
@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalXOR )
         auto x = vector<int>{1, 0};
         auto encLabels = threeHalves::encode(e, x);
         auto Y = threeHalves::eval(F, encLabels, smalltest, 128, ic, hash);
-        auto y = threeHalves::decode(d, Y, smalltest, 128);
+        auto y = threeHalves::decodeBits(d, Y, smalltest, 128);
         BOOST_TEST(y.size() == 1);
         BOOST_TEST(y[0] == 1);
     }
@@ -109,7 +109,7 @@ BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalXOR )
         auto x = vector<int>{0, 0};
         auto encLabels = threeHalves::encode(e, x);
         auto Y = threeHalves::eval(F, encLabels, smalltest, 128, ic, hash);
-        auto y = threeHalves::decode(d, Y, smalltest, 128);
+        auto y = threeHalves::decodeBits(d, Y, smalltest, 128);
         BOOST_TEST(y.size() == 1);
         BOOST_TEST(y[0] == 0);
     }
@@ -130,7 +130,7 @@ BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalAND )
             auto x = vector<int>{1, 1};
             auto encLabels = threeHalves::encode(e, x);
             auto Y = threeHalves::eval(F, encLabels, smalltest, 128, ic, hash);
-            auto y = threeHalves::decode(d, Y, smalltest, 128);
+            auto y = threeHalves::decodeBits(d, Y, smalltest, 128);
             BOOST_TEST(y.size() == 1);
             if(y.size() == 1) {
                 ctr++;
@@ -152,7 +152,7 @@ BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalINV )
             auto x = vector<int>{0};
             auto encLabels = threeHalves::encode(e, x);
             auto Y = threeHalves::eval(F, encLabels, smalltest, 128, ic, hash);
-            auto y = threeHalves::decode(d, Y, smalltest, 128);
+            auto y = threeHalves::decodeBits(d, Y, smalltest, 128);
             BOOST_TEST(y.size() == 1);
             if(y.size() == 1) {
                 ctr++;
@@ -174,7 +174,7 @@ BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalXORAND )
             auto x = vector<int>{1, 1};
             auto encLabels = threeHalves::encode(e, x);
             auto Y = threeHalves::eval(F, encLabels, xorAnd, 128, ic, hash);
-            auto y = threeHalves::decode(d, Y, xorAnd, 128);
+            auto y = threeHalves::decodeBits(d, Y, xorAnd, 128);
             BOOST_TEST(y.size() == 1);
             if(y.size() == 1) {
                 ctr++;
@@ -197,7 +197,7 @@ BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalANDXOR )
             auto x = vector<int>{1, 0};
             auto encLabels = threeHalves::encode(e, x);
             auto Y = threeHalves::eval(F, encLabels, xorAnd, 128, ic, hash);
-            auto y = threeHalves::decode(d, Y, xorAnd, 128);
+            auto y = threeHalves::decodeBits(d, Y, xorAnd, 128);
             BOOST_TEST(y.size() == 1);
             if(y.size() == 1) {
                 ctr++;
@@ -252,7 +252,7 @@ BOOST_AUTO_TEST_SUITE( ThreeHalves_bloodComp )
     auto [F, e, d, ic, hash] = threeHalves::garble(128, C);
     auto encLabels = threeHalves::encode(e, x);
     auto Y = threeHalves::eval(F, encLabels, C, 128, ic, hash);
-    auto y = threeHalves::decode(d, Y, C, 128);
+    auto y = threeHalves::decodeBits(d, Y, C, 128);
     ::uint64_t bloodCompAns = bloodcompatibility::bloodCompLookup(lInput,rInput);
     BOOST_AUTO_TEST_CASE( decoding_Y )
     {
@@ -271,7 +271,7 @@ BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalADDER64 )
                          0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     auto encLabels = threeHalves::encode(e, x);
     auto Y = threeHalves::eval(F, encLabels, bigtest, 128, ic, hash);
-    auto y = threeHalves::decode(d, Y, bigtest, 128);
+    auto y = threeHalves::decodeBits(d, Y, bigtest, 128);
 
     BOOST_AUTO_TEST_CASE( adder64Adding1And1 )
     {
@@ -295,7 +295,7 @@ BOOST_AUTO_TEST_SUITE( ThreeHalves_adder64bit )
         auto [F,e,d,ic, hash] = threeHalves::garble(128, C);
         auto encLabels = threeHalves::encode(e, finput);
         auto Y = threeHalves::eval(F, encLabels, C, 128, ic, hash);
-        auto y = threeHalves::decode(d, Y, C, 128);
+        auto y = threeHalves::decodeBits(d, Y, C, 128);
 
         //util::printUintVec(y);
 
@@ -321,7 +321,7 @@ BOOST_AUTO_TEST_SUITE( ThreeHalves_adder64bit )
         auto [F,e,d,ic , hash] = threeHalves::garble(128, C);
         auto encLabels = threeHalves::encode(e, finput);
         auto Y = threeHalves::eval(F, encLabels, C, 128, ic , hash);
-        auto y = threeHalves::decode(d, Y, C, 128);
+        auto y = threeHalves::decodeBits(d, Y, C, 128);
 
 
         BOOST_TEST(y.size()==64);
@@ -349,7 +349,7 @@ BOOST_AUTO_TEST_SUITE( ThreeHalves_sub64 )
         auto [F,e,d,ic , hash] = threeHalves::garble(128, C);
         auto encLabels = threeHalves::encode(e, finput);
         auto Y = threeHalves::eval(F, encLabels, C, 128, ic , hash);
-        auto y = threeHalves::decode(d, Y, C, 128);
+        auto y = threeHalves::decodeBits(d, Y, C, 128);
 
         BOOST_TEST(y.size()==64);
         BOOST_TEST(y[0]==1);
@@ -366,7 +366,7 @@ BOOST_AUTO_TEST_SUITE( ThreeHalves_sub64 )
         auto [F,e,d,ic , hash] = threeHalves::garble(128, C);
         auto encLabels = threeHalves::encode(e, finput);
         auto Y = threeHalves::eval(F, encLabels, C, 128, ic , hash);
-        auto y = threeHalves::decode(d, Y, C, 128);
+        auto y = threeHalves::decodeBits(d, Y, C, 128);
         string s = "1011111100011000000000000000000000000000000000000000000000000000";
 
         BOOST_TEST(y.size()==64);
