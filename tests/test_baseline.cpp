@@ -121,7 +121,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineOutput )
     vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 XOR"};
     int k = 128;
     auto smallCircuit = baseGarble::garble( smalltest);
-    auto garbledCircuit = get<0>(smallCircuit);
+    auto [invConst, garbledCircuit] = get<0>(smallCircuit);
 
     BOOST_AUTO_TEST_CASE( test_garbledCircuit )
     {
@@ -130,7 +130,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineOutput )
 
     vector<string> bigtest = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
     auto bigCircuit = baseGarble::garble( bigtest); //tuple(gates, encInputLabels, encOutputLabels)
-    auto bigGarbledCircuit = get<0>(bigCircuit);
+    auto [bigInvConst, bigGarbledCircuit] = get<0>(bigCircuit);
     auto firstGate = bigGarbledCircuit[0]; //tuple(inputWires, gate0, gate1)
 
     BOOST_AUTO_TEST_CASE( test_bigGarbledCircuit )

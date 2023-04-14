@@ -38,8 +38,38 @@ int main() {
     //hashRTCCR::testDecrypt();
 
 
+    vector<string> bigtest = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
+    auto [F,e,d, ic, hash] = threeHalves::garble(256, bigtest, 0);
+    auto x = vector<int>{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                         1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    auto encLabels = threeHalves::encode(e, x);
+    auto Y = threeHalves::eval(F, encLabels, bigtest, 256, ic, hash, 0);
+    auto y = threeHalves::decode(d, Y, bigtest, 256);
+    util::printUintVec(y);
 
-
+    int k =128;
+    vector<string> c = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
+    //auto x = vector<int>{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    using std::chrono::high_resolution_clock;
+    using std::chrono::duration_cast;
+    using std::chrono::duration;
+    using std::chrono::milliseconds;
+    cout<< "three halves"<<endl;
+    auto t1 = high_resolution_clock::now();
+    auto [three_F,three_e,three_d, three_ic, three_hash] = threeHalves::garble(k, c, 0);
+    auto t2 = high_resolution_clock::now();
+    duration<double, std::milli> ms_double = t2 - t1;
+    cout<< "garbling: " <<ms_double.count()<< "ms"<<endl;
+    auto three_X = threeHalves::encode(three_e, x);
+    t1 = high_resolution_clock::now();
+    auto three_Y = threeHalves::eval(three_F, three_X, c, k, three_ic, three_hash, 0);
+    t2 = high_resolution_clock::now();
+    ms_double = t2 - t1;
+    cout<< "evaluation: " <<ms_double.count()<< "ms"<<endl;
+    auto three_y = threeHalves::decode(three_d, three_Y, c, k);
+    cout<< "three: " << three_y[0] <<endl;
 
 
     //testsubAteca();

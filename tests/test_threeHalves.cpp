@@ -10,9 +10,8 @@
 using namespace boost::unit_test;
 
 BOOST_AUTO_TEST_SUITE( Testing_ThreeHalves )
-
     vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 XOR"};
-    auto output = threeHalves::garble(128, smalltest);
+    auto output = threeHalves::garble(128, smalltest, 0);
     auto F = get<0>(output);
     auto e = get<1>(output);
     auto delta = get<0>(e);
@@ -28,9 +27,8 @@ BOOST_AUTO_TEST_SUITE( Testing_ThreeHalves )
 BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesAnd )
-
     vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 AND"};
-    auto output = threeHalves::garble(128, smalltest);
+    auto output = threeHalves::garble(128, smalltest, 0);
     auto F = get<0>(output);
     auto e = get<1>(output);
     auto delta = get<0>(e);

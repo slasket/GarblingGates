@@ -14,15 +14,14 @@ using namespace std;
 class baseGarble {
 public:
     static
-    tuple<vector<labelPair>,
+    tuple<tuple<vint, vector<labelPair>>,
             vector<tuple<vint, vint>>,
             vector<tuple<vint, vint>>>
-    garble(vector<string> f, vint invConst = {874537361747324275,15596160569201595389}, int k = 128);
+    garble(vector<string> f, int k = 128);
     static vector<vint> encode(vector<labelPair> e, vector<int> x);
-    static vector<vint> eval(tuple<vector<labelPair>,
+    static vector<vint> eval(tuple<tuple<vint, vector<labelPair>>,
             vector<labelPair>,
-            vector<labelPair>> F, vector<vint> X, vector<string> f,
-                             const vint& invConst = {874537361747324275,15596160569201595389}, int k = 128);
+            vector<labelPair>> F, vector<vint> X, vector<string> f, int k = 128);
     static vector<int> decodeBits(vector<labelPair> d, vector<vint> Y);
     static vint hashFunc(vint x, int k);
 

@@ -8,10 +8,10 @@
 
 
 //k is security parameter and f is the function to be garbled with 3 lines of metadata
-tuple<vector<labelPair>,
+tuple<tuple<vint, vector<labelPair>>,
         vector<labelPair>,
         vector<labelPair>>
-baseGarble::garble(vector<string> f, vint invConst, int k) {
+baseGarble::garble(vector<string> f, int k) {
     //get number of wires and gates
     auto &wireAndGates = f[0];
     auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
@@ -29,8 +29,7 @@ baseGarble::garble(vector<string> f, vint invConst, int k) {
     auto globalDelta = util::genDelta(k);
 
     //generate invConst
-    if(invConst.empty())
-        invConst = util::genBitsNonCrypto(k);
+    vint invConst = util::genBitsNonCrypto(k);
 
     //generate all input labels and insert into wireLabels
     auto inputWiresLabels = util::generateRandomLabels(k, globalDelta, numberOfInputBits);
@@ -68,7 +67,7 @@ baseGarble::garble(vector<string> f, vint invConst, int k) {
         }
 
     }
-    return {garbledCircuit, inputWiresLabels, encOutputLabels};
+    return {{invConst, garbledCircuit}, inputWiresLabels, encOutputLabels};
 }
 
 tuple<vector<::uint64_t>, vector<::uint64_t>>
@@ -177,10 +176,10 @@ vector<vint> baseGarble::encode(vector<labelPair> e, vector<int> x) {
     return X;
 }
 
-vector<vint> baseGarble::eval(tuple<vector<labelPair>, vector<labelPair>, vector<labelPair>> F,
-                              vector<vint> X, vector<string> f, const vint& invConst, int k) {
+vector<vint> baseGarble::eval(tuple<tuple<vint, vector<labelPair>>, vector<labelPair>, vector<labelPair>> F,
+                              vector<vint> X, vector<string> f, int k) {
     //garbled circuit
-    auto garbledCircuit = get<0>(F);
+    auto [invConst, garbledCircuit] = get<0>(F);
     auto inputLabels = get<1>(F);
     auto outputLabels = get<2>(F);
 

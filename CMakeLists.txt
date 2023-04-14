@@ -29,7 +29,8 @@ set(SOURCES
         schemes/baseGarble.h
         schemes/threeHalves.cpp
         schemes/threeHalves.h
-        util/hashRTCCR.h)
+        util/hashRTCCR.h
+        )
 
 set(TESTS
         tests/test_class.cpp
