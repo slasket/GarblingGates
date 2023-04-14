@@ -12,16 +12,26 @@
 #include "schemes/atecaFreeXOR.h"
 #include <bitset>
 #include <string>
-
 #include <emmintrin.h>
 #include <immintrin.h>
 #include "util/hashRTCCR.h"
-
+#include <chrono>
+#include <utility>
+#include <openssl/sha.h>
+#include "schemes/threeHalves.h"
 
 using namespace std;
 
-#include <openssl/sha.h>
-#include "schemes/threeHalves.h"
+enum scheme{
+    baseline =0,
+    threehalves =1,
+    ateca =2,
+    atecaFXOR=3
+};
+enum hashtype{
+    RO =0,
+    fast =1
+};
 
 
 void testsubAteca();
@@ -31,53 +41,174 @@ void testBaseOT(int v, int k , int l, int elgamalKeySize);
 void sliceTest();
 
 
+void threehalves_Test();
+void timetest(const vector<string>&c, const vector<int>& x, int k, scheme type, hashtype typ);
+
 int main() {
-    //sliceTest();
-    //jeg er syg i hovedet
-    //hashRTCCR::testHashRTCCR();
-    //hashRTCCR::testDecrypt();
 
-
-    vector<string> bigtest = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
-    auto [F,e,d, ic, hash] = threeHalves::garble(256, bigtest, 0);
-    auto x = vector<int>{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                         1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-    auto encLabels = threeHalves::encode(e, x);
-    auto Y = threeHalves::eval(F, encLabels, bigtest, 256, ic, hash, 0);
-    auto y = threeHalves::decode(d, Y, bigtest, 256);
-    util::printUintVec(y);
-
-    int k =128;
     vector<string> c = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
     //auto x = vector<int>{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-    using std::chrono::high_resolution_clock;
-    using std::chrono::duration_cast;
-    using std::chrono::duration;
-    using std::chrono::milliseconds;
-    cout<< "three halves"<<endl;
-    auto t1 = high_resolution_clock::now();
-    auto [three_F,three_e,three_d, three_ic, three_hash] = threeHalves::garble(k, c, 0);
-    auto t2 = high_resolution_clock::now();
-    duration<double, std::milli> ms_double = t2 - t1;
-    cout<< "garbling: " <<ms_double.count()<< "ms"<<endl;
-    auto three_X = threeHalves::encode(three_e, x);
-    t1 = high_resolution_clock::now();
-    auto three_Y = threeHalves::eval(three_F, three_X, c, k, three_ic, three_hash, 0);
-    t2 = high_resolution_clock::now();
-    ms_double = t2 - t1;
-    cout<< "evaluation: " <<ms_double.count()<< "ms"<<endl;
-    auto three_y = threeHalves::decode(three_d, three_Y, c, k);
-    cout<< "three: " << three_y[0] <<endl;
-
-
-    //testsubAteca();
-    //testFreexorAteca();
+    vector<int> x = util::genFunctionInput(64);
+    //vector<string> c = circuitParser::parseCircuit("../tests/circuits/aes_128.txt");
+    //vector<int> x = util::genFunctionInput(256);
+    timetest(c,x,128,baseline, RO);
+    timetest(c,x,128,threehalves,RO);
+    timetest(c,x,128,ateca,RO);
+    timetest(c,x,128,atecaFXOR,RO);
     return 0;
 
 }
 
+
+void timetest(const vector<string>&c, const vector<int>& x, int k, scheme type, hashtype typ){
+    using std::chrono::high_resolution_clock;
+    using std::chrono::duration_cast;
+    using std::chrono::duration;
+    using std::chrono::milliseconds;
+
+    switch (type) {
+        case scheme::baseline:{
+            cout<< "baseline"<<endl;
+            auto t1 = high_resolution_clock::now();
+            auto base_C = baseGarble::garble(c);//needs hash type
+            auto t2 = high_resolution_clock::now();
+            duration<double, std::milli> ms_double = t2 - t1;
+            cout<< "garbling: " <<ms_double.count()<< "ms"<<endl;
+
+            auto base_X = baseGarble::encode(get<1>(base_C), x);
+
+            t1 = high_resolution_clock::now();
+            auto base_Y = baseGarble::eval(base_C, base_X, c);
+            t2 = high_resolution_clock::now();
+            ms_double = t2 - t1;
+            cout<< "evaluation: " <<ms_double.count()<< "ms"<<endl;
+
+            auto base_y = baseGarble::decode(get<2>(base_C), base_Y);
+            cout<< "base: " << base_y[0] <<endl;
+            break;
+        }
+        case scheme::threehalves:{
+            cout<< "three halves"<<endl;
+            auto t1 = high_resolution_clock::now();
+            auto [three_F,three_e,three_d, three_ic, three_hash] = threeHalves::garble(k, c, typ);
+            auto t2 = high_resolution_clock::now();
+            duration<double, std::milli> ms_double = t2 - t1;
+            cout<< "garbling: " <<ms_double.count()<< "ms"<<endl;
+
+            auto three_X = threeHalves::encode(three_e, x);
+
+            t1 = high_resolution_clock::now();
+            auto three_Y = threeHalves::eval(three_F, three_X, c, k, three_ic, three_hash,typ);
+            t2 = high_resolution_clock::now();
+            ms_double = t2 - t1;
+            cout<< "evaluation: " <<ms_double.count()<< "ms"<<endl;
+
+            auto three_y = threeHalves::decode(three_d, three_Y, c, k);
+            cout<< "three: " << three_y[0] <<endl;
+            break;
+        }
+        case scheme::ateca:{
+            cout<< "ateca"<<endl;
+            auto t1 = high_resolution_clock::now();
+            auto [ate_F, ate_e, ate_d, ate_k, ate_ic, ate_hash] = atecaGarble::garble(k, c, typ);
+            auto t2 = high_resolution_clock::now();
+            duration<double, std::milli> ms_double = t2 - t1;
+            cout<< "garbling: " <<ms_double.count()<< "ms"<<endl;
+
+            auto ate_X = atecaGarble::encode(ate_e, x);
+
+            t1 = high_resolution_clock::now();
+            auto ate_Y = atecaGarble::eval(ate_F, ate_X, c, ate_k, ate_ic);
+            t2 = high_resolution_clock::now();
+            ms_double = t2 - t1;
+            cout<< "evaluation: " <<ms_double.count()<< "ms"<<endl;
+
+            auto ate_y = atecaGarble::decode(ate_Y, ate_d);
+            cout<< "ateca: " << ate_y[0] <<endl;
+            break;
+        }
+        case scheme::atecaFXOR:{
+            cout<< "ateca-Freexor"<<endl;
+            auto t1 = high_resolution_clock::now();
+            auto [atef_F, atef_e, atef_d, atef_k, atef_ic, atef_hash] = atecaFreeXOR::garble(k, c, typ);
+            auto t2 = high_resolution_clock::now();
+            duration<double, std::milli> ms_double = t2 - t1;
+            cout<< "garbling: " <<ms_double.count()<< "ms"<<endl;
+
+            auto atef_X = atecaFreeXOR::encode(atef_e, x);
+
+            t1 = high_resolution_clock::now();
+            auto atef_Y = atecaFreeXOR::eval(atef_F, atef_X, c, atef_k, atef_ic);
+            t2 = high_resolution_clock::now();
+            ms_double = t2 - t1;
+            cout<< "evaluation: " <<ms_double.count()<< "ms"<<endl;
+
+            auto atef_y = atecaFreeXOR::decode(atef_Y, atef_d);
+
+            cout<< "atecaFxor: " << atef_y[0] <<endl;
+            break;
+        }
+        default:
+            break;
+    }
+};
+
+void threehalves_Test() {
+    hashRTCCR::testHashRTCCR();
+    hashRTCCR::testDecrypt();
+
+
+    int lInput =6;
+    int rInput = 1;
+    auto xb = vector<int>{1,1,0,0,0,1,1};
+    auto Cb = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
+    int lb = 64;
+    auto [Fb, eb, db, icb, hashb] = threeHalves::garble(128, Cb);
+    auto encLabelsb = threeHalves::encode(eb, xb);
+    auto Yb = threeHalves::eval(Fb, encLabelsb, Cb, 128, icb, hashb);
+    auto yb = threeHalves::decode(db, Yb, Cb, 128);
+    uint64_t bloodCompAns = bloodcompatibility::bloodCompLookup(lInput,rInput);
+
+    cout << (yb[0]==bloodCompAns) << endl;
+
+    vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 AND"};
+    int k = 256;
+    int h = 1;
+    auto [F,e,d,ic, hash] = threeHalves::garble(k, smalltest, h);
+    auto x = vector<int>{1, 1};
+    auto encLabels = threeHalves::encode(e, x);
+    auto Y = threeHalves::eval(F, encLabels, smalltest, k, ic, hash, h);
+    auto y = threeHalves::decode(d, Y, smalltest, k);
+    (y.size() == 1);
+    if(y.size() == 1) {
+        cout << y[0] << endl;
+    }
+    k = 128;
+    auto [F1,e1,d1,ic1, hash1] = threeHalves::garble(k, smalltest, h);
+    encLabels = threeHalves::encode(e1, x);
+    Y = threeHalves::eval(F1, encLabels, smalltest, k, ic1, hash1, h);
+    y = threeHalves::decode(d1, Y, smalltest, k);
+    (y.size() == 1);
+    if(y.size() == 1) {
+        cout << y[0] << endl;
+    }
+
+
+    auto a = util::genBitsNonCrypto(128);
+    auto b = util::genBitsNonCrypto(128);
+    halfLabels A = {a, b};
+    auto HA = hashRTCCR::hash(A, {0,0,0,1}, hash.getKey(), hash.getIv(), hash.getE(), hash.getAlpha(), hash.getU1(), hash.getU2());
+    util::printUintVec(a);
+    util::printUintVec(b);
+    util::printUintVec(hash.getAlpha());
+    util::printUintVec(hash.getU1());
+    util::printUintVec(hash.getU2());
+    cout << "hash1" << endl;
+    util::printUintVec(HA);
+    HA = hashRTCCR::hash(A, {0,0,0,1}, hash.getKey(), hash.getIv(), hash.getE(), hash.getAlpha(), hash.getU1(), hash.getU2());
+    cout << "hash2" << endl;
+    util::printUintVec(HA);
+}
 
 
 void sliceTest() {
@@ -140,13 +271,13 @@ void testFreexorAteca() {
     auto C = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
 
     cout<<"garbling"<<endl;
-    auto [F,encodingInfo,decoding,secL,invVar,hashtype] = atecaFreeXOR::Gb(64, C,"RO");
+    auto [F,encodingInfo,decoding,secL,invVar,hashtype] = atecaFreeXOR::garble(64, C, 0);
     cout<<"encoding"<<endl;
-    auto encodedInput = atecaFreeXOR::En(encodingInfo, finput);
+    auto encodedInput = atecaFreeXOR::encode(encodingInfo, finput);
     cout<<"eval"<<endl;
-    auto Y = atecaFreeXOR::Ev(F, encodedInput, C, secL,invVar);
+    auto Y = atecaFreeXOR::eval(F, encodedInput, C, secL, invVar);
     cout<<"decoding"<<endl;
-    auto y = atecaFreeXOR::De(Y, decoding);
+    auto y = atecaFreeXOR::decode(Y, decoding);
     util::printUintVec(y);
     cout<< "bloodAns "<< bloodCompAns<<endl;
 }
@@ -159,13 +290,13 @@ void testsubAteca() {
                               0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     auto C = circuitParser::parseCircuit("../tests/circuits/sub64.txt");
     cout<<"garbling"<<endl;
-    auto feds = atecaGarble::Gb(64, C,"RO");
+    auto feds = atecaGarble::garble(64, C, 0);
     cout<<"encoding"<<endl;
-    auto encodedInput = atecaGarble::En(get<1>(feds), finput);
+    auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
     cout<<"eval"<<endl;
-    auto Y = atecaGarble::Ev(get<0>(feds), encodedInput, C, get<3>(feds),get<4>(feds));
+    auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds));
     cout<<"decoding"<<endl;
-    auto y = atecaGarble::De(Y, get<2>(feds));
+    auto y = atecaGarble::decode(Y, get<2>(feds));
     util::printUintVec(y);
 }
 
