@@ -257,7 +257,6 @@ BOOST_AUTO_TEST_SUITE( ATECA_sub64 )
     auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds));
     auto y = atecaGarble::decode(Y, get<2>(feds));
 
-    util::printUintVec(y);
 
     BOOST_TEST(y.size()==1);
     BOOST_TEST(y[0]==1);
@@ -275,8 +274,6 @@ BOOST_AUTO_TEST_SUITE( ATECA_sub64 )
         auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
         auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds));
         auto y = atecaGarble::decode(Y, get<2>(feds));
-
-        util::printUintVec(y);
 
         BOOST_TEST(y.size()==1);
         BOOST_TEST(y[0]==6397);

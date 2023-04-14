@@ -47,12 +47,12 @@ void timetest(const vector<string>&c, const vector<int>& x, int k, scheme type, 
 int main() {
 
     vector<string> c = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
-    auto x = vector<int>{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-    //vector<int> x = util::genFunctionInput(64);
+    //auto x = vector<int>{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    vector<int> x = util::genFunctionInput(64);
     //vector<string> c = circuitParser::parseCircuit("../tests/circuits/aes_128.txt");
     //vector<int> x = util::genFunctionInput(256);
     timetest(c,x,128,baseline, RO);
-    timetest(c,x,128,threehalves, RO);
+    timetest(c,x,128,threehalves,RO);
     timetest(c,x,128,ateca,RO);
     timetest(c,x,128,atecaFXOR,RO);
     return 0;

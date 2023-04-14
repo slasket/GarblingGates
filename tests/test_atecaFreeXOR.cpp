@@ -391,7 +391,6 @@ BOOST_AUTO_TEST_SUITE( ATECA_freexor_adder64bit )
         auto Y = atecaFreeXOR::eval(F, encodedInput, C, secL, invVar);
         auto y = atecaFreeXOR::decode(Y, decoding);
 
-        //util::printUintVec(y);
 
         BOOST_TEST(y.size()==1);
         BOOST_TEST(y[0]==maxPlusMax);
@@ -414,8 +413,6 @@ BOOST_AUTO_TEST_SUITE( ATECA_freexor_sub64 )
         auto Y = atecaFreeXOR::eval(F, encodedInput, C, secL, invVar);
         auto y = atecaFreeXOR::decode(Y, decoding);
 
-        util::printUintVec(y);
-
         BOOST_TEST(y.size()==1);
         BOOST_TEST(y[0]==1);
     }
@@ -432,8 +429,6 @@ BOOST_AUTO_TEST_SUITE( ATECA_freexor_sub64 )
         auto encodedInput = atecaFreeXOR::encode(encodingInfo, finput);
         auto Y = atecaFreeXOR::eval(F, encodedInput, C, secL, invVar);
         auto y = atecaFreeXOR::decode(Y, decoding);
-
-        util::printUintVec(y);
 
         BOOST_TEST(y.size()==1);
         BOOST_TEST(y[0]==6397);
