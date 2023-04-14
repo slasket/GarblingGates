@@ -26,6 +26,7 @@ using namespace customTypeSpace;
 
 class util {
 
+
 public:
     //template for splitting strings taken from:
     // https://stackoverflow.com/questions/236129/how-do-i-iterate-over-the-words-of-a-string
@@ -395,6 +396,14 @@ public:
         return uintVec2Str(left) + uintVec2Str(right);
     }
 
+    static inline vector<int> genFunctionInput(int bits) {
+        vector<int> x;
+        x.reserve(bits);
+        for (int i = 0; i < bits; ++i) {
+            x.emplace_back(rand()%2);
+        }
+        return x;
+    }
 };
 
 

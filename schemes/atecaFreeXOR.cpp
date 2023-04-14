@@ -5,15 +5,15 @@
 #include "atecaFreeXOR.h"
 #include "atecaGarble.h"
 
-tuple<vector<vint>, vector<tuple<vint, vint>>, vector<vint>, int, tuple<vint, vint>,string>
-    atecaFreeXOR::Gb(int l, const vector<std::string> &C, string hashtype) {
+tuple<vector<vint>, vector<tuple<vint, vint>>, vector<vint>, int, tuple<vint, vint>, int>
+    atecaFreeXOR::garble(int k, const vector<std::string> &C, int hashtype) {
 
-    auto [encodingInfo,globalDelta] = Init(C, l);
-    auto invVar= genInvVar(l, globalDelta);
-    auto [F,D,Invvar] = GarbleCircuit(l, C, encodingInfo, invVar, globalDelta);
-    auto decoding = DecodingInfo(D, l);
+    auto [e,globalDelta] = Init(C, k);
+    auto invVar= genInvVar(k, globalDelta);
+    auto [F,D,Invvar] = GarbleCircuit(k, C, e, invVar, globalDelta);
+    auto d = DecodingInfo(D, k);
 
-    return {F,encodingInfo,decoding,l,invVar,hashtype};
+    return {F, e, d, k, invVar, hashtype};
 }
 
 tuple<vector<tuple<vint, vint>>, vint> atecaFreeXOR::Init(vector<std::string> C, int l) {
@@ -24,12 +24,12 @@ tuple<vector<tuple<vint, vint>>, vint> atecaFreeXOR::Init(vector<std::string> C,
     for (int i = 1; i < inputs.size(); ++i) {
         inputWires+= stoi(inputs[i]);
     }
-    vector<tuple<vint,vint>> e =vector<tuple<vint,vint>>(inputWires);
+    vector<tuple<vint,vint>> e;
     for (int i = 0; i < inputWires; ++i) {
         vint lw0 = util::genBitsNonCrypto(l);
         vint lw1 = util::vecXOR(globalDelta, lw0);
         tuple<vint,vint> ew = {lw0,lw1};
-        e[i] = ew;
+        e.emplace_back(ew);
     }
 
     return {e,globalDelta};
@@ -43,7 +43,7 @@ tuple<vint, vint> atecaFreeXOR::genInvVar(int l, vint globalDelta) {
 
 tuple<vector<vint>, vector<tuple<vint, vint>>, tuple<vint, vint>>
 atecaFreeXOR::GarbleCircuit(int l, vector<std::string> C, vector<tuple<vint, vint>> encoding,
-                            const tuple<vint, vint> &invVar, vint globalDelta) {
+                            const tuple<vint, vint> &invVar, const vint& globalDelta) {
     //get amount of gates, wires and output bits
     auto gatesAndWires=util::split(C[0], ' ');
     int outputBits =stoi( util::split(C[2], ' ')[1]);
@@ -77,7 +77,7 @@ atecaFreeXOR::GarbleCircuit(int l, vector<std::string> C, vector<tuple<vint, vin
             out = stoi(gateInfo[3]);
             string type = gateInfo[4];
 
-            //calculate Gb
+            //calculate garble
             ///must return L0, L1, Delta
             auto l0= util::vecXOR(get<1>(wires[in0]),get<1>(invVar));
             auto l1= util::vecXOR(get<0>(wires[in0]),get<1>(invVar));
@@ -99,7 +99,7 @@ atecaFreeXOR::GarbleCircuit(int l, vector<std::string> C, vector<tuple<vint, vin
             out = stoi(gateInfo[4]);
             string type = gateInfo[5];
 
-            //calculate Gb
+            //calculate garble
             garbledGate = Gate(wires[in0], wires[in1], type, gateNo, l, globalDelta);
         }
         //add Delta to F set for a Gate
@@ -211,28 +211,27 @@ vector<vint> atecaFreeXOR::DecodingInfo(const vector<tuple<vint, vint>> &D, int 
 
 
 vector<vint>
-atecaFreeXOR::En(vector<tuple<vint, vint>> encoding,
-                vector<int> input) {
-    auto X = vector<vint>(input.size());
-    for (int i = 0; i < input.size(); ++i) {
-        if (input[i]== 0){
-            X[i]=get<0>(encoding[i]);
-        } else{
-            X[i]=get<1>(encoding[i]);
+atecaFreeXOR::encode(vector<tuple<vint, vint>> e, vector<int> x) {
+    vector<vint> X;
+    for (int i = 0; i < x.size(); ++i) {
+        if (x[i] == 0){
+            X.emplace_back(get<0>(e[i]));
+        } else {
+            X.emplace_back(get<1>(e[i]));
         }
     }
     return X;
 }
 
 vector<vint>
-atecaFreeXOR::Ev(const vector<vint> &F, const vector<vint> &X, vector<string> C, int l, tuple<vint, vint> invVar) {
-    int internalSecParam = 16 * l;
+atecaFreeXOR::eval(const vector<vint> &F, const vector<vint> &X, vector<string> C, int k, tuple<vint, vint> invVar) {
+    int internalSecParam = 16 * k;
     int outputBits =stoi( util::split(C[2], ' ')[1]);
-    int amountOfWires = stoi(util::split(C[0], ' ')[1]);
-    int firstOutputBit = amountOfWires - outputBits;
+    int numberOfWires = stoi(util::split(C[0], ' ')[1]);
+    int firstOutputBit = numberOfWires - outputBits;
 
     auto wires = X;
-    wires.resize(amountOfWires);
+    wires.resize(numberOfWires);
 
     auto outputY = vector<vint>(outputBits);
 
@@ -285,7 +284,7 @@ atecaFreeXOR::Ev(const vector<vint> &F, const vector<vint> &X, vector<string> C,
     return outputY;
 }
 
-vint atecaFreeXOR::De(vector<vint> outputY, vector<vint> d) {
+vint atecaFreeXOR::decode(vector<vint> outputY, vector<vint> d) {
     auto outbits = outputY.size();
     auto unit64sNeeded = outbits/64 + ((outbits%64!=0) ? 1 : 0);
     auto outputSets =  vector<bitset<64>>(unit64sNeeded);
