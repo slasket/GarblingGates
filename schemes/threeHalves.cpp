@@ -8,7 +8,8 @@
 
 
 
-tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels>, halfLabels, hashRTCCR> threeHalves::garble(int k, vector<string> f, int h) {
+tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels>, halfLabels, hashRTCCR>
+threeHalves::garble(vector<string> f, int k, int h) {
     //get number of wires and gates
     auto &wireAndGates = f[0];
     auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
@@ -27,7 +28,6 @@ tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels
         labelAndPermuteBitPairs[i] = {label0, permuteBit};
         inputLabelAndPermuteBitPairs[i] = {label0, permuteBit};
     }
-
 
     vint key = util::genBitsNonCrypto(256);
     vint iv = util::genBitsNonCrypto(256);

@@ -6,11 +6,11 @@
 #include "atecaGarble.h"
 
 tuple<vector<vint>, vector<tuple<vint, vint>>, vector<vint>, int, tuple<vint, vint>, int>
-    atecaFreeXOR::garble(int k, const vector<std::string> &C, int hashtype) {
+    atecaFreeXOR::garble(const vector<std::string> &f, int k, util::hashtype hashtype) {
 
-    auto [e,globalDelta] = Init(C, k);
+    auto [e,globalDelta] = Init(f, k);
     auto invVar= genInvVar(k, globalDelta);
-    auto [F,D,Invvar] = GarbleCircuit(k, C, e, invVar, globalDelta);
+    auto [F,D,Invvar] = GarbleCircuit(k, f, e, invVar, globalDelta);
     auto d = DecodingInfo(D, k);
 
     return {F, e, d, k, invVar, hashtype};

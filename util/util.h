@@ -26,8 +26,18 @@ using namespace customTypeSpace;
 
 class util {
 
-
 public:
+    enum scheme{
+        baseline =0,
+        threehalves =1,
+        ateca =2,
+        atecaFXOR=3
+    };
+    enum hashtype{
+        RO =0,
+        fast =1,
+        never=2
+    };
     //template for splitting strings taken from:
     // https://stackoverflow.com/questions/236129/how-do-i-iterate-over-the-words-of-a-string
     template <typename Out>

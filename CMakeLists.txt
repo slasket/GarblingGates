@@ -45,7 +45,11 @@ set(TESTS
         HashFunctions.cpp
         schemes/atecaGarble.cpp
         tests/test_ateca.cpp
-        tests/test_threeHalves.cpp schemes/atecaFreeXOR.cpp schemes/atecaFreeXOR.h tests/test_atecaFreeXOR.cpp)
+        tests/test_threeHalves.cpp
+        schemes/atecaFreeXOR.cpp
+        schemes/atecaFreeXOR.h
+        tests/test_atecaFreeXOR.cpp
+        tests/test_hashTCCR.cpp)
 
 
 add_executable(GarblingGates ${SOURCES} main.cpp)

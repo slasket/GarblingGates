@@ -3,19 +3,19 @@
 //
 
 #include "atecaGarble.h"
+#include "../util/hashTCCR.h"
 
 #include <utility>
 
 
-tuple<vector<vint>, vector<tuple<vint, vint>>, vector<vint>, int, tuple<vint, vint>, int>
-    atecaGarble::garble(int k, const vector<std::string>& C, int hashtype) {
+tuple<vector<vint>, vector<tuple<vint, vint>>, vector<vint>, int, tuple<vint, vint>, int, hashTCCR, hashTCCR>
+    atecaGarble::garble(const vector<std::string> &f, int k, util::hashtype hashtype) {
 
-    auto e = Init(C, k);
+    auto e = Init(f, k);
     auto invVar= genInvVar(k);
-    auto [F,D,Invvar] = GarbleCircuit(k, C, e, invVar);
-    auto d = DecodingInfo(D, k);
-
-    return {F, e, d, k, invVar, hashtype};
+    auto [F,D,Invvar,c] = GarbleCircuit(k, f, e, invVar, hashtype);
+    auto [d,dc] = DecodingInfo(D, k, hashtype);
+    return {F, e, d, k, invVar, hashtype, c, dc};
 }
 
 
@@ -36,8 +36,15 @@ vector<tuple<vint,vint>> atecaGarble::Init(vector<std::string> C, int k) {
     return e;
 }
 
-tuple<vector<vint>,vector<tuple<vint,vint>>, tuple<vint,vint>>
-        atecaGarble::GarbleCircuit(int k, vector<std::string> C, vector<tuple<vint, vint>> e, const tuple<vint,vint>& invVar) {
+tuple<vector<vint>, vector<tuple<vint, vint>>, tuple<vint, vint>, hashTCCR>
+        atecaGarble::GarbleCircuit(int k, vector<std::string> C, vector<tuple<vint, vint>> e,
+                                   const tuple<vint, vint> &invVar,
+                                   util::hashtype hashtype) {
+    //my hash struct
+    hashTCCR c;
+    if (hashtype == util::fast){
+        c = hashTCCR(k);
+    }
     //get amount of gates, wires and output bits
     auto gatesAndWires=util::split(C[0], ' ');
     int outputBits =stoi( util::split(C[2], ' ')[1]);
@@ -71,7 +78,7 @@ tuple<vector<vint>,vector<tuple<vint,vint>>, tuple<vint,vint>>
             string type = gateInfo[4];
 
             //calculate garble
-            garbledGate = Gate(wires[in0], invVar, type, gateNo, k);
+            garbledGate = Gate(wires[in0], invVar, type, gateNo, k, c);
 
         }//normal gate
         else {
@@ -81,7 +88,7 @@ tuple<vector<vint>,vector<tuple<vint,vint>>, tuple<vint,vint>>
             string type = gateInfo[5];
 
             //calculate garble
-            garbledGate = Gate(wires[in0], wires[in1], type, gateNo, k);
+            garbledGate = Gate(wires[in0], wires[in1], type, gateNo, k, c);
         }
         //add Delta to F set for a Gate
         F[gateNo] = garbledGate[2];
@@ -93,32 +100,44 @@ tuple<vector<vint>,vector<tuple<vint,vint>>, tuple<vint,vint>>
             D[out-firstOutputBit] = {garbledGate[0],garbledGate[1]};
         }
     }
-    return {F,D, invVar};
+    return {F,D, invVar,c};
 }
 
 
-vector<vint> atecaGarble::Gate(const tuple<vint, vint>& in0, const tuple<vint, vint>& in1,
-                          const string& typ, int gateNo, int k) {
+vector<vint>
+atecaGarble::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, const string &typ, int gateNo, int k,
+                  hashTCCR c) {
     int internalParam= k * 8;
-    //the random oracles lol
-    //THIS IS THE WRONG WAY OF TWEAKING!=!=!?!??!!
-    auto [l00,l11] = in0;
-    auto [l_0,l_1] = in1;
-    l00.insert(l00.end(), l_0.begin(), l_0.end());
-    l00.push_back(gateNo);
-    auto l01 = get<0>(in0);
-    l01.insert(l01.end(), l_1.begin(), l_1.end());
-    l01.push_back(gateNo);
-    auto l10 = get<1>(in0);
-    l10.insert(l10.end(), l_0.begin(), l_0.end());
-    l10.push_back(gateNo);
-    l11.insert(l11.end(), l_1.begin(), l_1.end());
-    l11.push_back(gateNo);
     //actually compute the hashes
-    vint X_00 = util::hash_variable(util::uintVec2Str(l00), internalParam);
-    vint X_01 = util::hash_variable(util::uintVec2Str(l01), internalParam);
-    vint X_10 = util::hash_variable(util::uintVec2Str(l10), internalParam);
-    vint X_11 = util::hash_variable(util::uintVec2Str(l11), internalParam);
+    vint X_00;vint X_01;vint X_10;vint X_11;
+    if (c.isEmpty()){
+        //the random oracles lol
+        //THIS IS THE WRONG WAY OF TWEAKING!=!=!?!??!!
+        auto [l00,l11] = in0;
+        auto [l_0,l_1] = in1;
+        l00.insert(l00.end(), l_0.begin(), l_0.end());
+        l00.push_back(gateNo);
+        auto l01 = get<0>(in0);
+        l01.insert(l01.end(), l_1.begin(), l_1.end());
+        l01.push_back(gateNo);
+        auto l10 = get<1>(in0);
+        l10.insert(l10.end(), l_0.begin(), l_0.end());
+        l10.push_back(gateNo);
+        l11.insert(l11.end(), l_1.begin(), l_1.end());
+        l11.push_back(gateNo);
+        X_00 = util::hash_variable(util::uintVec2Str(l00), internalParam);
+        X_01 = util::hash_variable(util::uintVec2Str(l01), internalParam);
+        X_10 = util::hash_variable(util::uintVec2Str(l10), internalParam);
+        X_11 = util::hash_variable(util::uintVec2Str(l11), internalParam);
+    }else{
+        //do fast stuff
+        auto [a0,a1] = in0;
+        auto [b0,b1] = in1;
+        X_00 = hashTCCR::hash(a0,b0,c.getIv(),c.getE(),c.getU1(),c.getU2(),gateNo,internalParam);
+        X_01 = hashTCCR::hash(a0,b1,c.getIv(),c.getE(),c.getU1(),c.getU2(),gateNo,internalParam);
+        X_10 = hashTCCR::hash(a1,b0,c.getIv(),c.getE(),c.getU1(),c.getU2(),gateNo,internalParam);
+        X_11 = hashTCCR::hash(a1,b1,c.getIv(),c.getE(),c.getU1(),c.getU2(),gateNo,internalParam);
+    }
     auto delta = vint((internalParam+64-1)/64);
     auto deltaHW =0;
 
@@ -200,9 +219,14 @@ vint atecaGarble::projection(const vint& a, const vint& b) {
 
 
 
-vector<vint> atecaGarble::DecodingInfo(const vector<tuple<vint, vint>>& D, int k) {
+tuple<vector<vint>, hashTCCR> atecaGarble::DecodingInfo(const vector<tuple<vint, vint>> &D, int k, util::hashtype htyp) {
     //RO from 2l->1
     vector<vint> d(D.size());
+    hashTCCR c;
+    if (htyp==util::fast){
+        //vint key = util::genBitsNonCrypto(128);
+        c = hashTCCR(k);
+    }
     for (int i = 0; i < D.size(); ++i) {
         auto[L0,L1] =D[i];
         vint L0wdi;
@@ -214,22 +238,28 @@ vector<vint> atecaGarble::DecodingInfo(const vector<tuple<vint, vint>>& D, int k
         int lsbHL1;
         do {
             di = util::genBitsNonCrypto(k);
-            //this is not the cleanest code ever
-            L0wdi.clear();
-            L0wdi.insert(L0wdi.begin(), L0.begin(), L0.end());
-            L0wdi.insert(L0wdi.end(), di.begin(), di.end());
-            L1wdi.clear();
-            L1wdi.insert(L1wdi.begin(), L1.begin(), L1.end());
-            L1wdi.insert(L1wdi.end(), di.begin(), di.end());
-            hashL0 = util::hash_variable(util::uintVec2Str(L0wdi), k);
-            hashL1 = util::hash_variable(util::uintVec2Str(L1wdi), k);
+            if (htyp==util::fast){
+                //fast fast brum brum
+                //shitty hack with a tweak set to 2
+                hashL0 = hashTCCR::hash(L0,di,c.getIv(),c.getE(),c.getU1(),c.getU2(),0,k);
+                hashL1 = hashTCCR::hash(L1,di,c.getIv(),c.getE(),c.getU1(),c.getU2(),0,k);
+            }else{
+                L0wdi.clear();
+                L0wdi.insert(L0wdi.begin(), L0.begin(), L0.end());
+                L0wdi.insert(L0wdi.end(), di.begin(), di.end());
+                L1wdi.clear();
+                L1wdi.insert(L1wdi.begin(), L1.begin(), L1.end());
+                L1wdi.insert(L1wdi.end(), di.begin(), di.end());
+                hashL0 = util::hash_variable(util::uintVec2Str(L0wdi), k);
+                hashL1 = util::hash_variable(util::uintVec2Str(L1wdi), k);
+            }
             lsbHL0=util::checkBit(hashL0[0],0);
             lsbHL1=util::checkBit(hashL1[0],0);
 
         } while (!((lsbHL0 == 0) && (lsbHL1 == 1)));
         d[i] = di;
     }
-    return d;
+    return {d,c};
 }
 
 //Evaluator functions
@@ -249,8 +279,8 @@ atecaGarble::encode(vector<tuple<vint, vint>> e,
 }
 
 vector<vint>
-atecaGarble::eval(const vector<vint>& F, const vector<vint>& X,
-                  vector<string> C, int k, tuple<vint,vint> invVar){
+atecaGarble::eval(const vector<vint> &F, const vector<vint> &X, vector<string> C, int k, tuple<vint, vint> invVar,
+                  int hashtype, hashTCCR c) {
     int internalSecParam = 8 * k;
     int outputBits =stoi( util::split(C[2], ' ')[1]);
     int amountOfWires = stoi(util::split(C[0], ' ')[1]);
@@ -266,48 +296,54 @@ atecaGarble::eval(const vector<vint>& F, const vector<vint>& X,
         //int inAmount = stoi(gateInfo[0]); int outAmount = stoi(gateInfo[1]);
         int gateNo = (i-3);
         int out;
+        vint labelA; vint labelB;
         string hashInputLabel;
         if (gateInfo[4]=="INV"){
             int in0 = stoi(gateInfo[2]);
             out = stoi(gateInfo[3]);
-            auto labelA = wires[in0];
-            auto labelB = invTrue;
-            //hash input string
-            labelA.insert(labelA.end(), labelB.begin(), labelB.end());
-            labelA.push_back(gateNo);
-            hashInputLabel = util::uintVec2Str(labelA);
+            labelA = wires[in0];
+            labelB = invTrue;
         }else {
             int in0 = stoi(gateInfo[2]);
             int in1 = stoi(gateInfo[3]);
             out = stoi(gateInfo[4]);
-            auto labelA = wires[in0];
-            auto labelB = wires[in1];
-            //hash input string
+            labelA = wires[in0];
+            labelB = wires[in1];
+        }
+        //hash input string
+        vint hashout;
+        if (c.isEmpty()){
             labelA.insert(labelA.end(), labelB.begin(), labelB.end());
             labelA.push_back(gateNo);
             hashInputLabel = util::uintVec2Str(labelA);
+            hashout = util::hash_variable(hashInputLabel,internalSecParam);
+        }else{
+            hashout= hashTCCR::hash(labelA,labelB,c.getIv(),c.getE(),c.getU1(),c.getU2(),gateNo,internalSecParam);
         }
-            auto hashOut = util::hash_variable(hashInputLabel,internalSecParam);
-            const auto& delta = F[gateNo];
-            auto gateOut = projection(hashOut, delta);
-            wires[out] = gateOut;
-            if (out >= firstOutputBit){
-                outputY[out - firstOutputBit] = gateOut;
-            }
-
+        const auto& delta = F[gateNo];
+        auto gateOut = projection(hashout, delta);
+        wires[out] = gateOut;
+        if (out >= firstOutputBit){
+            outputY[out - firstOutputBit] = gateOut;
+        }
     }
     return outputY;
 }
 
-vint atecaGarble::decode(vector<vint> Y, vector<vint> d) {
+vint atecaGarble::decode(vector<vint> Y, vector<vint> d, hashTCCR c) {
     auto outbits = Y.size();
     auto unit64sNeeded = outbits/64 + ((outbits%64!=0) ? 1 : 0);
     auto outputSets =  vector<bitset<64>>(unit64sNeeded);
 
     for (int i = 0; i < outbits; ++i) {
         //get the lsb of the hash
-        Y[i].insert(Y[i].end(), d[i].begin(), d[i].end());
-        auto hash = util::hash_variable(util::uintVec2Str(Y[i]), 64);
+        vint hash;
+        if (c.isEmpty()){
+            Y[i].insert(Y[i].end(), d[i].begin(), d[i].end());
+            hash = util::hash_variable(util::uintVec2Str(Y[i]), 64);
+        }else{
+            hash= hashTCCR::hash(Y[i],d[i],c.getIv(),c.getE(),c.getU1(),c.getU2(),0,128);
+        }
         int lsbHash=util::checkBit(hash[0],0);
         outputSets = util::insertBitVecBitset(outputSets,lsbHash,i);
     }

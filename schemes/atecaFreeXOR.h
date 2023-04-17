@@ -18,7 +18,7 @@ class atecaFreeXOR {
 public:
     //garbler public function
     static tuple<vector<vint>, vector<tuple<vint, vint>>, vector<vint>, int, tuple<vint, vint>, int>
-    garble(int k, const vector<std::string>& C, int hashtype);
+    garble(const vector<std::string> &f, int k= 128, util::hashtype hashtype= util::RO);
 
     //Evaluator functions
     static vector<vint> encode(vector<tuple<vint,vint>> e, vector<int> x);
