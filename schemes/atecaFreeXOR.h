@@ -19,7 +19,7 @@ class atecaFreeXOR {
 
 public:
     //garbler public function
-    static tuple<vector<vint>, vector<tuple<vint, vint>>, vector<vint>, int, tuple<vint, vint>, hashTCCR, hashTCCR>
+    static tuple<vector<vint>, vector<tuple<vint, vint>>, vector<vint>, int, tuple<vint, vint>, hashTCCR>
     garble(const vector<std::string> &f, int k= 128, util::hashtype hashtype= util::RO);
 
     //Evaluator functions
@@ -39,8 +39,8 @@ private:
     static vector<vint>
     Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, int gateNo, int k,
          const vint &globalDelta, const hashTCCR &c);
-    static tuple<vector<vint>, hashTCCR>
-    DecodingInfo(const vector<tuple<vint, vint>> &D, int k, util::hashtype hashtype);
+    static vector<vint>
+    DecodingInfo(const vector<tuple<vint, vint>> &D, int k, hashTCCR ctx);
 
     static tuple<vint, vint> genInvVar(int k, vint globalDelta);
 

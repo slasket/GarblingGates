@@ -117,7 +117,7 @@ void timetest(const vector<string>&c, const vector<int>& x, int k, util::scheme 
             auto ate_X = atecaGarble::encode(ate_e, x);
 
             t1 = high_resolution_clock::now();
-            auto ate_Y = atecaGarble::eval(ate_F, ate_X, c, ate_k, ate_ic, 0, hashTCCR());
+            auto ate_Y = atecaGarble::eval(ate_F, ate_X, c, ate_k, ate_ic, hashTCCR());
             t2 = high_resolution_clock::now();
             ms_double = t2 - t1;
             cout<< "evaluation: " <<ms_double.count()<< "ms"<<endl;
@@ -293,7 +293,7 @@ void testsubAteca() {
     cout<<"encoding"<<endl;
     auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
     cout<<"eval"<<endl;
-    auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), 0, hashTCCR());
+    auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), hashTCCR());
     cout<<"decoding"<<endl;
     auto y = atecaGarble::decode(Y, get<2>(feds), hashTCCR());
     util::printUintVec(y);

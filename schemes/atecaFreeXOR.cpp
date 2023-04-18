@@ -5,15 +5,15 @@
 #include "atecaFreeXOR.h"
 #include "atecaGarble.h"
 
-tuple<vector<vint>, vector<tuple<vint, vint>>, vector<vint>, int, tuple<vint, vint>, hashTCCR, hashTCCR>
+tuple<vector<vint>, vector<tuple<vint, vint>>, vector<vint>, int, tuple<vint, vint>, hashTCCR>
     atecaFreeXOR::garble(const vector<std::string> &f, int k, util::hashtype hashtype) {
 
     auto [e,globalDelta] = Init(f, k);
     auto invVar = genInvVar(k, globalDelta);
     auto [F,D,Invvar,c] = GarbleCircuit(k, f, e, invVar, globalDelta, hashtype);
-    auto [d,dc] = DecodingInfo(D, k, hashtype);
+    auto d = DecodingInfo(D, k, c);
 
-    return {F, e, d, k, invVar, c, dc};
+    return {F, e, d, k, invVar, c};
 }
 
 tuple<vector<tuple<vint, vint>>, vint> atecaFreeXOR::Init(vector<std::string> C, int k) {
@@ -174,15 +174,10 @@ atecaFreeXOR::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, i
     return {L0,L1,delta};
 }
 
-tuple<vector<vint>, hashTCCR>
-atecaFreeXOR::DecodingInfo(const vector<tuple<vint, vint>> &D, int k, util::hashtype hashtype) {
+vector<vint>
+atecaFreeXOR::DecodingInfo(const vector<tuple<vint, vint>> &D, int k, hashTCCR ctx) {
     //RO from 2l->1
     vector<vint> d(D.size());
-    hashTCCR dc;
-    if (hashtype==util::fast){
-        //vint key = util::genBitsNonCrypto(128);
-        dc = hashTCCR(k);
-    }
     for (int i = 0; i < D.size(); ++i) {
         auto L0 = get<0>(D[i]);
         auto L1 = get<1>(D[i]);
@@ -195,11 +190,7 @@ atecaFreeXOR::DecodingInfo(const vector<tuple<vint, vint>> &D, int k, util::hash
         int lsbHL1;
         do {
             di = util::genBitsNonCrypto(k);
-            if (hashtype==util::fast){
-                hashL0 = hashTCCR::hash(L0,di,dc.getIv(),dc.getE(),dc.getU1(),dc.getU2(),0,k);
-                hashL1 = hashTCCR::hash(L1,di,dc.getIv(),dc.getE(),dc.getU1(),dc.getU2(),0,k);
-            }else{
-            //this is not the cleanest code ever
+            if (ctx.isEmpty()){
                 L0wdi.clear();
                 L0wdi.insert(L0wdi.begin(), L0.begin(), L0.end());
                 L0wdi.insert(L0wdi.end(), di.begin(), di.end());
@@ -208,13 +199,17 @@ atecaFreeXOR::DecodingInfo(const vector<tuple<vint, vint>> &D, int k, util::hash
                 L1wdi.insert(L1wdi.end(), di.begin(), di.end());
                 hashL0 = util::hash_variable(util::uintVec2Str(L0wdi), k);
                 hashL1 = util::hash_variable(util::uintVec2Str(L1wdi), k);
+            }else{
+            //this is not the cleanest code ever
+                hashL0 = hashTCCR::hash(L0,di,ctx.getIv(),ctx.getE(),ctx.getU1(),ctx.getU2(),0,k);
+                hashL1 = hashTCCR::hash(L1,di,ctx.getIv(),ctx.getE(),ctx.getU1(),ctx.getU2(),0,k);
             }
             lsbHL0=util::checkBit(hashL0[0],0);
             lsbHL1=util::checkBit(hashL1[0],0);
         } while (!((lsbHL0 == 0) && (lsbHL1 == 1)));
         d[i] = di;
     }
-    return {d,dc};
+    return d;
 }
 
 
