@@ -17,6 +17,11 @@ using namespace std;
 class hashRTCCR {
 public:
     vint key;
+    vint iv;
+    vint alpha;
+    vint u1;
+    vint u2;
+    EVP_CIPHER_CTX *e;
 
     const vint &getKey() const {
         return key;
@@ -25,10 +30,6 @@ public:
     const vint &getIv() const {
         return iv;
     }
-
-    vint iv;
-    vint alpha;
-    vint u1;
 
     const vint &getAlpha() const {
         return alpha;
@@ -41,9 +42,6 @@ public:
     const vint &getU2() const {
         return u2;
     }
-
-    vint u2;
-    EVP_CIPHER_CTX *e;
 
     EVP_CIPHER_CTX *getE() const {
         return e;
@@ -59,7 +57,7 @@ public:
         this-> e = AES_vint_init(key);
     }
 
-    static uint64_t gfmulPCF(uint64_t a, uint64_t b){
+    static inline uint64_t gfmulPCF(uint64_t a, uint64_t b){
         auto aepi64 = _mm_set_epi64x(0,a);
         auto bepi64 = _mm_set_epi64x(0,b);
         auto res = _mm_clmulepi64_si128(aepi64, bepi64, 0);
@@ -67,7 +65,7 @@ public:
     }
 
 //may not be correct
-    static vint gfmulPCF(vint a, vint b){
+    static inline vint gfmulPCF(vint a, vint b){
         vint res;
         for (int i = 0; i < a.size(); ++i) {
             res.push_back(gfmulPCF(a[i], b[i]));
@@ -75,7 +73,7 @@ public:
         return res;
     }
 
-    static vint gfmul(uint64_t a, uint64_t b){
+    static inline vint gfmul(uint64_t a, uint64_t b){
         vint res = {0};
         uint64_t mask = 1;
         for (int i = 0; i < 64; ++i) {
@@ -92,7 +90,7 @@ public:
         return res;
     }
 
-    static vint gfmul(vint a, vint b){
+    static inline vint gfmul(vint a, vint b){
         vint res = {0,0};
         for (int i = 0; i < a.size(); ++i) {
             vint temp = gfmul(a[i], b[i]);
@@ -123,7 +121,7 @@ public:
         return res1;
     }
 
-    static EVP_CIPHER_CTX * AES_vint_init(vint key){
+    static inline EVP_CIPHER_CTX * AES_vint_init(vint key){
         if(key.size() != 4){ //4 is hardcoded for 256 bit input
             int size = 4-key.size();
             for (int i = 0; i < size; ++i) {
@@ -145,7 +143,7 @@ public:
         return e;
     }
 
-    static vint AES_vint_encrypt(vint input, vint key, vint iv, EVP_CIPHER_CTX *e){
+    static inline vint AES_vint_encrypt(vint input, vint key, vint iv, EVP_CIPHER_CTX *e){
         if(input.size() != 4){ //4 is hardcoded for 256 bit input
             int size = 4-input.size();
             for (int i = 0; i < size; ++i) {
@@ -178,7 +176,7 @@ public:
         return res;
     }
 
-    static vint AES_vint_decrypt(vint input, vint key, vint iv, EVP_CIPHER_CTX *e){
+    static inline vint AES_vint_decrypt(vint input, vint key, vint iv, EVP_CIPHER_CTX *e){
         if(input.size() != 4){ //4 is hardcoded for 256 bit input
             int size = 4-input.size();
             for (int i = 0; i < size; ++i) {

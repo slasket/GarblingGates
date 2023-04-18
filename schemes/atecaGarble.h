@@ -27,8 +27,8 @@ public:
     static vector<vint> encode(vector<tuple<vint,vint>> e, vector<int> x);
     static vector<vint>
     eval(const vector<vint> &F, const vector<vint> &X, vector<string> C, int k, tuple<vint, vint> invVar,
-         int hashtype, hashTCCR c);
-    static vint decode(vector<vint> Y, vector<vint> d, hashTCCR c);
+         int hashtype, hashTCCR dc);
+    static vint decode(vector<vint> Y, vector<vint> d, hashTCCR dc);
     //projection method
     static inline vint projection(const vint& a,const vint& b);
 private:

@@ -35,8 +35,7 @@ public:
     };
     enum hashtype{
         RO =0,
-        fast =1,
-        never=2
+        fast =1
     };
     //template for splitting strings taken from:
     // https://stackoverflow.com/questions/236129/how-do-i-iterate-over-the-words-of-a-string
@@ -71,9 +70,8 @@ public:
         return res.str();
     }
 
-    static  vector<tuple<vector<uint64_t>, vector<uint64_t>>>
-            generateRandomLabels(int k, vector<uint64_t>& globalDelta,
-                                     int size) {
+    static vector<tuple<vector<uint64_t>, vector<uint64_t>>>
+            generateRandomLabels(int k, vector<uint64_t>& globalDelta, int size) {
                 auto wiresLabels = vector<tuple<vector<uint64_t>, vector<uint64_t>>>(size);
 
                 //generate new global delta if non is given
@@ -244,7 +242,7 @@ public:
     }
 
     //perform variable output length hash
-    static vector<uint64_t> hash_variable(const std::string& input, int output_length_bits = 128)
+    static inline vector<uint64_t> hash_variable(const std::string& input, int output_length_bits = 128)
     {
         size_t output_length_bytes = (output_length_bits+7) / 8;
         EVP_MD_CTX* ctx = EVP_MD_CTX_create();

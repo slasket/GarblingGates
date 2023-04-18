@@ -280,7 +280,7 @@ atecaGarble::encode(vector<tuple<vint, vint>> e,
 
 vector<vint>
 atecaGarble::eval(const vector<vint> &F, const vector<vint> &X, vector<string> C, int k, tuple<vint, vint> invVar,
-                  int hashtype, hashTCCR c) {
+                  int hashtype, hashTCCR dc) {
     int internalSecParam = 8 * k;
     int outputBits =stoi( util::split(C[2], ' ')[1]);
     int amountOfWires = stoi(util::split(C[0], ' ')[1]);
@@ -312,13 +312,13 @@ atecaGarble::eval(const vector<vint> &F, const vector<vint> &X, vector<string> C
         }
         //hash input string
         vint hashout;
-        if (c.isEmpty()){
+        if (dc.isEmpty()){
             labelA.insert(labelA.end(), labelB.begin(), labelB.end());
             labelA.push_back(gateNo);
             hashInputLabel = util::uintVec2Str(labelA);
             hashout = util::hash_variable(hashInputLabel,internalSecParam);
         }else{
-            hashout= hashTCCR::hash(labelA,labelB,c.getIv(),c.getE(),c.getU1(),c.getU2(),gateNo,internalSecParam);
+            hashout= hashTCCR::hash(labelA, labelB, dc.getIv(), dc.getE(), dc.getU1(), dc.getU2(), gateNo, internalSecParam);
         }
         const auto& delta = F[gateNo];
         auto gateOut = projection(hashout, delta);
@@ -330,7 +330,7 @@ atecaGarble::eval(const vector<vint> &F, const vector<vint> &X, vector<string> C
     return outputY;
 }
 
-vint atecaGarble::decode(vector<vint> Y, vector<vint> d, hashTCCR c) {
+vint atecaGarble::decode(vector<vint> Y, vector<vint> d, hashTCCR dc) {
     auto outbits = Y.size();
     auto unit64sNeeded = outbits/64 + ((outbits%64!=0) ? 1 : 0);
     auto outputSets =  vector<bitset<64>>(unit64sNeeded);
@@ -338,11 +338,11 @@ vint atecaGarble::decode(vector<vint> Y, vector<vint> d, hashTCCR c) {
     for (int i = 0; i < outbits; ++i) {
         //get the lsb of the hash
         vint hash;
-        if (c.isEmpty()){
+        if (dc.isEmpty()){
             Y[i].insert(Y[i].end(), d[i].begin(), d[i].end());
             hash = util::hash_variable(util::uintVec2Str(Y[i]), 64);
         }else{
-            hash= hashTCCR::hash(Y[i],d[i],c.getIv(),c.getE(),c.getU1(),c.getU2(),0,128);
+            hash= hashTCCR::hash(Y[i], d[i], dc.getIv(), dc.getE(), dc.getU1(), dc.getU2(), 0, 128);
         }
         int lsbHash=util::checkBit(hash[0],0);
         outputSets = util::insertBitVecBitset(outputSets,lsbHash,i);

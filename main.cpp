@@ -31,15 +31,15 @@ void testBaseOT(int v, int k , int l, int elgamalKeySize);
 void sliceTest();
 
 void threehalves_Test();
-void timetest(const vector<string>&c, const vector<int>& x, int k, util::scheme type, util::hashtype typ);
+void timetest(const vector<string>&c, const vector<int>& x, int k, util::scheme type, util::hashtype hashfunc);
 
 int main() {
     //this is a comment
-    vector<string> c = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
+    //vector<string> c = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
     //auto x = vector<int>{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-    vector<int> x = util::genFunctionInput(64);
-    //vector<string> c = circuitParser::parseCircuit("../tests/circuits/aes_128.txt");
-    //vector<int> x = util::genFunctionInput(256);
+    //vector<int> x = util::genFunctionInput(64);
+    vector<string> c = circuitParser::parseCircuit("../tests/circuits/aes_128.txt");
+    vector<int> x = util::genFunctionInput(256);
     timetest(c,x,128,util::baseline, util::RO);
     timetest(c,x,128,util::threehalves, util::RO);
     timetest(c,x,128,util::ateca, util::RO);
@@ -49,15 +49,23 @@ int main() {
 }
 
 
-void timetest(const vector<string>&c, const vector<int>& x, int k, util::scheme type, util::hashtype typ){
+void timetest(const vector<string>&c, const vector<int>& x, int k, util::scheme type, util::hashtype hashfunc){
     using std::chrono::high_resolution_clock;
     using std::chrono::duration_cast;
     using std::chrono::duration;
     using std::chrono::milliseconds;
+    string title;
+    string hashtype;
+    if (hashfunc){
+        hashtype = "fast";
+    }else{
+        hashtype= "RO";
+    }
 
     switch (type) {
         case util::scheme::baseline:{
-            cout<< "baseline"<<endl;
+            title = "baseline w. ";
+            cout<<title << hashtype<<endl;
             auto t1 = high_resolution_clock::now();
             auto base_C = baseGarble::garble(c,k);//needs hash type
             auto t2 = high_resolution_clock::now();
@@ -77,9 +85,10 @@ void timetest(const vector<string>&c, const vector<int>& x, int k, util::scheme 
             break;
         }
         case util::scheme::threehalves:{
-            cout<< "three halves"<<endl;
+            title = "three halves w. ";
+            cout<<title << hashtype<<endl;
             auto t1 = high_resolution_clock::now();
-            auto [three_F,three_e,three_d, three_ic, three_hash] = threeHalves::garble(c, k, typ);
+            auto [three_F,three_e,three_d, three_ic, three_hash] = threeHalves::garble(c, k, hashfunc);
             auto t2 = high_resolution_clock::now();
             duration<double, std::milli> ms_double = t2 - t1;
             cout<< "garbling: " <<ms_double.count()<< "ms"<<endl;
@@ -87,7 +96,7 @@ void timetest(const vector<string>&c, const vector<int>& x, int k, util::scheme 
             auto three_X = threeHalves::encode(three_e, x);
 
             t1 = high_resolution_clock::now();
-            auto three_Y = threeHalves::eval(three_F, three_X, c, k, three_ic, three_hash,typ);
+            auto three_Y = threeHalves::eval(three_F, three_X, c, k, three_ic, three_hash, hashfunc);
             t2 = high_resolution_clock::now();
             ms_double = t2 - t1;
             cout<< "evaluation: " <<ms_double.count()<< "ms"<<endl;
@@ -97,9 +106,10 @@ void timetest(const vector<string>&c, const vector<int>& x, int k, util::scheme 
             break;
         }
         case util::scheme::ateca:{
-            cout<< "ateca"<<endl;
+            title = "ateca w. ";
+            cout<<title << hashtype<<endl;
             auto t1 = high_resolution_clock::now();
-            auto [ate_F, ate_e, ate_d, ate_k, ate_ic,ate_hashtyp, ate_hash, ate_evalhash] = atecaGarble::garble(c, k, typ);
+            auto [ate_F, ate_e, ate_d, ate_k, ate_ic,ate_hashtyp, ate_hash, ate_evalhash] = atecaGarble::garble(c, k, hashfunc);
             auto t2 = high_resolution_clock::now();
             duration<double, std::milli> ms_double = t2 - t1;
             cout<< "garbling: " <<ms_double.count()<< "ms"<<endl;
@@ -117,9 +127,10 @@ void timetest(const vector<string>&c, const vector<int>& x, int k, util::scheme 
             break;
         }
         case util::scheme::atecaFXOR:{
-            cout<< "ateca-Freexor"<<endl;
+            title = "ateca-Freexor w. ";
+            cout<<title << hashtype<<endl;
             auto t1 = high_resolution_clock::now();
-            auto [atef_F, atef_e, atef_d, atef_k, atef_ic, atef_hash] = atecaFreeXOR::garble(c, k, typ);
+            auto [atef_F, atef_e, atef_d, atef_k, atef_ic, atef_hash] = atecaFreeXOR::garble(c, k, hashfunc);
             auto t2 = high_resolution_clock::now();
             duration<double, std::milli> ms_double = t2 - t1;
             cout<< "garbling: " <<ms_double.count()<< "ms"<<endl;
@@ -127,12 +138,12 @@ void timetest(const vector<string>&c, const vector<int>& x, int k, util::scheme 
             auto atef_X = atecaFreeXOR::encode(atef_e, x);
 
             t1 = high_resolution_clock::now();
-            auto atef_Y = atecaFreeXOR::eval(atef_F, atef_X, c, atef_k, atef_ic);
+            auto atef_Y = atecaFreeXOR::eval(atef_F, atef_X, c, atef_k, atef_ic, hashTCCR());
             t2 = high_resolution_clock::now();
             ms_double = t2 - t1;
             cout<< "evaluation: " <<ms_double.count()<< "ms"<<endl;
 
-            auto atef_y = atecaFreeXOR::decode(atef_Y, atef_d);
+            auto atef_y = atecaFreeXOR::decode(atef_Y, atef_d, hashTCCR());
 
             cout<< "atecaFxor: " << atef_y[0] <<endl;
             break;
@@ -145,7 +156,6 @@ void timetest(const vector<string>&c, const vector<int>& x, int k, util::scheme 
 void threehalves_Test() {
     hashRTCCR::testHashRTCCR();
     hashRTCCR::testDecrypt();
-
 
     int lInput =6;
     int rInput = 1;
@@ -264,9 +274,9 @@ void testFreexorAteca() {
     cout<<"encoding"<<endl;
     auto encodedInput = atecaFreeXOR::encode(encodingInfo, finput);
     cout<<"eval"<<endl;
-    auto Y = atecaFreeXOR::eval(F, encodedInput, C, secL, invVar);
+    auto Y = atecaFreeXOR::eval(F, encodedInput, C, secL, invVar, hashTCCR());
     cout<<"decoding"<<endl;
-    auto y = atecaFreeXOR::decode(Y, decoding);
+    auto y = atecaFreeXOR::decode(Y, decoding, hashTCCR());
     util::printUintVec(y);
     cout<< "bloodAns "<< bloodCompAns<<endl;
 }

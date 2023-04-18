@@ -5,17 +5,18 @@
 #ifndef GARBLINGGATES_HASHTCCR_H
 #define GARBLINGGATES_HASHTCCR_H
 #include <utility>
-
+#include <emmintrin.h>
+#include <immintrin.h>
 #include "util.h"
-#include "hashRTCCR.h"
 
 using namespace std;
 class hashTCCR{
 public:
-    vint iv;
     //vint key;
+    vint iv;
     vint u1;
     vint u2;
+    EVP_CIPHER_CTX *e;
 
     const vint &getIv() const {
         return iv;
@@ -36,8 +37,6 @@ public:
         }
     }
 
-    EVP_CIPHER_CTX *e;
-
     EVP_CIPHER_CTX *getE() const {
         return e;
     }
@@ -52,7 +51,7 @@ public:
     hashTCCR(){
     }
 
-    static EVP_CIPHER_CTX * AES_vint_init(){
+    static inline EVP_CIPHER_CTX * AES_vint_init(){
         EVP_CIPHER_CTX *e;
         e = EVP_CIPHER_CTX_new();
         //EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, iv);
@@ -62,7 +61,7 @@ public:
     }
 
 
-    static vint AES_vint_encrypt(vint input, vint key, vint iv, EVP_CIPHER_CTX *e){
+    static inline vint AES_vint_encrypt(vint input, vint key, vint iv, EVP_CIPHER_CTX *e){
         if(input.size() != 2){ //2 is hardcoded for 128 bit input
             int size = 2-input.size();
             for (int i = 0; i < size; ++i) {
@@ -96,7 +95,7 @@ public:
         return res;
     }
 
-    static vint AES_vint_decrypt(vint input, vint key, vint iv, EVP_CIPHER_CTX *e){
+    static inline vint AES_vint_decrypt(vint input, vint key, vint iv, EVP_CIPHER_CTX *e){
         if(input.size() != 2){ //4 is hardcoded for 256 bit input
             int size = 2-input.size();
             for (int i = 0; i < size; ++i) {
@@ -129,15 +128,30 @@ public:
         free(plaintext);
         return res;
     }
+    static inline uint64_t gfmulPCF(uint64_t a, uint64_t b){
+        auto aepi64 = _mm_set_epi64x(0,a);
+        auto bepi64 = _mm_set_epi64x(0,b);
+        auto res = _mm_clmulepi64_si128(aepi64, bepi64, 0);
+        return _mm_extract_epi64(res, 0);
+    }
+
+//may not be correct
+    static inline vint gfmulPCF(vint a, vint b){
+        vint res;
+        for (int i = 0; i < a.size(); ++i) {
+            res.push_back(gfmulPCF(a[i], b[i]));
+        }
+        return res;
+    }
 
 
 
-    static vint hash(vint &x, vint &y, const vint& iv, EVP_CIPHER_CTX *e, const vint &u1, const vint &u2, int tweak, int internalLength){
+    static inline vint hash(vint &x, vint &y, const vint& iv, EVP_CIPHER_CTX *e, const vint &u1, const vint &u2, int tweak, int internalLength){
         //split Y perform hashRTCCR::gfmulPCF(Y/2,Y/2)
         vint yFirstHalf(y.begin(),y.begin()+(y.size()/2));
         vint ySecondHalf(y.begin()+(y.size()/2),y.end());
-        auto y0 = hashRTCCR::gfmulPCF(u1, yFirstHalf);
-        auto y1 = hashRTCCR::gfmulPCF(u2, ySecondHalf);
+        auto y0 = gfmulPCF(u1, yFirstHalf);
+        auto y1 = gfmulPCF(u2, ySecondHalf);
         //compute X ^ U(Y)
         y0.insert(y0.end(), y1.begin(),y1.end());
         vint key = util::vecXOR(x,y0);
@@ -156,21 +170,18 @@ public:
         return res;
     }
 
-    static vint decypthash(vint &x, vint &y, const vint& iv, EVP_CIPHER_CTX *e, const vint &u1, const vint &u2, vint ciphertext){
+    static inline vint decypthash(vint &x, vint &y, const vint& iv, EVP_CIPHER_CTX *e, const vint &u1, const vint &u2, vint ciphertext){
         //split Y perform hashRTCCR::gfmulPCF(Y/2,Y/2)
         vint yFirstHalf(y.begin(),y.begin()+(y.size()/2));
         vint ySecondHalf(y.begin()+(y.size()/2),y.end());
-        auto y0 = hashRTCCR::gfmulPCF(u1, yFirstHalf);
-        auto y1 = hashRTCCR::gfmulPCF(u2, ySecondHalf);
+        auto y0 = gfmulPCF(u1, yFirstHalf);
+        auto y1 = gfmulPCF(u2, ySecondHalf);
         //compute X ^ U(Y)
         y0.insert(y0.end(), y1.begin(),y1.end());
         vint key = util::vecXOR(x,y0);
         vint res = AES_vint_decrypt(std::move(ciphertext),key,iv,e);
         return res;
     }
-
-
-
 };
 
 #endif //GARBLINGGATES_HASHTCCR_H

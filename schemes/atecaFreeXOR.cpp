@@ -5,20 +5,19 @@
 #include "atecaFreeXOR.h"
 #include "atecaGarble.h"
 
-tuple<vector<vint>, vector<tuple<vint, vint>>, vector<vint>, int, tuple<vint, vint>, int>
+tuple<vector<vint>, vector<tuple<vint, vint>>, vector<vint>, int, tuple<vint, vint>, hashTCCR, hashTCCR>
     atecaFreeXOR::garble(const vector<std::string> &f, int k, util::hashtype hashtype) {
 
     auto [e,globalDelta] = Init(f, k);
-    auto invVar= genInvVar(k, globalDelta);
-    auto [F,D,Invvar] = GarbleCircuit(k, f, e, invVar, globalDelta);
-    auto d = DecodingInfo(D, k);
+    auto invVar = genInvVar(k, globalDelta);
+    auto [F,D,Invvar,c] = GarbleCircuit(k, f, e, invVar, globalDelta, hashtype);
+    auto [d,dc] = DecodingInfo(D, k, hashtype);
 
-    return {F, e, d, k, invVar, hashtype};
+    return {F, e, d, k, invVar, c, dc};
 }
 
-tuple<vector<tuple<vint, vint>>, vint> atecaFreeXOR::Init(vector<std::string> C, int l) {
-    auto globalDelta = util::genBitsNonCrypto(l);
-
+tuple<vector<tuple<vint, vint>>, vint> atecaFreeXOR::Init(vector<std::string> C, int k) {
+    auto globalDelta = util::genBitsNonCrypto(k);
     auto inputs = util::split(C[1], ' ');
     int inputWires = 0;
     for (int i = 1; i < inputs.size(); ++i) {
@@ -26,7 +25,7 @@ tuple<vector<tuple<vint, vint>>, vint> atecaFreeXOR::Init(vector<std::string> C,
     }
     vector<tuple<vint,vint>> e;
     for (int i = 0; i < inputWires; ++i) {
-        vint lw0 = util::genBitsNonCrypto(l);
+        vint lw0 = util::genBitsNonCrypto(k);
         vint lw1 = util::vecXOR(globalDelta, lw0);
         tuple<vint,vint> ew = {lw0,lw1};
         e.emplace_back(ew);
@@ -35,15 +34,20 @@ tuple<vector<tuple<vint, vint>>, vint> atecaFreeXOR::Init(vector<std::string> C,
     return {e,globalDelta};
 }
 
-tuple<vint, vint> atecaFreeXOR::genInvVar(int l, vint globalDelta) {
-    vint lw0 = util::genBitsNonCrypto(l);
+tuple<vint, vint> atecaFreeXOR::genInvVar(int k, vint globalDelta) {
+    vint lw0 = util::genBitsNonCrypto(k);
     vint lw1 = util::vecXOR(globalDelta, lw0);
     return {lw0,lw1};
 }
 
-tuple<vector<vint>, vector<tuple<vint, vint>>, tuple<vint, vint>>
-atecaFreeXOR::GarbleCircuit(int l, vector<std::string> C, vector<tuple<vint, vint>> encoding,
-                            const tuple<vint, vint> &invVar, const vint& globalDelta) {
+tuple<vector<vint>, vector<tuple<vint, vint>>, tuple<vint, vint>, hashTCCR>
+atecaFreeXOR::GarbleCircuit(int k, vector<std::string> C, vector<tuple<vint, vint>> encoding,
+                            const tuple<vint, vint> &invVar, const vint &globalDelta, util::hashtype hashtype) {
+
+    hashTCCR c;
+    if (hashtype == util::fast){
+        c = hashTCCR(k);
+    }
     //get amount of gates, wires and output bits
     auto gatesAndWires=util::split(C[0], ' ');
     int outputBits =stoi( util::split(C[2], ' ')[1]);
@@ -100,7 +104,7 @@ atecaFreeXOR::GarbleCircuit(int l, vector<std::string> C, vector<tuple<vint, vin
             string type = gateInfo[5];
 
             //calculate garble
-            garbledGate = Gate(wires[in0], wires[in1], type, gateNo, l, globalDelta);
+            garbledGate = Gate(wires[in0], wires[in1], gateNo, k, globalDelta, c);
         }
         //add Delta to F set for a Gate
         if (gateInfo[4]=="INV" ||gateInfo[5]=="XOR"){
@@ -117,34 +121,42 @@ atecaFreeXOR::GarbleCircuit(int l, vector<std::string> C, vector<tuple<vint, vin
         }
     }
 
-    return {F,D, invVar};
+    return {F,D, invVar,c};
 }
 
 vector<vint>
-atecaFreeXOR::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, const string &typ, int gateNo, int l,
-                   vint globalDelta) {
-    int internalParam= l * 16;
-    //the random oracles lol
-    //THIS IS THE WRONG WAY OF TWEAKING!=!=!?!??!!
-    vint l00 = get<0>(in0);
-    l00.insert(l00.end(), get<0>(in1).begin(), get<0>(in1).end());
-    l00.push_back(gateNo);
-    auto l01 = get<0>(in0);
-    l01.insert(l01.end(), get<1>(in1).begin(), get<1>(in1).end());
-    l01.push_back(gateNo);
-    auto l10 = get<1>(in0);
-    l10.insert(l10.end(), get<0>(in1).begin(), get<0>(in1).end());
-    l10.push_back(gateNo);
-    auto l11 = get<1>(in0);
-    l11.insert(l11.end(), get<1>(in1).begin(), get<1>(in1).end());
-    l11.push_back(gateNo);
-    //actually compute the hashes
-    vint X_00 = util::hash_variable(util::uintVec2Str(l00), internalParam);
-    vint X_01 = util::hash_variable(util::uintVec2Str(l01), internalParam);
-    vint X_10 = util::hash_variable(util::uintVec2Str(l10), internalParam);
-    vint X_11 = util::hash_variable(util::uintVec2Str(l11), internalParam);
-    auto delta = vint((internalParam+63)/64);
+atecaFreeXOR::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, int gateNo, int k,
+                   const vint &globalDelta, const hashTCCR &c) {
+    int internalParam= k * 16;
+    vint X_00;vint X_01;vint X_10;vint X_11;
+    if (c.isEmpty()){
+        vint l00 = get<0>(in0);
+        l00.insert(l00.end(), get<0>(in1).begin(), get<0>(in1).end());
+        l00.push_back(gateNo);
+        auto l01 = get<0>(in0);
+        l01.insert(l01.end(), get<1>(in1).begin(), get<1>(in1).end());
+        l01.push_back(gateNo);
+        auto l10 = get<1>(in0);
+        l10.insert(l10.end(), get<0>(in1).begin(), get<0>(in1).end());
+        l10.push_back(gateNo);
+        auto l11 = get<1>(in0);
+        l11.insert(l11.end(), get<1>(in1).begin(), get<1>(in1).end());
+        l11.push_back(gateNo);
+        //actually compute the hashes
+        X_00 = util::hash_variable(util::uintVec2Str(l00), internalParam);
+        X_01 = util::hash_variable(util::uintVec2Str(l01), internalParam);
+        X_10 = util::hash_variable(util::uintVec2Str(l10), internalParam);
+        X_11 = util::hash_variable(util::uintVec2Str(l11), internalParam);
+    }else{
+        auto [a0,a1] = in0;
+        auto [b0,b1] = in1;
+        X_00 = hashTCCR::hash(a0,b0,c.getIv(),c.getE(),c.getU1(),c.getU2(),gateNo,internalParam);
+        X_01 = hashTCCR::hash(a0,b1,c.getIv(),c.getE(),c.getU1(),c.getU2(),gateNo,internalParam);
+        X_10 = hashTCCR::hash(a1,b0,c.getIv(),c.getE(),c.getU1(),c.getU2(),gateNo,internalParam);
+        X_11 = hashTCCR::hash(a1,b1,c.getIv(),c.getE(),c.getU1(),c.getU2(),gateNo,internalParam);
+    }
 
+    auto delta = vint((internalParam+63)/64);
     int j =0; int deltaHW =0;
     do {
         string slice = util::sliceVecL2RAtecaFreeXorSpecial(globalDelta, X_00, X_01, X_10, X_11, deltaHW, j);
@@ -154,31 +166,23 @@ atecaFreeXOR::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, c
             deltaHW++;
         }
         j++;
-    }while(deltaHW!=l);
+    }while(deltaHW != k);
 
     vint L0 = atecaGarble::projection(X_00, delta);
     vint L1 = atecaGarble::projection(X_11, delta);
 
-    auto shouldBeGlobalDelta = util::vecXOR(L0,L1);
-
-    if (shouldBeGlobalDelta[0] != globalDelta[0]){
-        cout<<endl;
-        util::printUintVec(L0);
-        util::printUintVec(L1);
-        cout<<"xor of L0,L1 should be global delta"<<endl;
-        util::printUintVec(shouldBeGlobalDelta);
-        cout<<"global delta"<<endl;
-        util::printUintVec(globalDelta);
-
-        //::exit(2);
-    }
-
     return {L0,L1,delta};
 }
 
-vector<vint> atecaFreeXOR::DecodingInfo(const vector<tuple<vint, vint>> &D, int l) {
+tuple<vector<vint>, hashTCCR>
+atecaFreeXOR::DecodingInfo(const vector<tuple<vint, vint>> &D, int k, util::hashtype hashtype) {
     //RO from 2l->1
     vector<vint> d(D.size());
+    hashTCCR dc;
+    if (hashtype==util::fast){
+        //vint key = util::genBitsNonCrypto(128);
+        dc = hashTCCR(k);
+    }
     for (int i = 0; i < D.size(); ++i) {
         auto L0 = get<0>(D[i]);
         auto L1 = get<1>(D[i]);
@@ -190,23 +194,27 @@ vector<vint> atecaFreeXOR::DecodingInfo(const vector<tuple<vint, vint>> &D, int 
         int lsbHL0;
         int lsbHL1;
         do {
-            di = util::genBitsNonCrypto(l);
+            di = util::genBitsNonCrypto(k);
+            if (hashtype==util::fast){
+                hashL0 = hashTCCR::hash(L0,di,dc.getIv(),dc.getE(),dc.getU1(),dc.getU2(),0,k);
+                hashL1 = hashTCCR::hash(L1,di,dc.getIv(),dc.getE(),dc.getU1(),dc.getU2(),0,k);
+            }else{
             //this is not the cleanest code ever
-            L0wdi.clear();
-            L0wdi.insert(L0wdi.begin(), L0.begin(), L0.end());
-            L0wdi.insert(L0wdi.end(), di.begin(), di.end());
-            L1wdi.clear();
-            L1wdi.insert(L1wdi.begin(), L1.begin(), L1.end());
-            L1wdi.insert(L1wdi.end(), di.begin(), di.end());
-            hashL0 = util::hash_variable(util::uintVec2Str(L0wdi),l);
-            hashL1 = util::hash_variable(util::uintVec2Str(L1wdi),l);
+                L0wdi.clear();
+                L0wdi.insert(L0wdi.begin(), L0.begin(), L0.end());
+                L0wdi.insert(L0wdi.end(), di.begin(), di.end());
+                L1wdi.clear();
+                L1wdi.insert(L1wdi.begin(), L1.begin(), L1.end());
+                L1wdi.insert(L1wdi.end(), di.begin(), di.end());
+                hashL0 = util::hash_variable(util::uintVec2Str(L0wdi), k);
+                hashL1 = util::hash_variable(util::uintVec2Str(L1wdi), k);
+            }
             lsbHL0=util::checkBit(hashL0[0],0);
             lsbHL1=util::checkBit(hashL1[0],0);
-
         } while (!((lsbHL0 == 0) && (lsbHL1 == 1)));
         d[i] = di;
     }
-    return d;
+    return {d,dc};
 }
 
 
@@ -224,7 +232,8 @@ atecaFreeXOR::encode(vector<tuple<vint, vint>> e, vector<int> x) {
 }
 
 vector<vint>
-atecaFreeXOR::eval(const vector<vint> &F, const vector<vint> &X, vector<string> C, int k, tuple<vint, vint> invVar) {
+atecaFreeXOR::eval(const vector<vint> &F, const vector<vint> &X, vector<string> C, int k, tuple<vint, vint> invVar,
+                   const hashTCCR& c) {
     int internalSecParam = 16 * k;
     int outputBits =stoi( util::split(C[2], ' ')[1]);
     int numberOfWires = stoi(util::split(C[0], ' ')[1]);
@@ -267,12 +276,17 @@ atecaFreeXOR::eval(const vector<vint> &F, const vector<vint> &X, vector<string> 
             auto labelA = wires[in0];
             auto labelB = wires[in1];
             //hash input string
+            vint hash;
+            if (c.isEmpty()){
             labelA.insert(labelA.end(), labelB.begin(), labelB.end());
             labelA.push_back(gateNo);
             auto hashInputLabel = util::uintVec2Str(labelA);
-            auto hashOut = util::hash_variable(hashInputLabel,internalSecParam);
+                hash = util::hash_variable(hashInputLabel,internalSecParam);
+            }else{
+                hash= hashTCCR::hash(labelA, labelB, c.getIv(), c.getE(), c.getU1(), c.getU2(), gateNo, internalSecParam);
+            }
             const auto& delta = F[gateNo];
-            gateOut = atecaGarble::projection(hashOut, delta);
+            gateOut = atecaGarble::projection(hash, delta);
             wires[out] = gateOut;
         }
         //add the output to the output vec
@@ -284,15 +298,20 @@ atecaFreeXOR::eval(const vector<vint> &F, const vector<vint> &X, vector<string> 
     return outputY;
 }
 
-vint atecaFreeXOR::decode(vector<vint> outputY, vector<vint> d) {
-    auto outbits = outputY.size();
+vint atecaFreeXOR::decode(vector<vint> Y, vector<vint> d, const hashTCCR& dc) {
+    auto outbits = Y.size();
     auto unit64sNeeded = outbits/64 + ((outbits%64!=0) ? 1 : 0);
     auto outputSets =  vector<bitset<64>>(unit64sNeeded);
 
     for (int i = 0; i < outbits; ++i) {
         //get the lsb of the hash
-        outputY[i].insert(outputY[i].end(), d[i].begin(), d[i].end());
-        auto hash = util::hash_variable(util::uintVec2Str(outputY[i]), 64);
+        vint hash;
+        if (dc.isEmpty()){
+            Y[i].insert(Y[i].end(), d[i].begin(), d[i].end());
+            hash = util::hash_variable(util::uintVec2Str(Y[i]), 64);
+        }else{
+            hash= hashTCCR::hash(Y[i], d[i], dc.getIv(), dc.getE(), dc.getU1(), dc.getU2(), 0, 128);
+        }
         int lsbHash=util::checkBit(hash[0],0);
         outputSets = util::insertBitVecBitset(outputSets,lsbHash,i);
     }
@@ -300,7 +319,6 @@ vint atecaFreeXOR::decode(vector<vint> outputY, vector<vint> d) {
     for (int i = 0; i < unit64sNeeded; ++i) {
         y[i] = outputSets[i].to_ullong();
     }
-
     return y;
 }
 
