@@ -412,7 +412,23 @@ public:
         }
         return x;
     }
+
+    static ::uint64_t averageFweight(vector<vint>F){
+        uint64_t uintsWBits =0;
+        for (int i = 0; i < F.size(); ++i) {
+            vint delta = F[i];
+            for (int j = 0; j < delta.size(); ++j) {
+                if (delta[j]!=0){
+                    uintsWBits +=1;
+                }
+            }
+        }
+        uint64_t xd = uintsWBits*64;
+        return xd/F.size();
+    }
+
 };
+
 
 
 #endif //GARBLINGGATES_UTIL_H
