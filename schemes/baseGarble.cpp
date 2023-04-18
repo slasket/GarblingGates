@@ -321,7 +321,7 @@ vector<int> baseGarble::decodeBits(vector<labelPair> d, vector<vint> Y) {
 }
 
 vint baseGarble::hashFunc(vint x, int k) {
-    auto xstring = otUtil::printBitsetofVectorofUints(std::move(x));
+    auto xstring = util::printBitsetofVectorofUints(std::move(x));
     return util::hash_variable(xstring, k);
 }
 

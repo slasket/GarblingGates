@@ -10,19 +10,19 @@
 #include <iostream>
 #include <bitset>
 #include <random>
-#include "otUtil/otUtil.h"
 #include <openssl/sha.h>
 #include <openssl/aes.h>
 #include <openssl/evp.h>
 
 //Namespace for custom types
 namespace customTypeSpace {
-    typedef vector<uint64_t> vint;
-    typedef tuple<vint, vint> labelPair;
-    typedef tuple<vint, vint> halfDelta;
-    typedef tuple<vint, vint> halfLabels;
+    typedef std::vector<uint64_t> vint;
+    typedef std::tuple<vint, vint> labelPair;
+    typedef std::tuple<vint, vint> halfDelta;
+    typedef std::tuple<vint, vint> halfLabels;
 }
 using namespace customTypeSpace;
+using namespace std;
 
 class util {
 
@@ -64,9 +64,16 @@ public:
             std::cout<< i << std::endl;
         }
     }
-    static inline string uintVec2Str(vector<::uint64_t>vec){
-        stringstream res;
-        copy(vec.begin(),vec.end(),ostream_iterator<::uint64_t>(res));
+    static string printBitsetofVectorofUints(vector<uint64_t> uints){
+        string res;
+        for (int i = uints.size()-1; i >= 0; --i) {
+            res += bitset<64>(uints[i]).to_string();
+        }
+        return res;
+    }
+    static inline std::string uintVec2Str(std::vector<::uint64_t>vec){
+        std::stringstream res;
+        copy(vec.begin(),vec.end(),std::ostream_iterator<::uint64_t>(res));
         return res.str();
     }
 
@@ -86,7 +93,7 @@ public:
     }
 
     static vector<uint64_t> genDelta(int k) {
-        vector<uint64_t> globalDelta = otUtil::genBitsNonCrypto(k);
+        vector<uint64_t> globalDelta = genBitsNonCrypto(k);
         globalDelta[0] = globalDelta[0] | 1;
         return globalDelta;
     }
@@ -99,7 +106,7 @@ public:
         std::mt19937 gen(rd());
         std::uniform_int_distribution<> dis(0, 1);
         if (permuteBit >= 2) permuteBit = dis(gen);
-        vector<uint64_t> a0 = otUtil::genBitsNonCrypto(k);
+        vector<uint64_t> a0 = genBitsNonCrypto(k);
         //add permute bit
         a0[0] = a0[0] & -2; //1111 ... 1111 1110 THE COLOR BIT IS ON THE LEAST SIGNIFICANT BIT ON BLOCK ZERO
         a0[0] = a0[0] | permuteBit; //can be hardcoded as it is one block

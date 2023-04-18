@@ -8,7 +8,6 @@
 #include <openssl/evp.h>
 #include <openssl/aes.h>
 #include <openssl/sha.h>
-#include "otUtil/otUtil.h"
 #include <random>
 #include <bitset>
 #include <iostream>
