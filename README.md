@@ -14,7 +14,7 @@ Our setup on Windows is as follows: Clion using the MSVC C++ compiler.
 The libraries mentioned above can be installed on windows using the [vcpkg](https://vcpkg.io/en/) package manager for C++ libraries.
 1. Download MSVC compiler from: [MSVC](https://visualstudio.microsoft.com/vs/features/cplusplus/)
 2. Download Clion: [CLION](https://www.jetbrains.com/clion/)
-3. Install Cmake: [Cmake](https://cmake.org/)
+3. Download Cmake: [Cmake](https://cmake.org/)
 4. Clone vcpkg and run the bootstrap script:
 ```cmd
 > git clone https://github.com/microsoft/vcpkg
@@ -24,13 +24,13 @@ The libraries mentioned above can be installed on windows using the [vcpkg](http
 ```cmd
 > .\vcpkg\vcpkg install [package name]:x64-windows
 ```
-6. Intergrate the libaries into the compiler:
+6. Integrate the libraries into the compiler:
 ```cmd
 > .\vcpkg\vcpkg integrate install
 ```
 This returns a string on the form: `-DCMAKE_TOOLCHAIN_FILE=[vcpkg root]/scripts/buildsystems/vcpkg.cmake`.
 
-7. Add the -DCMAKE... line to clion's section for cmake options(Build, Execution, Deployment > CMake). Add the line under `CMake options`.
+7. Add the -DCMAKE... line to Clion's section for cmake options(Build, Execution, Deployment > CMake). Add the line under `CMake options`.
 
 ### Linux
 penguin magic
