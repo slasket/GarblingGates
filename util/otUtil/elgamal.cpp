@@ -1,3 +1,4 @@
+/*
 //
 // Created by a on 15/02/2023.
 //
@@ -63,4 +64,4 @@ string elgamal::Decrypt(string cipher, const Integer& mod, const Integer& g, con
                                                         new StringSink(recovered)));
 
     return recovered;
-}
+}*/

@@ -1,3 +1,4 @@
+/*
 //
 // Created by a on 15/02/2023.
 //
@@ -110,3 +111,4 @@ int OT::findUIntBit(int idx, const vector<uint64_t>& uint) {
     ::uint64_t theInteger = uint[theInt];
     return bitset<64>(theInteger)[smallerIdx];
 }
+*/

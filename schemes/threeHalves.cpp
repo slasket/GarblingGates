@@ -141,6 +141,7 @@ threeHalves::garble(vector<string> f, int k, int h) {
             halfLabels A0xorB0 = {util::vecXOR(A0Left, B0Left), util::vecXOR(A0Right, B0Right)};
             //A0 XOR B0 XOR Delta = A0 XOR B1
             halfLabels A0xorB0xorDelta = {util::vecXOR(A0Left, B1Left), util::vecXOR(A0Right, B1Right)};
+            vector<halfLabels> inputs({A0, B0, A1, B1, A0xorB0, A0xorB0xorDelta});
             if (h==0) {
             hashes[0] = util::hash_variable(util::halfLabelsToFullLabelString(A0) + to_string(((3 * k) - 3)),   (k / 2) + 8);
             hashes[1] = util::hash_variable(util::halfLabelsToFullLabelString(A1) + to_string(((3 * k) - 3)),   (k / 2) + 8);
@@ -149,27 +150,31 @@ threeHalves::garble(vector<string> f, int k, int h) {
             hashes[4] = util::hash_variable(util::halfLabelsToFullLabelString(A0xorB0) + to_string(((3 * k) - 1)),     (k / 2) + 8);
             hashes[5] = util::hash_variable(                    util::halfLabelsToFullLabelString(A0xorB0xorDelta) + to_string(((3 * k) - 1)), (k / 2) + 8);
             } else if(h==1){
-                get<0>(A0).emplace_back(0);
-                get<1>(A0).emplace_back(0);
-                get<0>(A1).emplace_back(0);
-                get<1>(A1).emplace_back(0);
-                get<0>(B0).emplace_back(0);
-                get<1>(B0).emplace_back(0);
-                get<0>(B1).emplace_back(0);
-                get<1>(B1).emplace_back(0);
-                get<0>(A0xorB0).emplace_back(0);
-                get<1>(A0xorB0).emplace_back(0);
-                get<0>(A0xorB0xorDelta).emplace_back(0);
-                get<1>(A0xorB0xorDelta).emplace_back(0);
+                //get<0>(A0).emplace_back(0);
+                //get<1>(A0).emplace_back(0);
+                //get<0>(A1).emplace_back(0);
+                //get<1>(A1).emplace_back(0);
+                //get<0>(B0).emplace_back(0);
+                //get<1>(B0).emplace_back(0);
+                //get<0>(B1).emplace_back(0);
+                //get<1>(B1).emplace_back(0);
+                //get<0>(A0xorB0).emplace_back(0);
+                //get<1>(A0xorB0).emplace_back(0);
+                //get<0>(A0xorB0xorDelta).emplace_back(0);
+                //get<1>(A0xorB0xorDelta).emplace_back(0);
+                for (halfLabels lbl: inputs) {
+                    get<0>(lbl).emplace_back(0);
+                    get<1>(lbl).emplace_back(0);
+                }
                 auto tweak0 = static_cast<unsigned long long>((3 * k) - 3);
                 auto tweak1 = static_cast<unsigned long long>((3 * k) - 2);
                 auto tweak2 = static_cast<unsigned long long>((3 * k) - 1);
-                hashes[0] = hashRTCCR::hash(A0, {0,0,0,tweak0}, key, iv, hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
-                hashes[1] = hashRTCCR::hash(A1, {0,0,0,tweak0}, key, iv, hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
-                hashes[2] = hashRTCCR::hash(B0, {0,0,0,tweak1}, key, iv, hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
-                hashes[3] = hashRTCCR::hash(B1, {0,0,0,tweak1}, key, iv, hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
-                hashes[4] = hashRTCCR::hash(A0xorB0, {0,0,0,tweak2}, key, iv, hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
-                hashes[5] = hashRTCCR::hash(A0xorB0xorDelta, {0,0,0,tweak2}, key, iv, hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
+                hashes[0] = hashRTCCR::hash(A0, {0,0,0,tweak0}, hashRTCCR.getKey(), hashRTCCR.getIv(), hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
+                hashes[1] = hashRTCCR::hash(A1, {0,0,0,tweak0}, hashRTCCR.getKey(), hashRTCCR.getIv(), hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
+                hashes[2] = hashRTCCR::hash(B0, {0,0,0,tweak1}, hashRTCCR.getKey(), hashRTCCR.getIv(), hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
+                hashes[3] = hashRTCCR::hash(B1, {0,0,0,tweak1}, hashRTCCR.getKey(), hashRTCCR.getIv(), hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
+                hashes[4] = hashRTCCR::hash(A0xorB0, {0,0,0,tweak2}, hashRTCCR.getKey(), hashRTCCR.getIv(), hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
+                hashes[5] = hashRTCCR::hash(A0xorB0xorDelta, {0,0,0,tweak2}, hashRTCCR.getKey(), hashRTCCR.getIv(), hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
 
                 int size = hashes[0].size()-(A0Left.size()+1);
                 for (int j = 0; j < size; ++j) {
@@ -433,8 +438,6 @@ vector<halfLabels> threeHalves::eval(Ftype F, vector<halfLabels> X, vector<strin
                 hashes[2] = util::hash_variable(util::halfLabelsToFullLabelString(AxorB) + to_string(((3 * k) - 1)),
                                                   (k / 2) + 8);
             } else if(h==1){
-                vint key = hash.getKey();
-                vint iv = hash.getIv();
                 for (halfLabels lbl:inputs) {
                     get<0>(lbl).emplace_back(0);
                     get<1>(lbl).emplace_back(0);
@@ -449,9 +452,9 @@ vector<halfLabels> threeHalves::eval(Ftype F, vector<halfLabels> X, vector<strin
                 auto tweak1 = static_cast<unsigned long long>((3 * k) - 2);
                 auto tweak2 = static_cast<unsigned long long>((3 * k) - 1);
 
-                hashes[0] = hashRTCCR::hash(inputs[0], {0,0,0,tweak0}, key, iv, hash.getE(), hash.getAlpha(), hash.getU1(), hash.getU2());
-                hashes[1] = hashRTCCR::hash(inputs[1], {0,0,0,tweak1}, key, iv, hash.getE(), hash.getAlpha(), hash.getU1(), hash.getU2());
-                hashes[2] = hashRTCCR::hash(inputs[2], {0,0,0,tweak2}, key, iv, hash.getE(), hash.getAlpha(), hash.getU1(), hash.getU2());
+                hashes[0] = hashRTCCR::hash(inputs[0], {0,0,0,tweak0}, hash.getKey(), hash.getIv(), hash.getE(), hash.getAlpha(), hash.getU1(), hash.getU2());
+                hashes[1] = hashRTCCR::hash(inputs[1], {0,0,0,tweak1}, hash.getKey(), hash.getIv(), hash.getE(), hash.getAlpha(), hash.getU1(), hash.getU2());
+                hashes[2] = hashRTCCR::hash(inputs[2], {0,0,0,tweak2}, hash.getKey(), hash.getIv(), hash.getE(), hash.getAlpha(), hash.getU1(), hash.getU2());
                 int size = hashes[0].size()-(Al.size()+1);
                 for (int j = 0; j < size; ++j) {
                     for (int hIx = 0; hIx < hashes.size(); ++hIx) {
@@ -849,7 +852,7 @@ vector<int> threeHalves::computeT(int permuteBitA, int permuteBitB, const string
     }
 }
 
-halfLabels threeHalves::zeroes(unsigned __int64 size) {
+halfLabels threeHalves::zeroes(uint64_t size) {
     vint zeroes(size);
     return {zeroes, zeroes};
 }

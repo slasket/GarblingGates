@@ -295,6 +295,7 @@ void testsubAteca() {
 //bc.testAllCombinations();
 
 
+/*
 void testBaseOT(int v, int k , int l, int elgamalKeySize){
     cout<< "#Testing baseOTs from "<< v << " to " << k<< " Amount of OTs"<<endl;
 
@@ -356,4 +357,4 @@ void testBaseOT(int v, int k , int l, int elgamalKeySize){
         cout<<"zeroes: "<<zeroes<<endl;
         cout<<"ones: "<<ones<<endl;
     }
-}
+}*/

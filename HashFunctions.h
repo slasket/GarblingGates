@@ -5,6 +5,7 @@
 #ifndef GARBLINGGATES_HASHFUNCTIONS_H
 #define GARBLINGGATES_HASHFUNCTIONS_H
 #include <vector>
+#include <stdint.h>
 
 using namespace std;
 

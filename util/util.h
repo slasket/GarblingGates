@@ -14,6 +14,7 @@
 #include <openssl/sha.h>
 #include <openssl/aes.h>
 #include <openssl/evp.h>
+#include <tuple>
 
 //Namespace for custom types
 namespace customTypeSpace {

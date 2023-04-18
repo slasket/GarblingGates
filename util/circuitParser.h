@@ -23,7 +23,7 @@ using namespace std;
 
 class circuitParser {
 public:
-    static vector<string> circuitParser::parseCircuit(const string &circuitPath) {
+    static vector<string> parseCircuit(const string &circuitPath) {
         std::ifstream file(circuitPath);
         vector<string> circuit;
 
@@ -37,15 +37,18 @@ public:
                 std::getline(file,line);
             }
 
+            line.erase(std::remove(line.begin(), line.end(), '\r'), line.cend());
             string gatesAndWires= (string) line;
             std::vector<std::string> wiresngates = util::split(line, ' ');
             //the first string is i/o info rest is gates
             circuit = vector<string>(stoi(wiresngates[0])+3);
             //input line
             std::getline(file, line);
+            line.erase(std::remove(line.begin(), line.end(), '\r'), line.cend());
             string inputInfo = line;//if there is a thrid input its always hardcoded to 1
             //output line
             std::getline(file, line);
+            line.erase(std::remove(line.begin(), line.end(), '\r'), line.cend());
             string outputInfo = line;
 
             //the output is defined as the last wires in the scheme, thus and output of 3 wires would be the last 3
@@ -57,6 +60,7 @@ public:
             std::getline(file, line);
             int i = 3;
             while (std::getline(file, line)) {
+                line.erase(std::remove(line.begin(), line.end(), '\r'), line.cend());
                 if (line.empty()){
                     break;
                 }

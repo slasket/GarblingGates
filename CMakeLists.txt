@@ -2,9 +2,8 @@ cmake_minimum_required(VERSION 3.13)
 project(GarblingGates)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS -O2)
+set(CMAKE_CXX_FLAGS)
 #set(CMAKE_CXX_FLAGS -D_GLIBCXX_DEBUG)
-
 
 set(SOURCES
         bloodcompatibility.cpp
@@ -66,9 +65,9 @@ include_directories(${Boost_INCLUDE_DIR})
 #target_link_libraries(Tests PRIVATE oc::cryptoTools)
 
 #cryptoPP
-find_package(cryptopp REQUIRED)
-target_link_libraries(GarblingGates PRIVATE cryptopp::cryptopp)
-target_link_libraries(Tests PRIVATE cryptopp::cryptopp)
+#find_package(cryptopp REQUIRED)
+#target_link_libraries(GarblingGates PRIVATE cryptopp::cryptopp)
+#target_link_libraries(Tests PRIVATE cryptopp::cryptopp)
 
 
 #openSSL

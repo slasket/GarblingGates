@@ -4,6 +4,7 @@
 
 #include <set>
 #include <utility>
+#include <cassert>
 #include "baseGarble.h"
 
 
@@ -89,9 +90,9 @@ baseGarble::garbleGate(const vint &invConst, int k, const vector<::uint64_t> &gl
     //get input labels
     auto [A0,A1] = wireLabels[input0];
     auto [B0,B1] = wireLabels[input1];
-    //calculate permute bits
-    int permuteBitA = A0[0] & 1;
-    int permuteBitB = B0[0] & 1;
+    //calculate permute bits by only getting the least significant bit
+    int permuteBitA = util::checkIthBit(A0, 0);
+    int permuteBitB = util::checkIthBit(B0, 0);
     vint AF; vint AT;
     vint BF; vint BT;
     //set permuted labels to T and F
@@ -263,8 +264,8 @@ vint baseGarble::evalGate(const vint &invConst, int k,
     } else
     if(gateType == "AND"){
         //get color bits
-        auto colorBitA = (A[0]) & 1;
-        auto colorBitB = (B[0]) & 1;
+        auto colorBitA = util::checkIthBit(A,0);//A[0]) & 1;
+        auto colorBitB = util::checkIthBit(B, 0);//B[0]) & 1;
         //get gate ciphertexts
         auto [gate0,gate1] = garbledCircuit[i];
         //evaluate gate
@@ -314,6 +315,7 @@ vector<int> baseGarble::decodeBits(vector<labelPair> d, vector<vint> Y) {
         } else if (yhash == get<1>(d[i])) {
             y.push_back(1);
         } else {
+            y.push_back(2);
             cout << "Could not decodeBits as encrypted output was invalid" << endl;
         }
     }

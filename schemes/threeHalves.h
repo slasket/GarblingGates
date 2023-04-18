@@ -110,7 +110,7 @@ private:
 
     static halfLabels decodeR(vector<uint64_t> rVec, halfLabels A, halfLabels B, int Aperm, int Bperm);
 
-    static halfLabels zeroes(unsigned __int64 size);
+    static halfLabels zeroes(uint64_t size);
 
 };
 

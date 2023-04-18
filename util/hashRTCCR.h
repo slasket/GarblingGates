@@ -8,6 +8,7 @@
 #include "util.h"
 #include <emmintrin.h>
 #include <immintrin.h>
+#include <string.h>
 
 #include <utility>
 
@@ -142,6 +143,8 @@ public:
         //EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, iv);
         //EVP_DecryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, iv);
         EVP_CIPHER_CTX_set_padding(e, 0);
+        free(aes_key);
+        free(iv);
         return e;
     }
 
@@ -175,6 +178,8 @@ public:
         memcpy(res.data(), ciphertext, len);
         free(ciphertext);
         free(plaintext);
+        free(aes_key);
+        free(aes_iv);
         return res;
     }
 
@@ -209,6 +214,8 @@ public:
         memcpy(res.data(), plaintext, len);
         free(ciphertext);
         free(plaintext);
+        free(aes_key);
+        free(aes_iv);
         return res;
     }
 

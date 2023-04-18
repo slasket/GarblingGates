@@ -93,6 +93,8 @@ public:
         memcpy(res.data(), ciphertext, len);
         free(ciphertext);
         free(plaintext);
+        free(aes_key);
+        free(aes_iv);
         return res;
     }
 
@@ -127,6 +129,8 @@ public:
         memcpy(res.data(), plaintext, len);
         free(ciphertext);
         free(plaintext);
+        free(aes_key);
+        free(aes_iv);
         return res;
     }
 
