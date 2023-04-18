@@ -10,7 +10,6 @@
 #include <iostream>
 #include <bitset>
 #include <random>
-#include "otUtil/otUtil.h"
 #include <openssl/sha.h>
 #include <openssl/aes.h>
 #include <openssl/evp.h>
@@ -18,12 +17,13 @@
 
 //Namespace for custom types
 namespace customTypeSpace {
-    typedef vector<uint64_t> vint;
-    typedef tuple<vint, vint> labelPair;
-    typedef tuple<vint, vint> halfDelta;
-    typedef tuple<vint, vint> halfLabels;
+    typedef std::vector<uint64_t> vint;
+    typedef std::tuple<vint, vint> labelPair;
+    typedef std::tuple<vint, vint> halfDelta;
+    typedef std::tuple<vint, vint> halfLabels;
 }
 using namespace customTypeSpace;
+using namespace std;
 
 class util {
 
@@ -36,8 +36,7 @@ public:
     };
     enum hashtype{
         RO =0,
-        fast =1,
-        never=2
+        fast =1
     };
     //template for splitting strings taken from:
     // https://stackoverflow.com/questions/236129/how-do-i-iterate-over-the-words-of-a-string
@@ -66,15 +65,21 @@ public:
             std::cout<< i << std::endl;
         }
     }
-    static inline string uintVec2Str(vector<::uint64_t>vec){
-        stringstream res;
-        copy(vec.begin(),vec.end(),ostream_iterator<::uint64_t>(res));
+    static string printBitsetofVectorofUints(vector<uint64_t> uints){
+        string res;
+        for (int i = uints.size()-1; i >= 0; --i) {
+            res += bitset<64>(uints[i]).to_string();
+        }
+        return res;
+    }
+    static inline std::string uintVec2Str(std::vector<::uint64_t>vec){
+        std::stringstream res;
+        copy(vec.begin(),vec.end(),std::ostream_iterator<::uint64_t>(res));
         return res.str();
     }
 
-    static  vector<tuple<vector<uint64_t>, vector<uint64_t>>>
-            generateRandomLabels(int k, vector<uint64_t>& globalDelta,
-                                     int size) {
+    static vector<tuple<vector<uint64_t>, vector<uint64_t>>>
+            generateRandomLabels(int k, vector<uint64_t>& globalDelta, int size) {
                 auto wiresLabels = vector<tuple<vector<uint64_t>, vector<uint64_t>>>(size);
 
                 //generate new global delta if non is given
@@ -89,7 +94,7 @@ public:
     }
 
     static vector<uint64_t> genDelta(int k) {
-        vector<uint64_t> globalDelta = otUtil::genBitsNonCrypto(k);
+        vector<uint64_t> globalDelta = genBitsNonCrypto(k);
         globalDelta[0] = globalDelta[0] | 1;
         return globalDelta;
     }
@@ -102,7 +107,7 @@ public:
         std::mt19937 gen(rd());
         std::uniform_int_distribution<> dis(0, 1);
         if (permuteBit >= 2) permuteBit = dis(gen);
-        vector<uint64_t> a0 = otUtil::genBitsNonCrypto(k);
+        vector<uint64_t> a0 = genBitsNonCrypto(k);
         //add permute bit
         a0[0] = a0[0] & -2; //1111 ... 1111 1110 THE COLOR BIT IS ON THE LEAST SIGNIFICANT BIT ON BLOCK ZERO
         a0[0] = a0[0] | permuteBit; //can be hardcoded as it is one block
@@ -245,7 +250,7 @@ public:
     }
 
     //perform variable output length hash
-    static vector<uint64_t> hash_variable(const std::string& input, int output_length_bits = 128)
+    static inline vector<uint64_t> hash_variable(const std::string& input, int output_length_bits = 128)
     {
         size_t output_length_bytes = (output_length_bits+7) / 8;
         EVP_MD_CTX* ctx = EVP_MD_CTX_create();
@@ -415,7 +420,23 @@ public:
         }
         return x;
     }
+
+    static ::uint64_t averageFweight(vector<vint>F){
+        uint64_t uintsWBits =0;
+        for (int i = 0; i < F.size(); ++i) {
+            vint delta = F[i];
+            for (int j = 0; j < delta.size(); ++j) {
+                if (delta[j]!=0){
+                    uintsWBits +=1;
+                }
+            }
+        }
+        uint64_t xd = uintsWBits*64;
+        return xd/F.size();
+    }
+
 };
+
 
 
 #endif //GARBLINGGATES_UTIL_H

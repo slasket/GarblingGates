@@ -105,7 +105,7 @@ BOOST_AUTO_TEST_SUITE( ATECA_garbled_Output )
     int l = 128;
     auto feds = atecaGarble::garble(C, l, util::RO);
     auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
-    auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), 0, hashTCCR());
+    auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), hashTCCR());
     BOOST_AUTO_TEST_CASE( garbled_output )
     {
         BOOST_TEST(Y.size()==1);
@@ -120,7 +120,7 @@ BOOST_AUTO_TEST_SUITE( ATECA_decoding_garbled_Y )
     int l = 128;
     auto feds = atecaGarble::garble(C, l, util::RO);
     auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
-    auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), 0, hashTCCR());
+    auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), hashTCCR());
     auto y = atecaGarble::decode(Y, get<2>(feds), hashTCCR());
     BOOST_AUTO_TEST_CASE( decoding_Y )
     {
@@ -137,7 +137,7 @@ BOOST_AUTO_TEST_SUITE( ATECA_xorTest )
     auto feds = atecaGarble::garble(C, l, util::RO);
     auto encodingInfo = get<1>(feds);
     auto encodedInput = atecaGarble::encode(get<1>(feds), finput1);
-    auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), 0, hashTCCR());
+    auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), hashTCCR());
     auto y = atecaGarble::decode(Y, get<2>(feds), hashTCCR());
     BOOST_AUTO_TEST_CASE( encoding_choice )
     {
@@ -161,7 +161,7 @@ BOOST_AUTO_TEST_SUITE( ATECA_andTest )
     auto feds = atecaGarble::garble(C, l, util::RO);
     auto encodingInfo = get<1>(feds);
     auto encodedInput = atecaGarble::encode(get<1>(feds), finput1);
-    auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), 0, hashTCCR());
+    auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), hashTCCR());
     auto y = atecaGarble::decode(Y, get<2>(feds), hashTCCR());
 
     BOOST_AUTO_TEST_CASE( encoding_choice )
@@ -188,7 +188,7 @@ BOOST_AUTO_TEST_SUITE( ATECA_BloodComp_Alternate )
     int l = 128;
     auto feds = atecaGarble::garble(C, l, util::RO);
     auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
-    auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), 0, hashTCCR());
+    auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), hashTCCR());
     auto y = atecaGarble::decode(Y, get<2>(feds), hashTCCR());
     ::uint64_t bloodCompAns = bloodcompatibility::bloodCompLookup(lInput,rInput);
     BOOST_AUTO_TEST_CASE( decoding_Y )
@@ -211,7 +211,7 @@ BOOST_AUTO_TEST_SUITE( ATECA_adder64bit )
         auto C = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
         auto feds = atecaGarble::garble(C, 128, util::RO);
         auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
-        auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), 0, hashTCCR());
+        auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), hashTCCR());
         auto y = atecaGarble::decode(Y, get<2>(feds), hashTCCR());
 
         //util::printUintVec(y);
@@ -231,7 +231,7 @@ BOOST_AUTO_TEST_SUITE( ATECA_adder64bit )
         auto C = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
         auto feds = atecaGarble::garble(C, 128, util::RO);
         auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
-        auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), 0, hashTCCR());
+        auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), hashTCCR());
         auto y = atecaGarble::decode(Y, get<2>(feds), hashTCCR());
 
         //util::printUintVec(y);
@@ -254,7 +254,7 @@ BOOST_AUTO_TEST_SUITE( ATECA_sub64 )
     auto C = circuitParser::parseCircuit("../tests/circuits/sub64.txt");
     auto feds = atecaGarble::garble(C, 128, util::RO);
     auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
-    auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), 0, hashTCCR());
+    auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), hashTCCR());
     auto y = atecaGarble::decode(Y, get<2>(feds), hashTCCR());
 
 
@@ -272,7 +272,7 @@ BOOST_AUTO_TEST_SUITE( ATECA_sub64 )
         auto C = circuitParser::parseCircuit("../tests/circuits/sub64.txt");
         auto feds = atecaGarble::garble(C, 128, util::RO);
         auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
-        auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), 0, hashTCCR());
+        auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), hashTCCR());
         auto y = atecaGarble::decode(Y, get<2>(feds), hashTCCR());
 
         BOOST_TEST(y.size()==1);
@@ -288,8 +288,8 @@ BOOST_AUTO_TEST_SUITE( ATECA_fast_hash_simple )
     int l = 128;
     auto feds = atecaGarble::garble(C, l, util::fast);
     auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
-    auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), 0, get<6>(feds));
-    auto y = atecaGarble::decode(Y, get<2>(feds), get<7>(feds));
+    auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), get<5>(feds));
+    auto y = atecaGarble::decode(Y, get<2>(feds), get<5>(feds));
     ::uint64_t bloodCompAns = bloodcompatibility::bloodCompLookup(lInput,rInput);
     BOOST_AUTO_TEST_CASE( decoding_Y )
     {
@@ -310,8 +310,8 @@ BOOST_AUTO_TEST_SUITE( ATECA_fasthash_adder64bit )
         auto C = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
         auto feds = atecaGarble::garble(C, k, util::fast);
         auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
-        auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), 0, get<6>(feds));
-        auto y = atecaGarble::decode(Y, get<2>(feds), get<7>(feds));
+        auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), get<5>(feds));
+        auto y = atecaGarble::decode(Y, get<2>(feds), get<5>(feds));
 
         //util::printUintVec(y);
 
@@ -330,8 +330,8 @@ BOOST_AUTO_TEST_SUITE( ATECA_fasthash_adder64bit )
         auto C = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
         auto feds = atecaGarble::garble(C, k, util::fast);
         auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
-        auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), 0, get<6>(feds));
-        auto y = atecaGarble::decode(Y, get<2>(feds), get<7>(feds));
+        auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), get<5>(feds));
+        auto y = atecaGarble::decode(Y, get<2>(feds), get<5>(feds));
 
         //util::printUintVec(y);
 
@@ -354,8 +354,8 @@ BOOST_AUTO_TEST_SUITE( ATECA_fast_sub64 )
         auto C = circuitParser::parseCircuit("../tests/circuits/sub64.txt");
         auto feds = atecaGarble::garble(C, 128, util::fast);
         auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
-        auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), 0, get<6>(feds));
-        auto y = atecaGarble::decode(Y, get<2>(feds), get<7>(feds));
+        auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), get<5>(feds));
+        auto y = atecaGarble::decode(Y, get<2>(feds), get<5>(feds));
 
 
         BOOST_TEST(y.size()==1);
@@ -372,8 +372,8 @@ BOOST_AUTO_TEST_SUITE( ATECA_fast_sub64 )
         auto C = circuitParser::parseCircuit("../tests/circuits/sub64.txt");
         auto feds = atecaGarble::garble(C, 128, util::fast);
         auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
-        auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), 0, get<6>(feds));
-        auto y = atecaGarble::decode(Y, get<2>(feds), get<7>(feds));
+        auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), get<5>(feds));
+        auto y = atecaGarble::decode(Y, get<2>(feds), get<5>(feds));
 
         BOOST_TEST(y.size()==1);
         BOOST_TEST(y[0]==6397);

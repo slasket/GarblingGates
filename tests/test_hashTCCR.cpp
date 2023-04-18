@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_SUITE( TCCR_arbitrary_label_length )
 BOOST_AUTO_TEST_SUITE_END()
 
 
-BOOST_AUTO_TEST_SUITE( TCCR_many_encryptions_128 )
+BOOST_AUTO_TEST_SUITE( TCCR_torture_test_128bit )
     int bitsize = 128;
     BOOST_AUTO_TEST_CASE( test_decryption )
     {
