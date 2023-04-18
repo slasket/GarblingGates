@@ -28,7 +28,8 @@ The libraries mentioned above can be installed on windows using the [vcpkg](http
 ```cmd
 > .\vcpkg\vcpkg integrate install
 ```
-This returns a string on the form: `-DCMAKE_TOOLCHAIN_FILE=[vcpkg root]/scripts/buildsystems/vcpkg.cmake`
+This returns a string on the form: `-DCMAKE_TOOLCHAIN_FILE=[vcpkg root]/scripts/buildsystems/vcpkg.cmake`.
+
 7. Add the -DCMAKE... line to clion's section for cmake options(Build, Execution, Deployment > CMake). Add the line under `CMake options`.
 
 ### Linux
