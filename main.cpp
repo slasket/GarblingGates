@@ -31,7 +31,7 @@ int main() {
     //this is a comment
     vector<string> f = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
     auto x = vector<int>{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-    //vector<int> x = util::genFunctionInput(64);
+    //vector<int> x = util::genFunctionInput(128);
     //vector<string> f = circuitParser::parseCircuit("../tests/circuits/aes_128.txt");
     //vector<int> x = util::genFunctionInput(256);
     timetest(f,x,128,util::baseline, util::RO);

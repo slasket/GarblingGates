@@ -13,6 +13,7 @@
 #include <openssl/sha.h>
 #include <openssl/aes.h>
 #include <openssl/evp.h>
+#include <immintrin.h>
 #include <tuple>
 
 //Namespace for custom types
@@ -240,11 +241,14 @@ public:
         x = (x + (x >> 4)) & 0x0f0f0f0f0f0f0f0f;        //put count of each 8 bits into those 8 bits
         return (x * 0x0101010101010101) >> 56;  //returns left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ...
     }
+    static inline int fastHW(::uint64_t x){
+        return _mm_popcnt_u64(x);
+    }
 
     static inline int vecHW(vector<uint64_t> x) {
         int hw = 0;
         for (int i = 0; i < x.size(); ++i) {
-            hw += hammingWeight(x[i]);
+            hw += fastHW(x[i]);
         }
         return hw;
     }
