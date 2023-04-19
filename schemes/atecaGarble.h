@@ -39,7 +39,7 @@ private:
     //single Gate garble
     static vector<vint>
     Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, const string &typ, int gateNo, int k,
-         hashTCCR c);
+         const hashTCCR& c);
     static vector<vint> DecodingInfo(const vector<tuple<vint, vint>> &D, int k, hashTCCR ctx);
 
     static inline tuple<vint, vint> genInvVar(int k);

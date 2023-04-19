@@ -3,7 +3,7 @@
 //
 #include <boost/test/unit_test.hpp>
 #include "../util/util.h"
-
+#include <intrin.h>
 using namespace boost::unit_test;
 
 BOOST_AUTO_TEST_SUITE( Testing_generateRandomLabels )
@@ -96,11 +96,11 @@ BOOST_AUTO_TEST_SUITE( Test_bit_manipulation )
         ::uint64_t otherhalfones = 6148914691236517824;
         vector<::uint64_t> vec ={9223372036854775809,9223372036854775809,9223372036854775809};
 
-        BOOST_TEST(util::checkBitL2R(one, 63) == 1);
-        BOOST_TEST(util::checkBitL2R(onezerozero, 0) == 1);
-        BOOST_TEST(util::checkBitL2R(twentyisone,20)==1);
-        BOOST_TEST(util::checkBitL2R(halfones,1)==0);
-        BOOST_TEST(util::checkBitL2R(halfones,1)==0);
+        BOOST_TEST(util::ithBitL2R({one}, 63) == 1);
+        BOOST_TEST(util::ithBitL2R({onezerozero}, 0) == 1);
+        BOOST_TEST(util::ithBitL2R({twentyisone},20)==1);
+        BOOST_TEST(util::ithBitL2R({halfones},1)==0);
+        BOOST_TEST(util::ithBitL2R({halfones},1)==0);
         BOOST_TEST(util::ithBitL2R(vec,0)==1);
         BOOST_TEST(util::ithBitL2R(vec,2)==0);
         BOOST_TEST(util::ithBitL2R(vec,63)==1);
@@ -139,6 +139,15 @@ BOOST_AUTO_TEST_SUITE( Test_bit_manipulation )
         BOOST_TEST(util::checkIthBit(vec,56)==0);
         BOOST_TEST(util::checkIthBit(vec,174)==0);
         BOOST_TEST(util::checkIthBit(vec,191)==1);
+
+        BOOST_TEST(util::checkIthBit2(vec,63)==1);
+        BOOST_TEST(util::checkIthBit2(vec,128)==1);
+        BOOST_TEST(util::checkIthBit2(vec,129)==0);
+        BOOST_TEST(util::checkIthBit2(vec,56)==0);
+        BOOST_TEST(util::checkIthBit2(vec,174)==0);
+        BOOST_TEST(util::checkIthBit2(vec,191)==1);
+
+
 
     }
 

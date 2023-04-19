@@ -3,13 +3,17 @@
 //
 
 #include "atecaGarble.h"
-#include "../util/hashTCCR.h"
-
 #include <utility>
+#include <chrono>
+#include <immintrin.h>
 
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::duration;
+using std::chrono::milliseconds;
 
 tuple<vector<vint>, vector<tuple<vint, vint>>, vector<vint>, int, tuple<vint, vint>, hashTCCR>
-    atecaGarble::garble(const vector<std::string> &f, int k, util::hashtype hashtype) {
+atecaGarble::garble(const vector<std::string> &f, int k, util::hashtype hashtype) {
 
     auto e = Init(f, k);
     auto invVar= genInvVar(k);
@@ -37,9 +41,9 @@ vector<tuple<vint,vint>> atecaGarble::Init(vector<std::string> C, int k) {
 }
 
 tuple<vector<vint>, vector<tuple<vint, vint>>, tuple<vint, vint>, hashTCCR>
-        atecaGarble::GarbleCircuit(int k, vector<std::string> C, vector<tuple<vint, vint>> e,
-                                   const tuple<vint, vint> &invVar,
-                                   util::hashtype hashtype) {
+atecaGarble::GarbleCircuit(int k, vector<std::string> C, vector<tuple<vint, vint>> e,
+                           const tuple<vint, vint> &invVar,
+                           util::hashtype hashtype) {
     //my hash struct
     hashTCCR c;
     if (hashtype == util::fast){
@@ -62,12 +66,12 @@ tuple<vector<vint>, vector<tuple<vint, vint>>, tuple<vint, vint>, hashTCCR>
     int firstOutputBit = amountOfWires - outputBits;
     vector<vint> garbledGate;
     int out;
+
+    double gate_time =0;
     //for every Gate in circuit
     for (int i = 3; i < C.size(); ++i) {
         //find input labels
         auto gateInfo = util::split(C[i], ' ');
-        //int inAmount = stoi(gateInfo[0]);
-        //int outAmount = stoi(gateInfo[1]);
 
         int gateNo = (i - 3);
         //inverse gate hack
@@ -78,8 +82,11 @@ tuple<vector<vint>, vector<tuple<vint, vint>>, tuple<vint, vint>, hashTCCR>
             string type = gateInfo[4];
 
             //calculate garble
+            auto t1 = high_resolution_clock::now();
             garbledGate = Gate(wires[in0], invVar, type, gateNo, k, c);
-
+            auto t2 = high_resolution_clock::now();
+            duration<double, std::milli> ms_double = t2 - t1;
+            gate_time += ms_double.count();
         }//normal gate
         else {
             int in0 = stoi(gateInfo[2]);
@@ -88,7 +95,11 @@ tuple<vector<vint>, vector<tuple<vint, vint>>, tuple<vint, vint>, hashTCCR>
             string type = gateInfo[5];
 
             //calculate garble
+            auto t1 = high_resolution_clock::now();
             garbledGate = Gate(wires[in0], wires[in1], type, gateNo, k, c);
+            auto t2 = high_resolution_clock::now();
+            duration<double, std::milli> ms_double = t2 - t1;
+            gate_time += ms_double.count();
         }
         //add Delta to F set for a Gate
         F[gateNo] = garbledGate[2];
@@ -100,16 +111,18 @@ tuple<vector<vint>, vector<tuple<vint, vint>>, tuple<vint, vint>, hashTCCR>
             D[out-firstOutputBit] = {garbledGate[0],garbledGate[1]};
         }
     }
+    cout<< "gate_time,"<< gate_time <<" ms"<<endl;
     return {F,D, invVar,c};
 }
 
 
 vector<vint>
 atecaGarble::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, const string &typ, int gateNo, int k,
-                  hashTCCR c) {
+                  const hashTCCR& c) {
     int internalParam= k * 8;
     //actually compute the hashes
     vint X_00;vint X_01;vint X_10;vint X_11;
+    auto t1 = high_resolution_clock::now();
     if (c.isEmpty()){
         auto [l00,l11] = in0;
         auto [l_0,l_1] = in1;
@@ -136,12 +149,19 @@ atecaGarble::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, co
         X_10 = hashTCCR::hash(a1,b0,c.getIv(),c.getE(),c.getU1(),c.getU2(),gateNo,internalParam);
         X_11 = hashTCCR::hash(a1,b1,c.getIv(),c.getE(),c.getU1(),c.getU2(),gateNo,internalParam);
     }
+    auto t2 = high_resolution_clock::now();
+    duration<double, std::milli> ms_double = t2 - t1;
+    cout <<"hash;"<<ms_double.count()<<endl;
     auto delta = vint((internalParam+64-1)/64);
     auto deltaHW =0;
 
+    t1 = high_resolution_clock::now();
     vint mask = masksForSlices(X_00,X_01,X_10,X_11,typ);
-
+    t2 = high_resolution_clock::now();
+    ms_double = t2 - t1;
+    cout <<"slicing;"<<ms_double.count()<<endl;
     int j =0;
+    t1 = high_resolution_clock::now();
     do {
         //string slice = util::sliceVecL2R(X_00,X_01,X_10,X_11,j);
         if (typ == "AND"){
@@ -150,22 +170,22 @@ atecaGarble::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, co
                 delta= util::setIthBitTo1L2R(delta,j);
                 deltaHW ++;
             }
-        }else if(typ == "XOR"|| typ=="INV"){
-            if (util::ithBitL2R(mask,j)){//if (slice =="0000"|| slice =="1001"||slice=="0110"||slice=="1111"){//
+        }else { //if(typ == "XOR"|| typ=="INV"){
+            if (util::ithBitL2R(mask, j)) {//if (slice =="0000"|| slice =="1001"||slice=="0110"||slice=="1111"){//
                 //update j'th bit of delta to 1
-                delta= util::setIthBitTo1L2R(delta,j);
-                deltaHW ++;
+                delta = util::setIthBitTo1L2R(delta, j);
+                deltaHW++;
             }
-        }else{
-            string a = "Gate not implemented: ";
-            a.append(typ);
-            throw invalid_argument(a);
+            //}else{string a = "Gate not implemented: ";a.append(typ);throw invalid_argument(a);}
         }
         j++;
     } while (deltaHW < k);
+    t2 = high_resolution_clock::now();
+    ms_double = t2 - t1;
+    cout <<"bit_mani;"<<ms_double.count()<<endl;
 
     vint L0; vint L1;
-
+    t1 = high_resolution_clock::now();
     if (typ=="AND"){
         L0 = projection(X_00, delta);
         L1 = projection(X_11, delta);
@@ -173,6 +193,9 @@ atecaGarble::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, co
         L0 = projection(X_00, delta);
         L1 = projection(X_01,delta);
     }
+    t2 = high_resolution_clock::now();
+    ms_double = t2 - t1;
+    cout <<"projection;"<<ms_double.count()<<endl;
     return {L0, L1, delta};
 }
 

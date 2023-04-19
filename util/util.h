@@ -14,6 +14,7 @@
 #include <openssl/aes.h>
 #include <openssl/evp.h>
 #include <immintrin.h>
+#include <intrin.h>
 #include <tuple>
 
 //Namespace for custom types
@@ -130,12 +131,21 @@ public:
     }
     //ith bit of vector might have fucked up indexing, nice (:
     //checks right to left
-    static inline int checkIthBit(vector<uint64_t> ui, int i) {
+    static inline int checkIthBit2(vector<uint64_t> ui, int i) {
         //ith bit
         int bit = i%64;
         //find block
         int block = i / 64;
         return checkBit(ui[block],bit);
+    }
+    static inline int checkIthBit(vector<uint64_t> ui, int i) {
+        //ith bit
+        int bit = i%64;
+        //find block
+        int block = i / 64;
+        ::uint64_t val = ui[block];
+        ::int64_t sval = static_cast<signed long long>(val);
+        return _bittest64(&sval,bit);
     }
 
     static inline int checkBit(::uint64_t num, int i){  //# From https://stackoverflow.com/questions/18111488/convert-integer-to-binary-in-python-and-compare-the-bits
@@ -144,18 +154,25 @@ public:
 
     static inline int ithBitL2R(vector<uint64_t> v, int i){
         int block = i / 64;
-        return  checkBitL2R(v[block],i);
+        int bitval = (63-(i%64));
+        //::uint64_t val = v[block];
+        ::int64_t sval = static_cast<signed long long>(v[block]);
+        return _bittest64(&sval,bitval);
     }
     //this has reverse index, will check from the left most bit
     //checks left to right
     static inline int checkBitL2R(::uint64_t num, int i){  //# From https://stackoverflow.com/questions/18111488/convert-integer-to-binary-in-python-and-compare-the-bits
-        return (num >> (63-(i%64))) & 1;
+        return (num >> i) & 1;
     }
 
     static inline vector<::uint64_t> setIthBitTo1L2R(vector<::uint64_t> vec, int pos){
         int block = pos / 64;
-        auto oneshifted = ((uint64_t)1) << (63-(pos%64));
-        vec[block] |= oneshifted;
+        int index = (63-(pos%64));
+        //auto oneshifted = ((uint64_t)1) << (63-(pos%64));
+        ::int64_t sval = static_cast<signed long long>(vec[block]);
+        _bittestandset64(&sval, index);
+        //vec[block] |= oneshifted;
+        vec[block]=sval;
         return vec;
     }
 
