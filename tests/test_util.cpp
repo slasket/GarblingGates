@@ -81,9 +81,9 @@ BOOST_AUTO_TEST_SUITE( Test_bit_manipulation )
         BOOST_TEST(util::hammingWeight(one)==1);
         BOOST_TEST(util::hammingWeight(max)==64);
         BOOST_TEST(util::hammingWeight(halfones)==32);
-        BOOST_TEST(util::fastHW(one)==1);
-        BOOST_TEST(util::fastHW(max)==64);
-        BOOST_TEST(util::fastHW(halfones)==32);
+        //BOOST_TEST(util::fastHW(one)==1);
+        //BOOST_TEST(util::fastHW(max)==64);
+        //BOOST_TEST(util::fastHW(halfones)==32);
 
     }
     BOOST_AUTO_TEST_CASE( test_ith_bit_L2R )
@@ -139,12 +139,12 @@ BOOST_AUTO_TEST_SUITE( Test_bit_manipulation )
         BOOST_TEST(util::checkIthBit(vec,174)==0);
         BOOST_TEST(util::checkIthBit(vec,191)==1);
 
-        BOOST_TEST(util::checkIthBit2(vec,63)==1);
-        BOOST_TEST(util::checkIthBit2(vec,128)==1);
-        BOOST_TEST(util::checkIthBit2(vec,129)==0);
-        BOOST_TEST(util::checkIthBit2(vec,56)==0);
-        BOOST_TEST(util::checkIthBit2(vec,174)==0);
-        BOOST_TEST(util::checkIthBit2(vec,191)==1);
+        //BOOST_TEST(util::checkIthBit2(vec,63)==1);
+        //BOOST_TEST(util::checkIthBit2(vec,128)==1);
+        //BOOST_TEST(util::checkIthBit2(vec,129)==0);
+        //BOOST_TEST(util::checkIthBit2(vec,56)==0);
+        //BOOST_TEST(util::checkIthBit2(vec,174)==0);
+        //BOOST_TEST(util::checkIthBit2(vec,191)==1);
 
 
 

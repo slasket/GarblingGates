@@ -14,7 +14,6 @@
 #include <openssl/aes.h>
 #include <openssl/evp.h>
 #include <immintrin.h>
-#include <intrin.h>
 #include <tuple>
 
 //Namespace for custom types
@@ -131,32 +130,23 @@ public:
     }
     //ith bit of vector might have fucked up indexing, nice (:
     //checks right to left
-    static inline int checkIthBit2(vector<uint64_t> ui, int i) {
+    static inline int checkIthBit(vector<uint64_t> ui, int i) {
         //ith bit
         int bit = i%64;
         //find block
         int block = i / 64;
         return checkBit(ui[block],bit);
     }
-    static inline int checkIthBit(vector<uint64_t> ui, int i) {
-        //ith bit
-        int bit = i%64;
-        //find block
-        int block = i / 64;
-        auto sval = static_cast<int64_t>(ui[block]);
-        return _bittest64(&sval,bit);
-    }
 
     static inline int checkBit(::uint64_t num, int i){  //# From https://stackoverflow.com/questions/18111488/convert-integer-to-binary-in-python-and-compare-the-bits
         return (num >> i) & 1;
     }
 
-    static inline int ithBitL2R(vector<uint64_t> v, int i){
+    static inline int ithBitL2R(const vector<uint64_t>& v, int i){
         int block = i / 64;
-        int bitval = (63-(i%64));
-        int64_t sval = static_cast<int64_t>(v[block]);
-        return _bittest64(&sval,bitval);
+        return  checkBitL2R(v[block],(63-(i%64)));
     }
+
     //this has reverse index, will check from the left most bit
     //checks left to right
     static inline int checkBitL2R(::uint64_t num, int i){  //# From https://stackoverflow.com/questions/18111488/convert-integer-to-binary-in-python-and-compare-the-bits
@@ -166,17 +156,16 @@ public:
     static inline void setIthBitTo1L2R(vector<uint64_t>* vec, int pos){
         int block = pos / 64;
         int index = (63-(pos%64));
-        ::int64_t val = (*vec)[block];
-        _bittestandset64(&val,index);
-        (*vec)[block]=val;
+        //::int64_t val = (*vec)[block];
+        auto oneshifted = ((uint64_t)1) << index;
+        (*vec)[block] |= oneshifted;
     }
     static inline uint64_t setBit1L2R(uint64_t a, int pos){
         int index = (63-(pos%64));
-        //auto oneshifted = ((uint64_t)1) << (63-(pos%64));
-        auto sval = static_cast<int64_t>(a);
-        _bittestandset64(&sval, index);
-        //vec[block] |= oneshifted;
-        return static_cast<uint64_t>(sval);
+        auto oneshifted = ((uint64_t)1) << (63-(pos%64));
+        //_bittestandset64(&sval, index);
+        a |= oneshifted;
+        return a;
     }
 
     static inline vector<::uint64_t> vecXOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
@@ -261,14 +250,14 @@ public:
         x = (x + (x >> 4)) & 0x0f0f0f0f0f0f0f0f;        //put count of each 8 bits into those 8 bits
         return (x * 0x0101010101010101) >> 56;  //returns left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ...
     }
-    static inline int fastHW(::uint64_t x){
-        return _mm_popcnt_u64(x);
-    }
+    //static inline int fastHW(::uint64_t x){
+    //    return _mm_popcnt_u64(x);
+    //}
 
-    static inline int vecHW(vector<uint64_t> x) {
+    static inline int vecHW(const vector<uint64_t>& x) {
         int hw = 0;
         for (int i = 0; i < x.size(); ++i) {
-            hw += fastHW(x[i]);
+            hw += hammingWeight(x[i]);
         }
         return hw;
     }
@@ -367,7 +356,7 @@ public:
     }
 
     static inline  string
-    sliceVecL2R(vint X_00, vint X_01, vint X_10, vint X_11, int j) {
+    sliceVecL2R(const vint& X_00, const vint& X_01, const vint& X_10, const vint& X_11, int j) {
         int x00j = ithBitL2R(X_00,j);
         int x01j = ithBitL2R(X_01,j);
         int x10j = ithBitL2R(X_10,j);
@@ -376,7 +365,7 @@ public:
     }
 
     static inline string
-    sliceVecL2RAtecaFreeXorSpecial(vint globalDelta, vint X_00, vint X_01, vint X_10, vint X_11, int jprime, int j) {
+    sliceVecL2RAtecaFreeXorSpecial(const vint& globalDelta, const vint& X_00, const vint& X_01, const vint& X_10, const vint& X_11, int jprime, int j) {
         int gdj = ithBitL2R(globalDelta,jprime);
         int x00j = ithBitL2R(X_00,j);
         int x01j = ithBitL2R(X_01,j);
