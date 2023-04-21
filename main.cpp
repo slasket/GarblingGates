@@ -37,6 +37,7 @@ int main() {
     //timetest(f,x,128,util::threehalves, util::RO);
     timetest(f,x,128,util::ateca, util::fast);
     timetest(f,x,128,util::atecaFXOR, util::fast);
+    //xd
     return 0;
 }
 

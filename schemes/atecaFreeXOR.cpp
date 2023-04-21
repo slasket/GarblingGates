@@ -4,6 +4,12 @@
 
 #include "atecaFreeXOR.h"
 #include "atecaGarble.h"
+#include <chrono>
+
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::duration;
+using std::chrono::milliseconds;
 
 tuple<vector<vint>, vector<tuple<vint, vint>>, vector<vint>, int, tuple<vint, vint>, hashTCCR>
     atecaFreeXOR::garble(const vector<std::string> &f, int k, util::hashtype hashtype) {
@@ -105,13 +111,12 @@ atecaFreeXOR::GarbleCircuit(int k, vector<std::string> C, vector<tuple<vint, vin
 
             //calculate garble
             garbledGate = Gate(wires[in0], wires[in1], gateNo, k, globalDelta, c);
-        }
-        //add Delta to F set for a Gate
-        if (gateInfo[4]=="INV" ||gateInfo[5]=="XOR"){
-            F[gateNo] = {};
-        }else{
             F[gateNo] = garbledGate[2];
         }
+        //add Delta to F set for a Gate
+        //if (gateInfo[4]=="INV" ||gateInfo[5]=="XOR"){
+        //    F[gateNo] = {};}else{
+        //    F[gateNo] = garbledGate[2];}
         //the gates output labels
         wires[out] = {garbledGate[0], garbledGate[1]};
         //if g is an output Gate, add it to D
@@ -129,6 +134,7 @@ atecaFreeXOR::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, i
                    const vint &globalDelta, const hashTCCR &c) {
     int internalParam= k * 16;
     vint X_00;vint X_01;vint X_10;vint X_11;
+    auto t1 = high_resolution_clock::now();
     if (c.isEmpty()){
         vint l00 = get<0>(in0);
         l00.insert(l00.end(), get<0>(in1).begin(), get<0>(in1).end());
@@ -155,11 +161,20 @@ atecaFreeXOR::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, i
         X_10 = hashTCCR::hash(a1,b0,c.getIv(),c.getE(),c.getU1(),c.getU2(),gateNo,internalParam);
         X_11 = hashTCCR::hash(a1,b1,c.getIv(),c.getE(),c.getU1(),c.getU2(),gateNo,internalParam);
     }
+    auto t2 = high_resolution_clock::now();
+    duration<double, std::milli> ms_double = t2 - t1;
+    cout <<"hash;"<<ms_double.count()<<endl;
 
     auto delta = vint((internalParam+63)/64);
     int j =0; int deltaHW =0;
 
+    t1 = high_resolution_clock::now();
     auto [d0flags, d1flags] = ateFXorSlicing(X_00, X_01, X_10, X_11);
+    t2 = high_resolution_clock::now();
+    ms_double = t2 - t1;
+    cout <<"slicing;"<<ms_double.count()<<endl;
+
+    t1 = high_resolution_clock::now();
     do {
         int flag = ateFXORSliceCheck(globalDelta, d0flags, d1flags, deltaHW, j);
         //string slice = util::sliceVecL2RAtecaFreeXorSpecial(globalDelta, X_00, X_01, X_10, X_11, deltaHW, j);
@@ -170,9 +185,16 @@ atecaFreeXOR::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, i
         }
         j++;
     }while(deltaHW != k);
+    t2 = high_resolution_clock::now();
+    ms_double = t2 - t1;
+    cout <<"bit_mani;"<<ms_double.count()<<endl;
 
-    vint L0 = util::fastproj(X_00, delta);
-    vint L1 = util::fastproj(X_11, delta);
+    t1 = high_resolution_clock::now();
+    vint L0 = util::fastproj(X_00, delta,k);
+    vint L1 = util::fastproj(X_11, delta,k);
+    t2 = high_resolution_clock::now();
+    ms_double = t2 - t1;
+    cout <<"projection;"<<ms_double.count()<<endl;
 
     return {L0,L1,delta};
 }
@@ -276,15 +298,15 @@ atecaFreeXOR::eval(const vector<vint> &F, const vector<vint> &X, vector<string> 
             //hash input string
             vint hash;
             if (c.isEmpty()){
-            labelA.insert(labelA.end(), labelB.begin(), labelB.end());
-            labelA.push_back(gateNo);
-            auto hashInputLabel = util::uintVec2Str(labelA);
+                labelA.insert(labelA.end(), labelB.begin(), labelB.end());
+                labelA.push_back(gateNo);
+                auto hashInputLabel = util::uintVec2Str(labelA);
                 hash = util::hash_variable(hashInputLabel,internalSecParam);
             }else{
                 hash= hashTCCR::hash(labelA, labelB, c.getIv(), c.getE(), c.getU1(), c.getU2(), gateNo, internalSecParam);
             }
             const auto& delta = F[gateNo];
-            gateOut = util::fastproj(hash, delta);
+            gateOut = util::fastproj(hash, delta,k);
             wires[out] = gateOut;
         }
         //add the output to the output vec

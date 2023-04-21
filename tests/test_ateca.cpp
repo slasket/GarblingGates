@@ -50,12 +50,13 @@ BOOST_AUTO_TEST_SUITE( ATECA_Test_projection )
 
     auto b = vector<::uint64_t>{15,0};
     auto a = vector<::uint64_t>{9,0};
+    int hwb= util::vecHW(b);
 
 
     BOOST_AUTO_TEST_CASE( simpleProjection )
     {
         auto res = util::projection(a,b);
-        auto res2 = util::fastproj(a,b);
+        auto res2 = util::fastproj(a,b,hwb);
         BOOST_TEST(res.size()==1);
         // this is equivilant to 1001 with 60 zeros after
         BOOST_TEST(res[0]==10376293541461622784);
@@ -67,19 +68,21 @@ BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE( ATECA_Test_large_projection )
     auto b = vector<::uint64_t>{152109056,0};
     auto a = vector<::uint64_t>{134283264,0};
+    int hwb= util::vecHW(b);
 
 
     auto b1 = vector<::uint64_t>{4755837490663786591,0};
     auto a1 = vector<::uint64_t>{5908722711386916953,0};
+    int hwb1= util::vecHW(b1);
     BOOST_AUTO_TEST_CASE( largerVec )
     {
         auto res = util::projection(a,b);
-        auto res2 = util::fastproj(a,b);
+        auto res2 = util::fastproj(a,b,hwb);
         BOOST_TEST(res.size()==1);
         BOOST_TEST(res[0]==10376293541461622784);
         BOOST_TEST(res2[0]==10376293541461622784);
         res = util::projection(a1,b1);
-        res2 = util::fastproj(a1,b1);
+        res2 = util::fastproj(a1,b1,hwb1);
         BOOST_TEST(res[0]==14972216961193213952);
         BOOST_TEST(res2[0]==14972216961193213952);
 

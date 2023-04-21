@@ -162,22 +162,12 @@ atecaGarble::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, co
     int j =0;
     t1 = high_resolution_clock::now();
     do {
-        //string slice = util::sliceVecL2R(X_00,X_01,X_10,X_11,j);
         //the choice of masks defines what type of gate were working with
         if (util::ithBitL2R(mask,j)){//if (slice =="0000"|| slice =="0001"||slice=="1110"||slice=="1111"){//
             //or the ith bit with 1
             util::setIthBitTo1L2R(&delta,j);
             deltaHW ++;
         }
-        //if (typ == "AND"){
-        //    if (util::ithBitL2R(mask,j)){//if (slice =="0000"|| slice =="0001"||slice=="1110"||slice=="1111"){//
-        //        //or the ith bit with 1
-        //        delta= util::setIthBitTo1L2R(delta,j);
-        //        deltaHW ++;}
-        //}else if(typ == "XOR"|| typ=="INV"){
-        //    if (util::ithBitL2R(mask, j)) {//if (slice =="0000"|| slice =="1001"||slice=="0110"||slice=="1111"){//
-        //        //update j'th bit of delta to 1
-        //        delta = util::setIthBitTo1L2R(delta, j);deltaHW++;}}
         j++;
     } while (deltaHW < k);
     t2 = high_resolution_clock::now();
@@ -187,11 +177,11 @@ atecaGarble::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, co
     vint L0; vint L1;
     t1 = high_resolution_clock::now();
     if (typ=="AND"){
-        L0 = util::fastproj(X_00, delta);
-        L1 = util::fastproj(X_11, delta);
+        L0 = util::fastproj(X_00, delta,k);
+        L1 = util::fastproj(X_11, delta,k);
     }else if (typ=="XOR"||typ=="INV"){
-        L0 = util::fastproj(X_00, delta);
-        L1 = util::fastproj(X_01,delta);
+        L0 = util::fastproj(X_00, delta,k);
+        L1 = util::fastproj(X_01,delta,k);
     }
     t2 = high_resolution_clock::now();
     ms_double = t2 - t1;
@@ -300,7 +290,7 @@ atecaGarble::eval(const vector<vint> &F, const vector<vint> &X, vector<string> C
             hashout= hashTCCR::hash(labelA, labelB, dc.getIv(), dc.getE(), dc.getU1(), dc.getU2(), gateNo, internalSecParam);
         }
         const auto& delta = F[gateNo];
-        auto gateOut = util::fastproj(hashout, delta);
+        auto gateOut = util::fastproj(hashout, delta,k);
         wires[out] = gateOut;
         if (out >= firstOutputBit){
             outputY[out - firstOutputBit] = gateOut;

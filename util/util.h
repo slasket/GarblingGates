@@ -166,11 +166,9 @@ public:
     static inline void setIthBitTo1L2R(vector<uint64_t>* vec, int pos){
         int block = pos / 64;
         int index = (63-(pos%64));
-        //auto oneshifted = ((uint64_t)1) << (63-(pos%64));
         ::int64_t val = (*vec)[block];
         _bittestandset64(&val,index);
         (*vec)[block]=val;
-        //vec[block] |= oneshifted;
     }
     static inline uint64_t setBit1L2R(uint64_t a, int pos){
         int index = (63-(pos%64));
@@ -474,35 +472,30 @@ public:
         int uintsNeeded = k / 64 + ((k % 64 != 0) ? 1 : 0);
         auto projection = bitset<64>(0);
         auto res = vint(uintsNeeded);
-        int bitsProjected =0; int j =0; int blockNum =0; int flag=0;
+        int bitsProjected =0; int j =0; int blockNum =0;
         do {
             if (util::ithBitL2R(b,j)==1){
                 auto ithBitA = util::ithBitL2R(a,j);
                 projection[(63-(bitsProjected % 64))]= ithBitA;
                 bitsProjected++;
-                if (bitsProjected%64==0 && bitsProjected !=0){
-                    flag =1;
+                if (bitsProjected == k||(bitsProjected%64==0 && bitsProjected !=0)){
+                    uint64_t projUint = projection.to_ullong();
+                    res[blockNum] = projUint;
+                    blockNum++;
                 }
             }
             j++;
-
-            if (flag || bitsProjected == k){
-                uint64_t projUint = projection.to_ullong();
-                res[blockNum] = projUint;
-                blockNum++;
-                flag =0;
-            }
         }while(bitsProjected != k);
         return res;
     }
 
-    static inline vint fastproj(const vint& a, const vint& b) {
+    static inline vint fastproj(const vint& a, const vint& b, const int& k) {
         //projection A o B means take the bit A[i] if B[i]=1
-        int k = util::vecHW(b);
+        //int k = util::vecHW(b);
         int uintsNeeded = k / 64 + ((k % 64 != 0) ? 1 : 0);
         uint64_t projection =0;
         auto res = vint(uintsNeeded);
-        int bitsProjected =0; int j =0; int blockNum =0; int flag=0;
+        int bitsProjected =0; int j =0; int blockNum =0;
         do {
             if (util::ithBitL2R(b,j)==1){
                 auto ithBitA = util::ithBitL2R(a,j);
@@ -510,17 +503,13 @@ public:
                     projection = util::setBit1L2R(projection,bitsProjected);
                 }
                 bitsProjected++;
-                if (bitsProjected%64==0 && bitsProjected !=0){
-                    flag =1;
+                if (bitsProjected == k||(bitsProjected%64==0 && bitsProjected !=0)){
+                    res[blockNum] = projection;
+                    projection=0;
+                    blockNum++;
                 }
             }
             j++;
-            if (flag || bitsProjected == k){
-                res[blockNum] = projection;
-                projection=0;
-                blockNum++;
-                flag =0;
-            }
         }while(bitsProjected != k);
         return res;
     }
