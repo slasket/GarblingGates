@@ -8,14 +8,17 @@
 #include <emmintrin.h>
 #include <immintrin.h>
 #include "util.h"
+#include "string.h"
 
 using namespace std;
 class hashTCCR{
 public:
     //vint key;
-    vint iv;
+    vint iv = {0};
     vint u1;
     vint u2;
+    util::hashtype hashtype = util::RO;
+
     EVP_CIPHER_CTX *e;
 
     const vint &getIv() const {
@@ -30,7 +33,7 @@ public:
         return u2;
     }
     const int &isEmpty() const{
-        if (iv.empty()){
+        if (iv[0] == 0){
             return 1;
         }else{
             return 0;
@@ -41,12 +44,21 @@ public:
         return e;
     }
 
+    util::hashtype getHash() const {
+        return hashtype;
+    }
+
+    void setHash(util::hashtype hash) {
+        hashTCCR::hashtype = hash;
+    }
+
     hashTCCR(int k){//, vint key={0}){
         this->iv = util::genBitsNonCrypto(k);
         //this->key= std::move(key);
         this->u1 = util::genBitsNonCrypto((k/2));
         this->u2 = util::genBitsNonCrypto((k/2));
         this->e = AES_vint_init();
+        this->hashtype = util::fast;
     }
     hashTCCR(){
     }

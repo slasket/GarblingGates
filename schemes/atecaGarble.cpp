@@ -119,10 +119,14 @@ vector<vint>
 atecaGarble::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, const string &typ, int gateNo, int k,
                   const hashTCCR& c) {
     int internalParam= k * 8;
+    auto iv = c.getIv();
+    if(iv[0] == 14){
+        cout<<"ass";
+    }
     //actually compute the hashes
     vint X_00;vint X_01;vint X_10;vint X_11;
     auto t1 = high_resolution_clock::now();
-    if (c.isEmpty()){
+    if (c.getHash()==util::RO){
         auto [l00,l11] = in0;
         auto [l_0,l_1] = in1;
         l00.insert(l00.end(), l_0.begin(), l_0.end());

@@ -3,7 +3,6 @@
 //
 #include <boost/test/unit_test.hpp>
 #include "../util/util.h"
-#include <intrin.h>
 using namespace boost::unit_test;
 
 BOOST_AUTO_TEST_SUITE( Testing_generateRandomLabels )
