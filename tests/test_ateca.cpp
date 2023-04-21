@@ -54,10 +54,12 @@ BOOST_AUTO_TEST_SUITE( ATECA_Test_projection )
 
     BOOST_AUTO_TEST_CASE( simpleProjection )
     {
-        auto res = atecaGarble::projection(a,b);
+        auto res = util::projection(a,b);
+        auto res2 = util::fastproj(a,b);
         BOOST_TEST(res.size()==1);
         // this is equivilant to 1001 with 60 zeros after
         BOOST_TEST(res[0]==10376293541461622784);
+        BOOST_TEST(res2[0]==10376293541461622784);
     }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -71,11 +73,15 @@ BOOST_AUTO_TEST_SUITE( ATECA_Test_large_projection )
     auto a1 = vector<::uint64_t>{5908722711386916953,0};
     BOOST_AUTO_TEST_CASE( largerVec )
     {
-        auto res = atecaGarble::projection(a,b);
+        auto res = util::projection(a,b);
+        auto res2 = util::fastproj(a,b);
         BOOST_TEST(res.size()==1);
         BOOST_TEST(res[0]==10376293541461622784);
-        res = atecaGarble::projection(a1,b1);
+        BOOST_TEST(res2[0]==10376293541461622784);
+        res = util::projection(a1,b1);
+        res2 = util::fastproj(a1,b1);
         BOOST_TEST(res[0]==14972216961193213952);
+        BOOST_TEST(res2[0]==14972216961193213952);
 
     }
 BOOST_AUTO_TEST_SUITE_END()

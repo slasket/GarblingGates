@@ -40,10 +40,13 @@ private:
     Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, int gateNo, int k,
          const vint &globalDelta, const hashTCCR &c);
     static vector<vint>
-    DecodingInfo(const vector<tuple<vint, vint>> &D, int k, hashTCCR ctx);
+    DecodingInfo(const vector<tuple<vint, vint>> &D, int k, const hashTCCR& ctx);
 
     static tuple<vint, vint> genInvVar(int k, vint globalDelta);
 
+    static tuple<vint, vint> ateFXorSlicing(const vint& X_00, const vint& X_01, const vint& X_10, const vint& X_11);
+
+    static int ateFXORSliceCheck(const vint &globalDelta, const vint& d0flags, const vint& d1flags, int hw, int j);
 };
 
 

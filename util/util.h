@@ -143,8 +143,7 @@ public:
         int bit = i%64;
         //find block
         int block = i / 64;
-        ::uint64_t val = ui[block];
-        ::int64_t sval = static_cast<signed long long>(val);
+        auto sval = static_cast<int64_t>(ui[block]);
         return _bittest64(&sval,bit);
     }
 
@@ -155,8 +154,7 @@ public:
     static inline int ithBitL2R(vector<uint64_t> v, int i){
         int block = i / 64;
         int bitval = (63-(i%64));
-        //::uint64_t val = v[block];
-        ::int64_t sval = static_cast<signed long long>(v[block]);
+        int64_t sval = static_cast<int64_t>(v[block]);
         return _bittest64(&sval,bitval);
     }
     //this has reverse index, will check from the left most bit
@@ -173,6 +171,14 @@ public:
         _bittestandset64(&val,index);
         (*vec)[block]=val;
         //vec[block] |= oneshifted;
+    }
+    static inline uint64_t setBit1L2R(uint64_t a, int pos){
+        int index = (63-(pos%64));
+        //auto oneshifted = ((uint64_t)1) << (63-(pos%64));
+        auto sval = static_cast<int64_t>(a);
+        _bittestandset64(&sval, index);
+        //vec[block] |= oneshifted;
+        return static_cast<uint64_t>(sval);
     }
 
     static inline vector<::uint64_t> vecXOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
@@ -441,12 +447,11 @@ public:
         return x;
     }
 
-    static ::uint64_t averageFweight(vector<vint>F){
+    static ::uint64_t averageFweight(const vector<vint>&F){
         uint64_t uintsWBits =0;
-        for (int i = 0; i < F.size(); ++i) {
-            vint delta = F[i];
-            for (int j = 0; j < delta.size(); ++j) {
-                if (delta[j]!=0){
+        for (const vint& delta : F) {
+            for (::uint64_t j : delta) {
+                if (j!=0){
                     uintsWBits +=1;
                 }
             }
@@ -455,6 +460,70 @@ public:
         return xd/F.size();
     }
 
+    /* This projection is left to right meaning the projected bits are placed at the left most index of the bitset
+     * Example:
+     *     a 1010 1010 0000 ...
+     *     b 0111 0110 0000 ...
+     * a o b  010  01       ...
+     * moved up
+     * a o b 0100 1000 0000 ...
+     */
+    static inline vint projection(const vint& a,const vint& b){
+        //projection A o B means take the bit A[i] if B[i]=1
+        int k = util::vecHW(b);
+        int uintsNeeded = k / 64 + ((k % 64 != 0) ? 1 : 0);
+        auto projection = bitset<64>(0);
+        auto res = vint(uintsNeeded);
+        int bitsProjected =0; int j =0; int blockNum =0; int flag=0;
+        do {
+            if (util::ithBitL2R(b,j)==1){
+                auto ithBitA = util::ithBitL2R(a,j);
+                projection[(63-(bitsProjected % 64))]= ithBitA;
+                bitsProjected++;
+                if (bitsProjected%64==0 && bitsProjected !=0){
+                    flag =1;
+                }
+            }
+            j++;
+
+            if (flag || bitsProjected == k){
+                uint64_t projUint = projection.to_ullong();
+                res[blockNum] = projUint;
+                blockNum++;
+                flag =0;
+            }
+        }while(bitsProjected != k);
+        return res;
+    }
+
+    static inline vint fastproj(const vint& a, const vint& b) {
+        //projection A o B means take the bit A[i] if B[i]=1
+        int k = util::vecHW(b);
+        int uintsNeeded = k / 64 + ((k % 64 != 0) ? 1 : 0);
+        uint64_t projection =0;
+        auto res = vint(uintsNeeded);
+        int bitsProjected =0; int j =0; int blockNum =0; int flag=0;
+        do {
+            if (util::ithBitL2R(b,j)==1){
+                auto ithBitA = util::ithBitL2R(a,j);
+                if (ithBitA==1){
+                    projection = util::setBit1L2R(projection,bitsProjected);
+                }
+                bitsProjected++;
+                if (bitsProjected%64==0 && bitsProjected !=0){
+                    flag =1;
+                }
+            }
+            j++;
+            if (flag || bitsProjected == k){
+                res[blockNum] = projection;
+                projection=0;
+                blockNum++;
+                flag =0;
+            }
+        }while(bitsProjected != k);
+        return res;
+    }
 };
 
 

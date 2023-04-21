@@ -5,7 +5,6 @@
 #include "atecaGarble.h"
 #include <utility>
 #include <chrono>
-#include <immintrin.h>
 
 using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
@@ -164,20 +163,21 @@ atecaGarble::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, co
     t1 = high_resolution_clock::now();
     do {
         //string slice = util::sliceVecL2R(X_00,X_01,X_10,X_11,j);
-        if (typ == "AND"){
-            if (util::ithBitL2R(mask,j)){//if (slice =="0000"|| slice =="0001"||slice=="1110"||slice=="1111"){//
-                //or the ith bit with 1
-                util::setIthBitTo1L2R(&delta,j);
-                deltaHW ++;
-            }
-        }else { //if(typ == "XOR"|| typ=="INV"){
-            if (util::ithBitL2R(mask, j)) {//if (slice =="0000"|| slice =="1001"||slice=="0110"||slice=="1111"){//
-                //update j'th bit of delta to 1
-                util::setIthBitTo1L2R(&delta, j);
-                deltaHW++;
-            }
-            //}else{string a = "Gate not implemented: ";a.append(typ);throw invalid_argument(a);}
+        //the choice of masks defines what type of gate were working with
+        if (util::ithBitL2R(mask,j)){//if (slice =="0000"|| slice =="0001"||slice=="1110"||slice=="1111"){//
+            //or the ith bit with 1
+            util::setIthBitTo1L2R(&delta,j);
+            deltaHW ++;
         }
+        //if (typ == "AND"){
+        //    if (util::ithBitL2R(mask,j)){//if (slice =="0000"|| slice =="0001"||slice=="1110"||slice=="1111"){//
+        //        //or the ith bit with 1
+        //        delta= util::setIthBitTo1L2R(delta,j);
+        //        deltaHW ++;}
+        //}else if(typ == "XOR"|| typ=="INV"){
+        //    if (util::ithBitL2R(mask, j)) {//if (slice =="0000"|| slice =="1001"||slice=="0110"||slice=="1111"){//
+        //        //update j'th bit of delta to 1
+        //        delta = util::setIthBitTo1L2R(delta, j);deltaHW++;}}
         j++;
     } while (deltaHW < k);
     t2 = high_resolution_clock::now();
@@ -187,11 +187,11 @@ atecaGarble::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, co
     vint L0; vint L1;
     t1 = high_resolution_clock::now();
     if (typ=="AND"){
-        L0 = projection(X_00, delta);
-        L1 = projection(X_11, delta);
+        L0 = util::fastproj(X_00, delta);
+        L1 = util::fastproj(X_11, delta);
     }else if (typ=="XOR"||typ=="INV"){
-        L0 = projection(X_00, delta);
-        L1 = projection(X_01,delta);
+        L0 = util::fastproj(X_00, delta);
+        L1 = util::fastproj(X_01,delta);
     }
     t2 = high_resolution_clock::now();
     ms_double = t2 - t1;
@@ -200,47 +200,10 @@ atecaGarble::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, co
 }
 
 
-/* This projection is left to right meaning the projected bits are placed at the left most index of the bitset
- * Example:
- *     a 1010 1010 0000 ...
- *     b 0111 0110 0000 ...
- * a o b  010  01       ...
- * moved up
- * a o b 0100 1000 0000 ...
- */
-vint atecaGarble::projection(const vint& a, const vint& b) {
-    //projection A o B means take the bit A[i] if B[i]=1
-    int l = util::vecHW(b);
-    int uintsNeeded = l/64 + ((l%64!=0) ? 1 : 0);
-    auto projection = bitset<64>(0);
-    auto res = vint(uintsNeeded);
-    int bitsProjected =0; int j =0; int blockNum =0; int flag=0;
-    do {
-        if (util::ithBitL2R(b,j)==1){
-            auto ithBitA = util::ithBitL2R(a,j);
-            projection[(63-(bitsProjected % 64))]= ithBitA;
-            bitsProjected++;
-            if (bitsProjected%64==0 && bitsProjected !=0){
-                flag =1;
-            }
-        }
-        j++;
-
-        if (flag || bitsProjected==l){
-            ::uint64_t projUint = projection.to_ullong();
-            res[blockNum] = projUint;
-            blockNum++;
-            flag =0;
-        }
-    }while(bitsProjected!=l);
-
-    return res;
-}
 
 
 
-
-vector<vint> atecaGarble::DecodingInfo(const vector<tuple<vint, vint>> &D, int k, hashTCCR ctx) {
+vector<vint> atecaGarble::DecodingInfo(const vector<tuple<vint, vint>> &D, int k, const hashTCCR& ctx) {
     //RO from 2l->1
     vector<vint> d(D.size());
     for (int i = 0; i < D.size(); ++i) {
@@ -296,7 +259,7 @@ atecaGarble::encode(vector<tuple<vint, vint>> e,
 
 vector<vint>
 atecaGarble::eval(const vector<vint> &F, const vector<vint> &X, vector<string> C, int k, tuple<vint, vint> invVar,
-                  hashTCCR dc) {
+                  const hashTCCR& dc) {
     int internalSecParam = 8 * k;
     int outputBits =stoi( util::split(C[2], ' ')[1]);
     int amountOfWires = stoi(util::split(C[0], ' ')[1]);
@@ -337,7 +300,7 @@ atecaGarble::eval(const vector<vint> &F, const vector<vint> &X, vector<string> C
             hashout= hashTCCR::hash(labelA, labelB, dc.getIv(), dc.getE(), dc.getU1(), dc.getU2(), gateNo, internalSecParam);
         }
         const auto& delta = F[gateNo];
-        auto gateOut = projection(hashout, delta);
+        auto gateOut = util::fastproj(hashout, delta);
         wires[out] = gateOut;
         if (out >= firstOutputBit){
             outputY[out - firstOutputBit] = gateOut;
@@ -346,7 +309,7 @@ atecaGarble::eval(const vector<vint> &F, const vector<vint> &X, vector<string> C
     return outputY;
 }
 
-vint atecaGarble::decode(vector<vint> Y, vector<vint> d, hashTCCR dc) {
+vint atecaGarble::decode(vector<vint> Y, vector<vint> d, const hashTCCR& dc) {
     auto outbits = Y.size();
     auto unit64sNeeded = outbits/64 + ((outbits%64!=0) ? 1 : 0);
     auto outputSets =  vector<bitset<64>>(unit64sNeeded);
@@ -376,40 +339,37 @@ tuple<vint, vint> atecaGarble::genInvVar(int k) {
     return {lw0,lw1};
 }
 
-vint atecaGarble::masksForSlices(vint X_00, vint X_01, vint X_10, vint X_11, string typ) {
-//and all labels with 0 and uint_max
-    //l00a0 is X_00 inverted and l00a1 is X_00 anded with 1
+vint inline atecaGarble::masksForSlices(const vint& X_00, const vint& X_01, const vint& X_10, const vint& X_11, const string& typ) {
+    //l00a0 is X_00 inverted
     auto l00a0 = util::vecInvert(X_00);
-    auto l00a1 = util::vecAndStatic(X_00, UINT64_MAX);
-    //l01a0 and l01a1
+    //l01a0
     auto l01a0 = util::vecInvert(X_01);
-    auto l01a1 = util::vecAndStatic(X_01, UINT64_MAX);
-    //l01a0 and l01a1
+    //l01a0
     auto l10a0 = util::vecInvert(X_10);
-    auto l10a1 = util::vecAndStatic(X_10, UINT64_MAX);
-    //l11a0 and l11a1
+    //l11a0
     auto l11a0 = util::vecInvert(X_11);
-    auto l11a1 = util::vecAndStatic(X_11, UINT64_MAX);
 
     //now that you have vectors with 1 for each 0 and 1 for each 1
     //compute mask 0000 =  l00a0 ^ l01a0 ^ l10a0 ^ l11a0
     //masks that and, xor share
     auto mask0000 =  util::vecAND(util::vecAND(util::vecAND(l00a0, l01a0), l10a0), l11a0);///0000
-    auto mask1111 =  util::vecAND(util::vecAND(util::vecAND(l00a1, l01a1), l10a1), l11a1);///1111
-    //and specific masks
-    auto mask0001 =  util::vecAND(util::vecAND(util::vecAND(l00a0, l01a0), l10a0), l11a1);///0001
-    auto mask1110 =  util::vecAND(util::vecAND(util::vecAND(l00a1, l01a1), l10a1), l11a0);///1110
-    //xor specific masks
-    auto mask1001 =  util::vecAND(util::vecAND(util::vecAND(l00a1, l01a0), l10a0), l11a1);///1001
-    auto mask0110 =  util::vecAND(util::vecAND(util::vecAND(l00a0, l01a1), l10a1), l11a0);///0110
+    auto mask1111 =  util::vecAND(util::vecAND(util::vecAND(X_00, X_01), X_10), X_11);///1111
 
     vector<::uint64_t> masksORed;
     //or with 0000 0001 1110 or 1111
     //if there is a one in this vector one of the masks had an 1 in the ith bit
     if (typ=="AND"){
+        //and specific masks
+        auto mask0001 =  util::vecAND(util::vecAND(util::vecAND(l00a0, l01a0), l10a0), X_11);///0001
+        auto mask1110 =  util::vecAND(util::vecAND(util::vecAND(X_00, X_01), X_10), l11a0);///1110
+
         masksORed = util::vecOR(util::vecOR(util::vecOR(mask0000,mask1111),mask0001),mask1110);
         //or with 0000 1001 0110 1111
-    }else if (typ=="XOR"| typ=="INV"){
+    }else{//if (typ=="XOR"| typ=="INV")
+        //xor and inv specific masks
+        auto mask1001 =  util::vecAND(util::vecAND(util::vecAND(X_00, l01a0), l10a0), X_11);///1001
+        auto mask0110 =  util::vecAND(util::vecAND(util::vecAND(l00a0, X_01), X_10), l11a0);///0110
+
         masksORed =util::vecOR(util::vecOR(util::vecOR(mask0000,mask1111),mask1001),mask0110);
     }
     return masksORed;
