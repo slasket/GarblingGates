@@ -229,7 +229,7 @@ void sliceTest() {
         string slice = util::sliceVecL2RAtecaFreeXorSpecial(globalDelta, X_00, X_01, X_10, X_11, deltaHW, j);
         ///slices of importance "00000", "10001", "11110", "01111"
         if (slice=="00000"||slice=="10001"||slice=="11110"||slice=="01111"){
-            delta=util::setIthBitTo1L2R(delta,j);
+            util::setIthBitTo1L2R(&delta,j);
             deltaHW++;
         }
         j++;

@@ -115,8 +115,8 @@ BOOST_AUTO_TEST_SUITE( Test_bit_manipulation )
     BOOST_AUTO_TEST_CASE( set_ith_bit_L2R )
     {
         vector<uint64_t> vec = {0,0};
-        vec = util::setIthBitTo1L2R(vec,0);
-        vec= util::setIthBitTo1L2R(vec,127);
+        util::setIthBitTo1L2R(&vec,0);
+        util::setIthBitTo1L2R(&vec,127);
 
         BOOST_TEST(vec[0]== 9223372036854775808);
         BOOST_TEST(vec[1]== 1);

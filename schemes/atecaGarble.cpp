@@ -167,13 +167,13 @@ atecaGarble::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, co
         if (typ == "AND"){
             if (util::ithBitL2R(mask,j)){//if (slice =="0000"|| slice =="0001"||slice=="1110"||slice=="1111"){//
                 //or the ith bit with 1
-                delta= util::setIthBitTo1L2R(delta,j);
+                util::setIthBitTo1L2R(&delta,j);
                 deltaHW ++;
             }
         }else { //if(typ == "XOR"|| typ=="INV"){
             if (util::ithBitL2R(mask, j)) {//if (slice =="0000"|| slice =="1001"||slice=="0110"||slice=="1111"){//
                 //update j'th bit of delta to 1
-                delta = util::setIthBitTo1L2R(delta, j);
+                util::setIthBitTo1L2R(&delta, j);
                 deltaHW++;
             }
             //}else{string a = "Gate not implemented: ";a.append(typ);throw invalid_argument(a);}

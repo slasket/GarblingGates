@@ -165,15 +165,14 @@ public:
         return (num >> i) & 1;
     }
 
-    static inline vector<::uint64_t> setIthBitTo1L2R(vector<::uint64_t> vec, int pos){
+    static inline void setIthBitTo1L2R(vector<uint64_t>* vec, int pos){
         int block = pos / 64;
         int index = (63-(pos%64));
         //auto oneshifted = ((uint64_t)1) << (63-(pos%64));
-        ::int64_t sval = static_cast<signed long long>(vec[block]);
-        _bittestandset64(&sval, index);
+        ::int64_t val = (*vec)[block];
+        _bittestandset64(&val,index);
+        (*vec)[block]=val;
         //vec[block] |= oneshifted;
-        vec[block]=sval;
-        return vec;
     }
 
     static inline vector<::uint64_t> vecXOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
