@@ -158,24 +158,27 @@ atecaFreeXOR::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, i
 
     auto delta = vint((internalParam+63)/64);
     int j =0; int deltaHW =0;
+
+    auto [d0flags, d1flags] = ateFXorSlicing(X_00, X_01, X_10, X_11);
     do {
-        string slice = util::sliceVecL2RAtecaFreeXorSpecial(globalDelta, X_00, X_01, X_10, X_11, deltaHW, j);
+        int flag = ateFXORSliceCheck(globalDelta, d0flags, d1flags, deltaHW, j);
+        //string slice = util::sliceVecL2RAtecaFreeXorSpecial(globalDelta, X_00, X_01, X_10, X_11, deltaHW, j);
         ///slices of importance "00000", "10001", "11110", "01111"
-        if (slice=="00000"||slice=="10001"||slice=="11110"||slice=="01111"){
+        if(flag){//if (slice=="00000"||slice=="10001"||slice=="11110"||slice=="01111"){//
             delta=util::setIthBitTo1L2R(delta,j);
             deltaHW++;
         }
         j++;
     }while(deltaHW != k);
 
-    vint L0 = atecaGarble::projection(X_00, delta);
-    vint L1 = atecaGarble::projection(X_11, delta);
+    vint L0 = util::fastproj(X_00, delta);
+    vint L1 = util::fastproj(X_11, delta);
 
     return {L0,L1,delta};
 }
 
 vector<vint>
-atecaFreeXOR::DecodingInfo(const vector<tuple<vint, vint>> &D, int k, hashTCCR ctx) {
+atecaFreeXOR::DecodingInfo(const vector<tuple<vint, vint>> &D, int k, const hashTCCR& ctx) {
     //RO from 2l->1
     vector<vint> d(D.size());
     for (int i = 0; i < D.size(); ++i) {
@@ -281,7 +284,7 @@ atecaFreeXOR::eval(const vector<vint> &F, const vector<vint> &X, vector<string> 
                 hash= hashTCCR::hash(labelA, labelB, c.getIv(), c.getE(), c.getU1(), c.getU2(), gateNo, internalSecParam);
             }
             const auto& delta = F[gateNo];
-            gateOut = atecaGarble::projection(hash, delta);
+            gateOut = util::fastproj(hash, delta);
             wires[out] = gateOut;
         }
         //add the output to the output vec
@@ -315,5 +318,44 @@ vint atecaFreeXOR::decode(vector<vint> Y, vector<vint> d, const hashTCCR& dc) {
         y[i] = outputSets[i].to_ullong();
     }
     return y;
+}
+
+inline tuple<vint, vint> atecaFreeXOR::ateFXorSlicing(const vint& X_00, const vint& X_01, const vint& X_10, const vint& X_11) {
+    //l00a0 is X_00 inverted
+    auto l00a0 = util::vecInvert(X_00);
+    //l01a0
+    auto l01a0 = util::vecInvert(X_01);
+    //l01a0
+    auto l10a0 = util::vecInvert(X_10);
+    //l11a0
+    auto l11a0 = util::vecInvert(X_11);
+
+    ///truthbits for Delta=0
+    auto mask0000=util::vecAND(util::vecAND(util::vecAND(l00a0,l01a0),l10a0),l11a0);///0000
+    auto mask1111=util::vecAND(util::vecAND(util::vecAND(X_00,X_01),X_10),X_11);///1111
+    ///truthbits for delta=1
+    auto mask0001=util::vecAND(util::vecAND(util::vecAND(l00a0,l01a0),l10a0),X_11);///0001
+    auto mask1110=util::vecAND(util::vecAND(util::vecAND(X_00,X_01),X_10),l11a0);///1110
+
+    auto dlt0Mask = util::vecOR(mask0000,mask1111);
+    auto dlt1Mask = util::vecOR(mask0001,mask1110);
+    return{dlt0Mask,dlt1Mask};
+
+}
+
+inline int atecaFreeXOR::ateFXORSliceCheck(const vint &globalDelta, const vint& d0flags, const vint& d1flags, int hw, int j) {
+    int gdj = util::ithBitL2R(globalDelta,hw);
+    if (gdj){
+        //if gdj is 1 check d1flags for a 1
+        if (util::ithBitL2R(d1flags,j)){
+            return 1;
+        }
+    }else{
+        //gdj is 0 check d0flags for a 1
+        if (util::ithBitL2R(d0flags,j)){
+            return 1;
+        }
+    }
+    return 0;
 }
 

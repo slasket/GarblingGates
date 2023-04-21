@@ -28,7 +28,6 @@ void threehalves_Test();
 void timetest(const vector<string>&f, const vector<int>& x, int k, util::scheme type, util::hashtype hashfunc);
 
 int main() {
-    //this is a comment
     //vector<string> f = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
     //auto x = vector<int>{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     //vector<int> x = util::genFunctionInput(128);
@@ -37,7 +36,7 @@ int main() {
     //timetest(f,x,128,util::baseline, util::RO);
     //timetest(f,x,128,util::threehalves, util::RO);
     timetest(f,x,128,util::ateca, util::fast);
-    //timetest(f,x,128,util::atecaFXOR, util::fast);
+    timetest(f,x,128,util::atecaFXOR, util::fast);
     return 0;
 }
 
@@ -157,7 +156,7 @@ void threehalves_Test() {
     int rInput = 1;
     auto xb = vector<int>{1,1,0,0,0,1,1};
     auto Cb = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
-    int lb = 64;
+
     auto [Fb, eb, db, icb, hashb] = threeHalves::garble(Cb, 128);
     auto encLabelsb = threeHalves::encode(eb, xb);
     auto Yb = threeHalves::eval(Fb, encLabelsb, Cb, 128, icb, hashb);
@@ -174,7 +173,6 @@ void threehalves_Test() {
     auto encLabels = threeHalves::encode(e, x);
     auto Y = threeHalves::eval(F, encLabels, smalltest, k, ic, hash, h);
     auto y = threeHalves::decode(d, Y, smalltest, k);
-    (y.size() == 1);
     if(y.size() == 1) {
         cout << y[0] << endl;
     }
@@ -183,7 +181,6 @@ void threehalves_Test() {
     encLabels = threeHalves::encode(e1, x);
     Y = threeHalves::eval(F1, encLabels, smalltest, k, ic1, hash1, h);
     y = threeHalves::decode(d1, Y, smalltest, k);
-    (y.size() == 1);
     if(y.size() == 1) {
         cout << y[0] << endl;
     }
@@ -236,11 +233,11 @@ void sliceTest() {
     }while(deltaHW!=8);
     util::printUintVec(delta);
 
-    vint L0 = atecaGarble::projection(X_00, delta);
-    vint Lx01 = atecaGarble::projection(X_01, delta);
-    vint Lx10 = atecaGarble::projection(X_10, delta);
+    vint L0 = util::projection(X_00, delta);
+    vint Lx01 = util::projection(X_01, delta);
+    vint Lx10 = util::projection(X_10, delta);
 
-    vint L1 = atecaGarble::projection(X_11, delta);
+    vint L1 = util::projection(X_11, delta);
     util::printUintVec(L0);
     util::printUintVec(Lx01);
     util::printUintVec(Lx10);

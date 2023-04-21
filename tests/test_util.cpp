@@ -108,7 +108,6 @@ BOOST_AUTO_TEST_SUITE( Test_bit_manipulation )
         BOOST_TEST(util::ithBitL2R(vec,127)==1);
         BOOST_TEST(util::ithBitL2R(vec,128)==1);
         BOOST_TEST(util::ithBitL2R(vec,191)==1);
-
     }
 
 
