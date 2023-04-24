@@ -28,28 +28,15 @@ void threehalves_Test();
 void timetest(const vector<string>&f, const vector<int>& x, int k, util::scheme type, util::hashtype hashfunc);
 
 int main() {
-
-    auto C = circuitParser::parseCircuit("../tests/circuits/xorTest.txt");
-    int l = 128;
-    auto finput01 = vector<int>{0,1};
-    auto Fastfeds01 = atecaGarble::garble(C, l, util::fast);
-    auto FastX01 = atecaGarble::encode(get<1>(Fastfeds01), finput01);
-    auto FastY01 = atecaGarble::eval(get<0>(Fastfeds01), FastX01, C, get<3>(Fastfeds01), get<4>(Fastfeds01), get<5>(Fastfeds01));
-    auto Fasty01 = atecaGarble::decode(FastY01, get<2>(Fastfeds01), get<5>(Fastfeds01));
-
-
-    cout<< Fasty01[0]<< endl;
-
-
     //vector<string> f = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
     //auto x = vector<int>{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     //vector<int> x = util::genFunctionInput(128);
-    //vector<string> f = circuitParser::parseCircuit("../tests/circuits/Keccak_f.txt");
-    //vector<int> x = util::genFunctionInput(1600);
-    //timetest(f,x,128,util::baseline, util::RO);   ½
-    //timetest(f,x,128,util::threehalves, util::fast);
-    //timetest(f,x,128,util::ateca, util::fast);
-    //timetest(f,x,128,util::atecaFXOR, util::fast);
+    vector<string> f = circuitParser::parseCircuit("../tests/circuits/Keccak_f.txt");
+    vector<int> x = util::genFunctionInput(1600);
+    timetest(f,x,128,util::baseline, util::RO);
+    timetest(f,x,128,util::threehalves, util::fast);
+    timetest(f,x,128,util::ateca, util::fast);
+    timetest(f,x,128,util::atecaFXOR, util::fast);
     return 0;
 }
 
