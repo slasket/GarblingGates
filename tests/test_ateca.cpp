@@ -290,6 +290,48 @@ BOOST_AUTO_TEST_SUITE( ATECA_sub64 )
 
 BOOST_AUTO_TEST_SUITE_END()
 
+BOOST_AUTO_TEST_SUITE( ATECA_fast_v_slow_xor )
+    auto C = circuitParser::parseCircuit("../tests/circuits/xorTest.txt");
+    int l = 128;
+    BOOST_AUTO_TEST_CASE( xor_slow )
+    {
+        auto finput00 = vector<int>{0,0};
+        auto Slowfeds00 = atecaGarble::garble(C, l, util::RO);
+        auto SlowX00 = atecaGarble::encode(get<1>(Slowfeds00), finput00);
+        auto SlowY00 = atecaGarble::eval(get<0>(Slowfeds00), SlowX00, C, get<3>(Slowfeds00), get<4>(Slowfeds00), hashTCCR());
+        auto Slowy00 = atecaGarble::decode(SlowY00, get<2>(Slowfeds00), hashTCCR());
+
+        auto finput01 = vector<int>{0,1};
+        auto Slowfeds01 = atecaGarble::garble(C, l, util::RO);
+        auto SlowX01 = atecaGarble::encode(get<1>(Slowfeds01), finput01);
+        auto SlowY01 = atecaGarble::eval(get<0>(Slowfeds01), SlowX01, C, get<3>(Slowfeds01), get<4>(Slowfeds01), hashTCCR());
+        auto Slowy01 = atecaGarble::decode(SlowY01, get<2>(Slowfeds01), hashTCCR());
+
+        BOOST_TEST(Slowy00[0]==0);
+        BOOST_TEST(Slowy01[0]==1);
+
+    }
+    BOOST_AUTO_TEST_CASE( xor_fast )
+    {
+        auto finput00 = vector<int>{0,0};
+        auto Fastfeds00 = atecaGarble::garble(C, l, util::fast);
+        auto FastX00 = atecaGarble::encode(get<1>(Fastfeds00), finput00);
+        auto FastY00 = atecaGarble::eval(get<0>(Fastfeds00), FastX00, C, get<3>(Fastfeds00), get<4>(Fastfeds00), get<5>(Fastfeds00));
+        auto Fasty00 = atecaGarble::decode(FastY00, get<2>(Fastfeds00), get<5>(Fastfeds00));
+
+        auto finput01 = vector<int>{0,1};
+        auto Fastfeds01 = atecaGarble::garble(C, l, util::fast);
+        auto FastX01 = atecaGarble::encode(get<1>(Fastfeds01), finput01);
+        auto FastY01 = atecaGarble::eval(get<0>(Fastfeds01), FastX01, C, get<3>(Fastfeds01), get<4>(Fastfeds01), get<5>(Fastfeds01));
+        auto Fasty01 = atecaGarble::decode(FastY01, get<2>(Fastfeds01), get<5>(Fastfeds01));
+
+        BOOST_TEST(Fasty00[0]==0);
+        BOOST_TEST(Fasty01[0]==1);
+    }
+
+BOOST_AUTO_TEST_SUITE_END()
+
+
 BOOST_AUTO_TEST_SUITE( ATECA_fast_hash_simple )
     int lInput =6; int rInput = 1;
     auto finput = vector<int>{1,1,0,0,0,1,1};

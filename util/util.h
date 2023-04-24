@@ -488,7 +488,7 @@ public:
         int bitsProjected =0; int j =0; int blockNum =0;
         do {
             auto blockIndex = j / 64;
-            auto intIndex = (63 - (fast_modulo(j,64)));
+            int intIndex = (63 - (fast_modulo(j,64)));
             //if the ith bit of b ==1 find the ith bit in a and set the projection bit to that value
             if (util::checkBitL2R(b[blockIndex], intIndex) == 1){
                 auto ithBitA = util::checkBitL2R(a[blockIndex],intIndex);

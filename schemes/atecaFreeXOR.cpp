@@ -134,8 +134,8 @@ atecaFreeXOR::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, i
                    const vint &globalDelta, const hashTCCR &c) {
     int internalParam= k * 16;
     vint X_00;vint X_01;vint X_10;vint X_11;
-    auto t1 = high_resolution_clock::now();
-    if (c.isEmpty()){
+    //auto t1 = high_resolution_clock::now();
+    if (c.getHash()==util::RO){
         vint l00 = get<0>(in0);
         l00.insert(l00.end(), get<0>(in1).begin(), get<0>(in1).end());
         l00.push_back(gateNo);
@@ -161,20 +161,20 @@ atecaFreeXOR::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, i
         X_10 = hashTCCR::hash(a1,b0,c.getIv(),c.getE(),c.getU1(),c.getU2(),gateNo,internalParam);
         X_11 = hashTCCR::hash(a1,b1,c.getIv(),c.getE(),c.getU1(),c.getU2(),gateNo,internalParam);
     }
-    auto t2 = high_resolution_clock::now();
-    duration<double, std::milli> ms_double = t2 - t1;
-    cout <<"hash;"<<ms_double.count()<<endl;
+    //auto t2 = high_resolution_clock::now();
+    //duration<double, std::milli> ms_double = t2 - t1;
+    //cout <<"hash;"<<ms_double.count()<<endl;
 
     auto delta = vint((internalParam+63)/64);
     int j =0; int deltaHW =0;
 
-    t1 = high_resolution_clock::now();
+    //t1 = high_resolution_clock::now();
     auto [d0flags, d1flags] = ateFXorSlicing(X_00, X_01, X_10, X_11);
-    t2 = high_resolution_clock::now();
-    ms_double = t2 - t1;
-    cout <<"slicing;"<<ms_double.count()<<endl;
+    //t2 = high_resolution_clock::now();
+    //ms_double = t2 - t1;
+    //cout <<"slicing;"<<ms_double.count()<<endl;
 
-    t1 = high_resolution_clock::now();
+    //t1 = high_resolution_clock::now();
     do {
         int flag = ateFXORSliceCheck(globalDelta, d0flags, d1flags, deltaHW, j);
         //string slice = util::sliceVecL2RAtecaFreeXorSpecial(globalDelta, X_00, X_01, X_10, X_11, deltaHW, j);
@@ -185,22 +185,22 @@ atecaFreeXOR::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, i
         }
         j++;
     }while(deltaHW != k);
-    t2 = high_resolution_clock::now();
-    ms_double = t2 - t1;
-    cout <<"bit_mani;"<<ms_double.count()<<endl;
+    //t2 = high_resolution_clock::now();
+    //ms_double = t2 - t1;
+    //cout <<"bit_mani;"<<ms_double.count()<<endl;
 
-    t1 = high_resolution_clock::now();
+    //t1 = high_resolution_clock::now();
     vint L0 = util::fastproj(X_00, delta,k);
     vint L1 = util::fastproj(X_11, delta,k);
-    t2 = high_resolution_clock::now();
-    ms_double = t2 - t1;
-    cout <<"projection;"<<ms_double.count()<<endl;
+    //t2 = high_resolution_clock::now();
+    //ms_double = t2 - t1;
+    //cout <<"projection;"<<ms_double.count()<<endl;
 
     return {L0,L1,delta};
 }
 
 vector<vint>
-atecaFreeXOR::DecodingInfo(const vector<tuple<vint, vint>> &D, int k, const hashTCCR& ctx) {
+atecaFreeXOR::DecodingInfo(const vector<tuple<vint, vint>> &D, int k, const hashTCCR& c) {
     //RO from 2l->1
     vector<vint> d(D.size());
     for (int i = 0; i < D.size(); ++i) {
@@ -215,7 +215,7 @@ atecaFreeXOR::DecodingInfo(const vector<tuple<vint, vint>> &D, int k, const hash
         int lsbHL1;
         do {
             di = util::genBitsNonCrypto(k);
-            if (ctx.isEmpty()){
+            if (c.hashtype==util::RO){
                 L0wdi.clear();
                 L0wdi.insert(L0wdi.begin(), L0.begin(), L0.end());
                 L0wdi.insert(L0wdi.end(), di.begin(), di.end());
@@ -226,8 +226,8 @@ atecaFreeXOR::DecodingInfo(const vector<tuple<vint, vint>> &D, int k, const hash
                 hashL1 = util::hash_variable(util::uintVec2Str(L1wdi), k);
             }else{
             //this is not the cleanest code ever
-                hashL0 = hashTCCR::hash(L0,di,ctx.getIv(),ctx.getE(),ctx.getU1(),ctx.getU2(),0,k);
-                hashL1 = hashTCCR::hash(L1,di,ctx.getIv(),ctx.getE(),ctx.getU1(),ctx.getU2(),0,k);
+                hashL0 = hashTCCR::hash(L0, di, c.getIv(), c.getE(), c.getU1(), c.getU2(), 0, k);
+                hashL1 = hashTCCR::hash(L1, di, c.getIv(), c.getE(), c.getU1(), c.getU2(), 0, k);
             }
             lsbHL0=util::checkBit(hashL0[0],0);
             lsbHL1=util::checkBit(hashL1[0],0);
@@ -297,7 +297,7 @@ atecaFreeXOR::eval(const vector<vint> &F, const vector<vint> &X, vector<string> 
             auto labelB = wires[in1];
             //hash input string
             vint hash;
-            if (c.isEmpty()){
+            if (c.hashtype==util::RO){
                 labelA.insert(labelA.end(), labelB.begin(), labelB.end());
                 labelA.push_back(gateNo);
                 auto hashInputLabel = util::uintVec2Str(labelA);
@@ -326,7 +326,7 @@ vint atecaFreeXOR::decode(vector<vint> Y, vector<vint> d, const hashTCCR& dc) {
     for (int i = 0; i < outbits; ++i) {
         //get the lsb of the hash
         vint hash;
-        if (dc.isEmpty()){
+        if (dc.hashtype==util::RO){
             Y[i].insert(Y[i].end(), d[i].begin(), d[i].end());
             hash = util::hash_variable(util::uintVec2Str(Y[i]), 64);
         }else{
