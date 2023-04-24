@@ -8,16 +8,16 @@
 #include <vector>
 #include <string>
 #include "../util/util.h"
+
+#include "../util/hashRTCCR.h"
 using namespace customTypeSpace;
 using namespace std;
 
 class baseGarble {
 public:
     static
-    tuple<tuple<vint, vector<labelPair>>,
-            vector<tuple<vint, vint>>,
-            vector<tuple<vint, vint>>>
-    garble(vector<string> f, int k = 128);
+    tuple<tuple<vint, vector<labelPair>>, vector<tuple<vint, vint>>, vector<tuple<vint, vint>>, hashRTCCR>
+    garble(vector<string> f, int k, util::hashtype hashtype);
     static vector<vint> encode(vector<labelPair> e, vector<int> x);
     static vector<vint> eval(tuple<tuple<vint, vector<labelPair>>,
             vector<labelPair>,

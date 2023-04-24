@@ -9,10 +9,8 @@
 
 
 //k is security parameter and f is the function to be garbled with 3 lines of metadata
-tuple<tuple<vint, vector<labelPair>>,
-        vector<labelPair>,
-        vector<labelPair>>
-baseGarble::garble(vector<string> f, int k) {
+tuple<tuple<vint, vector<labelPair>>, vector<tuple<vint, vint>>, vector<tuple<vint, vint>>, hashRTCCR>
+baseGarble::garble(vector<string> f, int k, util::hashtype hashtype) {
     //get number of wires and gates
     auto &wireAndGates = f[0];
     auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
@@ -68,7 +66,7 @@ baseGarble::garble(vector<string> f, int k) {
         }
 
     }
-    return {{invConst, garbledCircuit}, inputWiresLabels, encOutputLabels};
+    return {{invConst, garbledCircuit}, inputWiresLabels, encOutputLabels,hashRTCCR()};
 }
 
 tuple<vector<::uint64_t>, vector<::uint64_t>>

@@ -23,6 +23,7 @@ public:
     vint u1;
     vint u2;
     EVP_CIPHER_CTX *e;
+    util::hashtype hashtype = util::RO;
 
     const vint &getKey() const {
         return key;
@@ -47,6 +48,9 @@ public:
     EVP_CIPHER_CTX *getE() const {
         return e;
     }
+    util::hashtype getHash() const {
+        return hashtype;
+    }
 
     hashRTCCR(const vint& key, vint iv, int k){
         if(k < 256) k=256;
@@ -56,6 +60,8 @@ public:
         this->u1 = util::genBitsNonCrypto(      (k/2)+1);
         this->u2 = util::genBitsNonCrypto(      (k/2)+1);
         this-> e = AES_vint_init(key);
+    }
+    hashRTCCR(){
     }
 
     static inline uint64_t gfmulPCF(uint64_t a, uint64_t b){
@@ -241,6 +247,15 @@ public:
         auto res = util::vecXOR(sigma, AESXxorUtweak);
         return res;
     }
+
+    static vint hash(vint &input, const vint& tweak, const vint& key, const vint& iv, EVP_CIPHER_CTX *e, const vint& alpha, vint u1, vint u2){
+        auto middle = input.begin()+input.size()/2;
+        vector<uint64_t> firstHalf(input.begin(), middle);
+        vector<uint64_t> secondHalf(middle, input.end());
+        halfLabels in = {firstHalf,secondHalf};
+        return hash(in, tweak, key, iv, e, alpha,std::move(u1),std::move(u2));
+    }
+
 
     static void testDecrypt() {
         int k = 256;

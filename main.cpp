@@ -59,7 +59,7 @@ void timetest(const vector<string>&f, const vector<int>& x, int k, util::scheme 
             title = "baseline w. ";
             cout<<title << hashtype<<endl;
             auto t1 = high_resolution_clock::now();
-            auto base_C = baseGarble::garble(f, k);//needs hash type
+            auto base_C = baseGarble::garble(f, k, util::fast);//needs hash type
             auto t2 = high_resolution_clock::now();
             duration<double, std::milli> ms_double = t2 - t1;
             cout<< "garbling: " <<ms_double.count()<< "ms"<<endl;
