@@ -10,6 +10,7 @@
 #include <algorithm>
 #include "util.h"
 #include "string.h"
+#include <numeric>
 
 using namespace std;
 class hashTCCR{
