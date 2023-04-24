@@ -125,7 +125,7 @@ atecaGarble::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, co
     }
     //actually compute the hashes
     vint X_00;vint X_01;vint X_10;vint X_11;
-    auto t1 = high_resolution_clock::now();
+    //auto t1 = high_resolution_clock::now();
     if (c.getHash()==util::RO){
         auto [l00,l11] = in0;
         auto [l_0,l_1] = in1;
@@ -152,34 +152,36 @@ atecaGarble::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, co
         X_10 = hashTCCR::hash(a1,b0,c.getIv(),c.getE(),c.getU1(),c.getU2(),gateNo,internalParam);
         X_11 = hashTCCR::hash(a1,b1,c.getIv(),c.getE(),c.getU1(),c.getU2(),gateNo,internalParam);
     }
-    auto t2 = high_resolution_clock::now();
-    duration<double, std::milli> ms_double = t2 - t1;
-    cout <<"hash;"<<ms_double.count()<<endl;
+    //auto t2 = high_resolution_clock::now();
+    //duration<double, std::milli> ms_double = t2 - t1;
+    //cout <<"hash;"<<ms_double.count()<<endl;
     auto delta = vint((internalParam+64-1)/64);
     auto deltaHW =0;
 
-    t1 = high_resolution_clock::now();
+    //t1 = high_resolution_clock::now();
     vint mask = masksForSlices(X_00,X_01,X_10,X_11,typ);
-    t2 = high_resolution_clock::now();
-    ms_double = t2 - t1;
-    cout <<"slicing;"<<ms_double.count()<<endl;
+    //t2 = high_resolution_clock::now();
+    //ms_double = t2 - t1;
+    //cout <<"slicing;"<<ms_double.count()<<endl;
     int j =0;
-    t1 = high_resolution_clock::now();
+    //t1 = high_resolution_clock::now();
     do {
         //the choice of masks defines what type of gate were working with
-        if (util::ithBitL2R(mask,j)){//if (slice =="0000"|| slice =="0001"||slice=="1110"||slice=="1111"){//
+        auto index = j/64;
+        auto index2 = (63-(j%64));
+        if (util::checkBitL2R(mask[index],index2)){//if (slice =="0000"|| slice =="0001"||slice=="1110"||slice=="1111"){//
             //or the ith bit with 1
             util::setIthBitTo1L2R(&delta,j);
             deltaHW ++;
         }
         j++;
     } while (deltaHW < k);
-    t2 = high_resolution_clock::now();
-    ms_double = t2 - t1;
-    cout <<"bit_mani;"<<ms_double.count()<<endl;
+    //t2 = high_resolution_clock::now();
+    //ms_double = t2 - t1;
+    //cout <<"bit_mani;"<<ms_double.count()<<endl;
 
     vint L0; vint L1;
-    t1 = high_resolution_clock::now();
+    //t1 = high_resolution_clock::now();
     if (typ=="AND"){
         L0 = util::fastproj(X_00, delta,k);
         L1 = util::fastproj(X_11, delta,k);
@@ -187,9 +189,9 @@ atecaGarble::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, co
         L0 = util::fastproj(X_00, delta,k);
         L1 = util::fastproj(X_01,delta,k);
     }
-    t2 = high_resolution_clock::now();
-    ms_double = t2 - t1;
-    cout <<"projection;"<<ms_double.count()<<endl;
+    //t2 = high_resolution_clock::now();
+    //ms_double = t2 - t1;
+    //cout <<"projection;"<<ms_double.count()<<endl;
     return {L0, L1, delta};
 }
 

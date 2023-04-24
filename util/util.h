@@ -15,6 +15,7 @@
 #include <openssl/evp.h>
 #include <immintrin.h>
 #include <tuple>
+#include "string.h"
 
 //Namespace for custom types
 namespace customTypeSpace {
@@ -144,7 +145,7 @@ public:
 
     static inline int ithBitL2R(const vector<uint64_t>& v, int i){
         int block = i / 64;
-        return  checkBitL2R(v[block],(63-(i%64)));
+        return checkBitL2R(v[block],(63-(i%64)));
     }
 
     //this has reverse index, will check from the left most bit
@@ -486,8 +487,11 @@ public:
         auto res = vint(uintsNeeded);
         int bitsProjected =0; int j =0; int blockNum =0;
         do {
-            if (util::ithBitL2R(b,j)==1){
-                auto ithBitA = util::ithBitL2R(a,j);
+            auto blockIndex = j / 64;
+            auto intIndex = (63 - (j % 64));
+            //if the ith bit of b ==1 find the ith bit in a and set the projection bit to that value
+            if (util::checkBitL2R(b[blockIndex], intIndex) == 1){
+                auto ithBitA = util::checkBitL2R(a[blockIndex],intIndex);
                 if (ithBitA==1){
                     projection = util::setBit1L2R(projection,bitsProjected);
                 }

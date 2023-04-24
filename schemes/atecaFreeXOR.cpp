@@ -365,7 +365,7 @@ inline tuple<vint, vint> atecaFreeXOR::ateFXorSlicing(const vint& X_00, const vi
 
 }
 
-inline int atecaFreeXOR::ateFXORSliceCheck(const vint &globalDelta, const vint& d0flags, const vint& d1flags, int hw, int j) {
+inline int atecaFreeXOR::ateFXORSliceCheck(const vint& globalDelta, const vint& d0flags, const vint& d1flags, int hw, int j) {
     int gdj = util::ithBitL2R(globalDelta,hw);
     if (gdj){
         //if gdj is 1 check d1flags for a 1

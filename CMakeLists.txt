@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 project(GarblingGates)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS -O2)
+#set(CMAKE_CXX_FLAGS -O2)
 #set(CMAKE_CXX_FLAGS -D_GLIBCXX_DEBUG)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mpclmul")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mpclmul")
@@ -57,5 +57,6 @@ include_directories(${Boost_INCLUDE_DIR})
 
 #openSSL
 find_package(OpenSSL 3 REQUIRED)
+#link_libraries(crypto)
 target_link_libraries(GarblingGates PRIVATE OpenSSL::Crypto)
 target_link_libraries(Tests PRIVATE OpenSSL::Crypto)

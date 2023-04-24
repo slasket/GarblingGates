@@ -355,6 +355,7 @@ BOOST_AUTO_TEST_SUITE( ATECA_fast_sub64 )
 
     BOOST_AUTO_TEST_CASE( adder64_2minus1 )
     {
+        cout<<"dinmor"<<endl;
         //least significant bit first :^)
         auto finput = vector<int>{0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

@@ -21,8 +21,8 @@ BOOST_AUTO_TEST_SUITE( TCCR_Encryption_128 )
     {
         vint input;
         //create the counters as 64 bit blocks
-        for (int i = 0; i < (internalLength/64); ++i) {
-            if (i==0){
+        for (int i = 1; i < (internalLength/64)+1; ++i) {
+            if (i==1){
                 input.emplace_back(i^tweak);
             }else{
                 input.emplace_back(i);
@@ -44,8 +44,8 @@ BOOST_AUTO_TEST_SUITE( TCCR_Encryption_128_16internal )
     {
         vint input;
         //create the counters as 64 bit blocks
-        for (int i = 0; i < (internalLength/64); ++i) {
-            if (i==0){
+        for (int i = 1; i < (internalLength/64)+1; ++i) {
+            if (i==1){
                 input.emplace_back(i^tweak);
             }else{
                 input.emplace_back(i);
@@ -68,8 +68,8 @@ BOOST_AUTO_TEST_SUITE( TCCR_arbitrary_label_length )
     {
         vint input;
         //create the counters as 64 bit blocks
-        for (int i = 0; i < (internalLength/64); ++i) {
-            if (i==0){
+        for (int i = 1; i < (internalLength/64)+1; ++i) {
+            if (i==1){
                 input.emplace_back(i^tweak);
             }else{
                 input.emplace_back(i);
@@ -94,8 +94,8 @@ BOOST_AUTO_TEST_SUITE( TCCR_torture_test_128bit )
             auto plain = hashTCCR::decypthash(x,y,c.getIv(),c.e,c.getU1(),c.getU2(),cipher);
             vint input;
             //create the counters as 64 bit blocks
-            for (int i = 0; i < (internalLength/64); ++i) {
-                if (i==0){
+            for (int i = 1; i < (internalLength/64)+1; ++i) {
+                if (i==1){
                     input.emplace_back(i^tweak);
                 }else{
                     input.emplace_back(i);

@@ -28,14 +28,16 @@ void threehalves_Test();
 void timetest(const vector<string>&f, const vector<int>& x, int k, util::scheme type, util::hashtype hashfunc);
 
 int main() {
-    vector<string> f = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
+    //cout<<"xd"<<endl;
+    //cout<<"fuckyou"<<endl;
+    //vector<string> f = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
     //auto x = vector<int>{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-    vector<int> x = util::genFunctionInput(128);
-    //vector<string> f = circuitParser::parseCircuit("../tests/circuits/aes_128.txt");
-    //vector<int> x = util::genFunctionInput(256);
-    timetest(f,x,128,util::baseline, util::RO);
-    timetest(f,x,128,util::threehalves, util::RO);
-    timetest(f,x,128,util::ateca, util::fast);
+    //vector<int> x = util::genFunctionInput(128);
+    vector<string> f = circuitParser::parseCircuit("../tests/circuits/aes_128.txt");
+    vector<int> x = util::genFunctionInput(256);
+    //timetest(f,x,128,util::baseline, util::RO);
+    //timetest(f,x,128,util::threehalves, util::RO);
+    //timetest(f,x,128,util::ateca, util::fast);
     timetest(f,x,128,util::atecaFXOR, util::fast);
     //xd
     return 0;

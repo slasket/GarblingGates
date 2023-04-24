@@ -16,6 +16,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <algorithm>
 #include "util.h"
 
 using namespace std;
@@ -69,7 +70,9 @@ public:
             }
             file.close();
         }else{
-            printf("Error reading file at: " , circuitPath.c_str());
+            string error = "Error reading file at: "+circuitPath;
+            printf("%s\n",error.c_str());
+            exit(2);
         }
         return circuit;
     }

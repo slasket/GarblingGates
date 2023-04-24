@@ -7,6 +7,7 @@
 #include <utility>
 #include <emmintrin.h>
 #include <immintrin.h>
+#include <algorithm>
 #include "util.h"
 #include "string.h"
 
@@ -171,15 +172,10 @@ public:
         //compute X ^ U(Y)
         y0.insert(y0.end(), y1.begin(),y1.end());
         vint key = util::vecXOR(x,y0);
-        vint input;
         //create the counters as 64 bit blocks
-        for (int i = 0; i < (internalLength/64); ++i) {
-            if (i==0){
-                input.emplace_back(i^tweak);
-            }else{
-                input.emplace_back(i);
-            }
-        }
+        vint input(internalLength/64);
+        std::iota(input.begin(), input.end(), 1);
+        input[0] ^= tweak;
         //initwith key
         vint res = AES_vint_encrypt(input,key,iv,e);
 
