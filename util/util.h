@@ -482,13 +482,13 @@ public:
     static inline vint fastproj(const vint& a, const vint& b, const int& k) {
         //projection A o B means take the bit A[i] if B[i]=1
         //int k = util::vecHW(b);
-        int uintsNeeded = k / 64 + ((k % 64 != 0) ? 1 : 0);
+        int uintsNeeded = k / 64 + ((fast_modulo(k,64) != 0) ? 1 : 0);
         uint64_t projection =0;
         auto res = vint(uintsNeeded);
         int bitsProjected =0; int j =0; int blockNum =0;
         do {
             auto blockIndex = j / 64;
-            auto intIndex = (63 - (j % 64));
+            auto intIndex = (63 - (fast_modulo(j,64)));
             //if the ith bit of b ==1 find the ith bit in a and set the projection bit to that value
             if (util::checkBitL2R(b[blockIndex], intIndex) == 1){
                 auto ithBitA = util::checkBitL2R(a[blockIndex],intIndex);
@@ -496,7 +496,7 @@ public:
                     projection = util::setBit1L2R(projection,bitsProjected);
                 }
                 bitsProjected++;
-                if (bitsProjected == k||(bitsProjected%64==0 && bitsProjected !=0)){
+                if (bitsProjected == k||(fast_modulo(bitsProjected,64)==0 && bitsProjected !=0)){
                     res[blockNum] = projection;
                     projection=0;
                     blockNum++;
@@ -505,6 +505,12 @@ public:
             j++;
         }while(bitsProjected != k);
         return res;
+    }
+    static ::uint64_t fast_modulo(const uint64_t input, const uint64_t ceil) {
+        // apply the modulo operator only when needed
+        // (i.e. when the input is greater than the ceiling)
+        return input >= ceil ? input % ceil : input;
+        // NB: the assumption here is that the numbers are positive
     }
 };
 
