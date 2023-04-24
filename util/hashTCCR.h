@@ -33,13 +33,6 @@ public:
     const vint &getU2() const {
         return u2;
     }
-    const int &isEmpty() const{
-        if (iv[0] == 0){
-            return 1;
-        }else{
-            return 0;
-        }
-    }
 
     EVP_CIPHER_CTX *getE() const {
         return e;
