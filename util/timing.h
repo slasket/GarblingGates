@@ -30,7 +30,14 @@ public:
         int inputsize = circuitParser::inputsize(f);
 
 
+        string hashtype;
+        if (hashfunc){
+            hashtype = "fast";
+        }else{
+            hashtype= "RO";
+        }
         cout<<"running all schemes for 4 sets " << repetitions <<" reps"<<endl;
+        cout << "hashtype: "<< hashtype<<endl;
         for (int i = 0; i < repetitions; ++i) {
             //inputgen
             vector<int> x = util::genFunctionInput(inputsize);
@@ -51,29 +58,23 @@ public:
         string title;
         switch (scheme) {
             case util::baseline: {
-                title = "baseline w. ";
+                title = "###baseline###";
                 break;
             }
             case util::threehalves: {
-                title = "threehalves w. ";
+                title = "###threehalves###";
                 break;
             }
             case util::ateca: {
-                title = "ateca w. ";
+                title = "###ateca###";
                 break;
             }
             case util::atecaFXOR: {
-                title = "atecaFXOR w. ";
+                title = "###atecaFXOR###";
                 break;
             }
         }
-        string hashtype;
-        if (hashfunc){
-            hashtype = "fast";
-        }else{
-            hashtype= "RO";
-        }
-        cout << title << hashtype << endl;
+        cout << title << endl;
         vector<string> categories = {"garble", "eval"};
         for (int i = 0; i < 2; ++i) {
             cout << categories[i] << " " << baseline[i] << " s" << endl;

@@ -33,17 +33,21 @@ int main() {
     //vector<string> f = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
     //auto x = vector<int>{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     //vector<int> x = util::genFunctionInput(128);
-    vector<string> f = circuitParser::parseCircuit("../tests/circuits/keccak_f.txt");
+    vector<string> f = circuitParser::parseCircuit("../tests/circuits/Keccak_f.txt");
     vector<int> x = util::genFunctionInput(circuitParser::inputsize(f));
     int k = 128;
+    cout<<"linux fast"<<endl;
+
     cout<< "Keccak_f test"<<endl;
     timing::timetest(f,x,k,util::baseline, util::fast);
     timing::timetest(f,x,k,util::threehalves, util::fast);
     timing::timetest(f,x,k,util::ateca, util::fast);
     timing::timetest(f,x,k,util::atecaFXOR, util::fast);
-
+    cout<<endl;
     f = circuitParser::parseCircuit("../tests/circuits/aes_128.txt");
     timing::repetitionTest(f,k,util::fast,100);
+
+
     return 0;
 }
 void threehalves_Test() {
