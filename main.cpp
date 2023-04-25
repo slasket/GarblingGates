@@ -14,6 +14,8 @@
 #include <openssl/sha.h>
 #include "schemes/threeHalves.h"
 #include "util/hashTCCR.h"
+#include "util/timing.h"
+#include <boost/timer.hpp>
 
 using namespace std;
 
@@ -26,130 +28,24 @@ void sliceTest();
 
 void threehalves_Test();
 void timetest(const vector<string>&f, const vector<int>& x, int k, util::scheme type, util::hashtype hashfunc);
-
+void repetitionTest(const vector<string>&f,int inputsize, int k,util::hashtype hashfunc, int repetitions);
 int main() {
     //vector<string> f = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
     //auto x = vector<int>{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     //vector<int> x = util::genFunctionInput(128);
-    vector<string> f = circuitParser::parseCircuit("../tests/circuits/Keccak_f.txt");
-    vector<int> x = util::genFunctionInput(1600);
+    vector<string> f = circuitParser::parseCircuit("../tests/circuits/keccak_f.txt");
+    vector<int> x = util::genFunctionInput(circuitParser::inputsize(f));
     int k = 128;
-    timetest(f,x,k,util::baseline, util::fast);
-    timetest(f,x,k,util::threehalves, util::fast);
-    timetest(f,x,k,util::ateca, util::fast);
-    timetest(f,x,k,util::atecaFXOR, util::fast);
+    cout<< "Keccak_f test"<<endl;
+    timing::timetest(f,x,k,util::baseline, util::fast);
+    timing::timetest(f,x,k,util::threehalves, util::fast);
+    timing::timetest(f,x,k,util::ateca, util::fast);
+    timing::timetest(f,x,k,util::atecaFXOR, util::fast);
+
+    f = circuitParser::parseCircuit("../tests/circuits/aes_128.txt");
+    timing::repetitionTest(f,k,util::fast,100);
     return 0;
 }
-
-
-void timetest(const vector<string>&f, const vector<int>& x, int k, util::scheme type, util::hashtype hashfunc){
-    using std::chrono::high_resolution_clock;
-    using std::chrono::duration_cast;
-    using std::chrono::duration;
-    using std::chrono::milliseconds;
-    string title;
-    string hashtype;
-    if (hashfunc){
-        hashtype = "fast";
-    }else{
-        hashtype= "RO";
-    }
-
-    switch (type) {
-        case util::scheme::baseline:{
-            title = "baseline w. ";
-            cout<<title << hashtype<<endl;
-            auto t1 = high_resolution_clock::now();
-            auto base_C = baseGarble::garble(f, k, hashfunc);//needs hash type
-            auto F = get<0>(base_C);
-            auto t2 = high_resolution_clock::now();
-            duration<double, std::milli> ms_double = t2 - t1;
-            cout<< "garbling: " <<ms_double.count()<< "ms"<<endl;
-
-            auto base_X = baseGarble::encode(get<1>(base_C), x);
-
-            t1 = high_resolution_clock::now();
-            auto base_Y = baseGarble::eval(F, base_X, f, k);
-            t2 = high_resolution_clock::now();
-            ms_double = t2 - t1;
-            cout<< "evaluation: " <<ms_double.count()<< "ms"<<endl;
-
-            auto base_y = baseGarble::decode(get<2>(base_C), base_Y);
-            cout<< "base: " << base_y[0] <<endl;
-            break;
-        }
-        case util::scheme::threehalves:{
-            title = "three halves w. ";
-            cout<<title << hashtype<<endl;
-            auto t1 = high_resolution_clock::now();
-            auto [three_F,three_e,three_d, three_ic, three_hash] = threeHalves::garble(f, k, hashfunc);
-            auto t2 = high_resolution_clock::now();
-            duration<double, std::milli> ms_double = t2 - t1;
-            cout<< "garbling: " <<ms_double.count()<< "ms"<<endl;
-
-            auto three_X = threeHalves::encode(three_e, x);
-
-            t1 = high_resolution_clock::now();
-            auto three_Y = threeHalves::eval(three_F, three_X, f, k, three_ic, three_hash, hashfunc);
-            t2 = high_resolution_clock::now();
-            ms_double = t2 - t1;
-            cout<< "evaluation: " <<ms_double.count()<< "ms"<<endl;
-
-            auto three_y = threeHalves::decode(three_d, three_Y, f, k);
-            cout<< "three: " << three_y[0] <<endl;
-            break;
-        }
-        case util::scheme::ateca:{
-            title = "ateca w. ";
-            cout<<title << hashtype<<endl;
-            auto t1 = high_resolution_clock::now();
-            auto [ate_F, ate_e, ate_d, ate_k, ate_ic, ate_hash] = atecaGarble::garble(f, k, hashfunc);
-            auto t2 = high_resolution_clock::now();
-            duration<double, std::milli> ms_double = t2 - t1;
-            cout<< "garbling: " <<ms_double.count()<< "ms"<<endl;
-
-            cout<<"bits in f: "<< util::averageFweight(ate_F)<<endl;
-
-            auto ate_X = atecaGarble::encode(ate_e, x);
-
-            t1 = high_resolution_clock::now();
-            auto ate_Y = atecaGarble::eval(ate_F, ate_X, f, ate_k, ate_ic, ate_hash);
-            t2 = high_resolution_clock::now();
-            ms_double = t2 - t1;
-            cout<< "evaluation: " <<ms_double.count()<< "ms"<<endl;
-
-            auto ate_y = atecaGarble::decode(ate_Y, ate_d, ate_hash);
-            cout<< "ateca: " << ate_y[0] <<endl;
-            break;
-        }
-        case util::scheme::atecaFXOR:{
-            title = "ateca-Freexor w. ";
-            cout<<title << hashtype<<endl;
-            auto t1 = high_resolution_clock::now();
-            auto [atef_F, atef_e, atef_d, atef_k, atef_ic, atef_hash] = atecaFreeXOR::garble(f, k, hashfunc);
-            auto t2 = high_resolution_clock::now();
-            duration<double, std::milli> ms_double = t2 - t1;
-            cout<< "garbling: " <<ms_double.count()<< "ms"<<endl;
-            cout<<"bits in f: "<< util::averageFweight(atef_F)<<endl;
-
-            auto atef_X = atecaFreeXOR::encode(atef_e, x);
-
-            t1 = high_resolution_clock::now();
-            auto atef_Y = atecaFreeXOR::eval(atef_F, atef_X, f, atef_k, atef_ic, atef_hash);
-            t2 = high_resolution_clock::now();
-            ms_double = t2 - t1;
-            cout<< "evaluation: " <<ms_double.count()<< "ms"<<endl;
-
-            auto atef_y = atecaFreeXOR::decode(atef_Y, atef_d, atef_hash);
-
-            cout<< "atecaFxor: " << atef_y[0] <<endl;
-            break;
-        }
-        default:
-            break;
-    }
-};
-
 void threehalves_Test() {
     hashRTCCR::testHashRTCCR();
     hashRTCCR::testDecrypt();

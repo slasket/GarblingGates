@@ -81,6 +81,14 @@ public:
         auto res = circuitParser::parseCircuit(path);
         util::printStrVec(res);
     }
+    static int inputsize(vector<string> circuit){
+        int inputsize =0;
+        vector<string> inputs = util::split(circuit[1],' ');
+        for (int i = 1; i < inputs.size(); ++i) {
+            inputsize += stoi(inputs[i]);
+        }
+        return inputsize;
+    }
 };
 
 
