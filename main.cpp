@@ -33,7 +33,7 @@ int main() {
     //vector<int> x = util::genFunctionInput(128);
     vector<string> f = circuitParser::parseCircuit("../tests/circuits/Keccak_f.txt");
     vector<int> x = util::genFunctionInput(1600);
-    timetest(f,x,128,util::baseline, util::RO);
+    timetest(f,x,128,util::baseline, util::fast);
     timetest(f,x,128,util::threehalves, util::fast);
     timetest(f,x,128,util::ateca, util::fast);
     timetest(f,x,128,util::atecaFXOR, util::fast);
@@ -60,6 +60,7 @@ void timetest(const vector<string>&f, const vector<int>& x, int k, util::scheme 
             cout<<title << hashtype<<endl;
             auto t1 = high_resolution_clock::now();
             auto base_C = baseGarble::garble(f, k, util::fast);//needs hash type
+            auto F = get<0>(base_C);
             auto t2 = high_resolution_clock::now();
             duration<double, std::milli> ms_double = t2 - t1;
             cout<< "garbling: " <<ms_double.count()<< "ms"<<endl;
@@ -67,7 +68,7 @@ void timetest(const vector<string>&f, const vector<int>& x, int k, util::scheme 
             auto base_X = baseGarble::encode(get<1>(base_C), x);
 
             t1 = high_resolution_clock::now();
-            auto base_Y = baseGarble::eval(base_C, base_X, f);
+            auto base_Y = baseGarble::eval(F, base_X, f, 128);
             t2 = high_resolution_clock::now();
             ms_double = t2 - t1;
             cout<< "evaluation: " <<ms_double.count()<< "ms"<<endl;

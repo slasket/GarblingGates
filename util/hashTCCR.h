@@ -163,7 +163,7 @@ public:
         vint ySecondHalf(y.begin()+(y.size()/2),y.end());
         auto y0 = gfmulPCF(u1, yFirstHalf);
         auto y1 = gfmulPCF(u2, ySecondHalf);
-        //compute X ^ U(Y)
+        //compute e ^ U(Y)
         y0.insert(y0.end(), y1.begin(),y1.end());
         vint key = util::vecXOR(x,y0);
         //create the counters as 64 bit blocks
@@ -182,7 +182,7 @@ public:
         vint ySecondHalf(y.begin()+(y.size()/2),y.end());
         auto y0 = gfmulPCF(u1, yFirstHalf);
         auto y1 = gfmulPCF(u2, ySecondHalf);
-        //compute X ^ U(Y)
+        //compute e ^ U(Y)
         y0.insert(y0.end(), y1.begin(),y1.end());
         vint key = util::vecXOR(x,y0);
         vint res = AES_vint_decrypt(std::move(ciphertext),key,iv,e);

@@ -319,7 +319,7 @@ vector<halfLabels> threeHalves::eval(Ftype F, vector<halfLabels> X, vector<strin
 
     vector<halfLabels> Y(numberOfOutputBits);
     vector<tuple<halfLabels, int>> labelAndPermuteBitPairs(numberOfWires);
-    //fill with encrypted input X
+    //fill with encrypted input e
     for (int i = 0; i < X.size(); ++i) {
         auto permuteBit = (get<0>(X[i])[0]) & 1;
         labelAndPermuteBitPairs[i] = {X[i], permuteBit};

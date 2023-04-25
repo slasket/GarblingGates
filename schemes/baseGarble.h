@@ -16,12 +16,11 @@ using namespace std;
 class baseGarble {
 public:
     static
-    tuple<tuple<vint, vector<labelPair>>, vector<tuple<vint, vint>>, vector<tuple<vint, vint>>, hashRTCCR>
+    tuple<tuple<vint, vector<labelPair>, hashRTCCR>, vector<labelPair>, vector<labelPair>>
     garble(vector<string> f, int k, util::hashtype hashtype);
     static vector<vint> encode(vector<labelPair> e, vector<int> x);
-    static vector<vint> eval(tuple<tuple<vint, vector<labelPair>>,
-            vector<labelPair>,
-            vector<labelPair>> F, vector<vint> X, vector<string> f, int k = 128);
+    static vector<vint> eval(tuple<vint, vector<labelPair>, hashRTCCR> F,
+                             vector<vint> X, vector<string> f, int k);
     static vector<int> decodeBits(vector<labelPair> d, vector<vint> Y);
     static vint hashFunc(vint x, int k);
 
@@ -29,7 +28,7 @@ public:
     andGate(const vector<::uint64_t> &globalDelta, int permuteBitA, int permuteBitB, vint &A0,
             vint &A1,
             vint &B0, vint &B1, vector<::uint64_t> &ciphertext, vector<::uint64_t> &gate0,
-            vector<::uint64_t> &gate1, int k);
+            vector<::uint64_t> &gate1, int k, hashRTCCR hash);
     static void
     xorGate(const vector<::uint64_t> &globalDelta, int permuteBitA, int permuteBitB,
             vint &A0, vint &B0, vector<::uint64_t> &ciphertext);
@@ -42,14 +41,17 @@ public:
     static tuple<vector<::uint64_t>, vector<::uint64_t>>
     garbleGate(const vint &invConst, int k, const vector<::uint64_t> &globalDelta, vector<int> inputWires,
                const string& gateType, vector<labelPair> &wireLabels,
-               vector<int> &outputWires);
+               vector<int> &outputWires, hashRTCCR hash);
 
     static vint evalGate(const vint &invConst, int k,
                          const vector<labelPair> &garbledCircuit,
                          const vector<vint> &wireValues, int i, vector<int> inputWires,
-                         const string& gateType);
+                         const string& gateType,
+                         hashRTCCR hash);
 
     static vint decode(vector<labelPair> d, vector<vint> Y);
+
+    static vint hashXORfast(vint &labelA, vint &labelB, int k, hashRTCCR &fh);
 };
 
 

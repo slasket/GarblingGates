@@ -9,7 +9,7 @@
 
 
 //k is security parameter and f is the function to be garbled with 3 lines of metadata
-tuple<tuple<vint, vector<labelPair>>, vector<tuple<vint, vint>>, vector<tuple<vint, vint>>, hashRTCCR>
+tuple<tuple<vint, vector<labelPair>, hashRTCCR>, vector<tuple<vint, vint>>, vector<tuple<vint, vint>>>
 baseGarble::garble(vector<string> f, int k, util::hashtype hashtype) {
     //get number of wires and gates
     auto &wireAndGates = f[0];
@@ -30,6 +30,15 @@ baseGarble::garble(vector<string> f, int k, util::hashtype hashtype) {
     //generate invConst
     vint invConst = util::genBitsNonCrypto(k);
 
+    //init hash
+    hashRTCCR hash;
+    if(hashtype == util::fast){
+        vint key = util::genBitsNonCrypto(256);
+        vint iv = util::genBitsNonCrypto(256);
+        hash = hashRTCCR(key, iv, k);
+    } else
+        hash = hashRTCCR();
+
     //generate all input labels and insert into wireLabels
     auto inputWiresLabels = util::generateRandomLabels(k, globalDelta, numberOfInputBits);
     auto wireLabels = vector<labelPair>(numberOfWires);
@@ -48,7 +57,7 @@ baseGarble::garble(vector<string> f, int k, util::hashtype hashtype) {
         ////////////////////////////// Garbling gate ///////////////////////////////////
         //vector<::uint64_t> gate0;
         //vector<::uint64_t> gate1;
-        auto [gate0, gate1] = garbleGate(invConst, k, globalDelta, inputWires, gateType, wireLabels, outputWires);
+        auto [gate0, gate1] = garbleGate(invConst, k, globalDelta, inputWires, gateType, wireLabels, outputWires, hash);
 
         ////////////////////////////// Construct output {F,e,d} ///////////////////////////////////
         //create output F with gates
@@ -66,13 +75,13 @@ baseGarble::garble(vector<string> f, int k, util::hashtype hashtype) {
         }
 
     }
-    return {{invConst, garbledCircuit}, inputWiresLabels, encOutputLabels,hashRTCCR()};
+    return {{invConst, garbledCircuit, hash}, inputWiresLabels, encOutputLabels};
 }
 
 tuple<vector<::uint64_t>, vector<::uint64_t>>
 baseGarble::garbleGate(const vint &invConst, int k, const vector<::uint64_t> &globalDelta, vector<int> inputWires,
                        const string& gateType, vector<labelPair> &wireLabels,
-                       vector<int> &outputWires) {
+                       vector<int> &outputWires, hashRTCCR hash) {
     vector<::uint64_t> gate0; vector<::uint64_t> gate1;
     auto outputWiresLabels = vector<labelPair>();
     //get input wires
@@ -112,7 +121,7 @@ baseGarble::garbleGate(const vint &invConst, int k, const vector<::uint64_t> &gl
     //garble gate by calculating ciphertext(false) and gate ciphertexts
     vint ciphertext;
     if (gateType == "AND")
-        andGate(globalDelta, permuteBitA, permuteBitB, AF, AT, BF, BT, ciphertext, gate0, gate1, k);
+        andGate(globalDelta, permuteBitA, permuteBitB, AF, AT, BF, BT, ciphertext, gate0, gate1, k, std::move(hash));
     else if (gateType == "XOR")  //free XOR
         xorGate(globalDelta, permuteBitA, permuteBitB, AF, BF, ciphertext);
     else if (gateType == "INV") //XOR with const
@@ -126,10 +135,17 @@ baseGarble::garbleGate(const vint &invConst, int k, const vector<::uint64_t> &gl
 void
 baseGarble::andGate(const vint &globalDelta, int permuteBitA, int permuteBitB, vint &A0,
                     vint &A1, vint &B0, vint &B1, vint &ciphertext,
-                    vint &gate0, vint &gate1, int k) {
-    ciphertext = hashXOR(A0, B0, k);
-    gate1 = util::vecXOR(util::vecXOR(hashXOR(A0, B1, k), ciphertext), A0);
-    gate0 = util::vecXOR(hashXOR(A1, B0, k), ciphertext);
+                    vint &gate0, vint &gate1, int k, hashRTCCR hash) {
+    if(hash.hashtype == util::RO){
+        ciphertext = hashXOR(A0, B0, k);
+        gate1 = util::vecXOR(util::vecXOR(hashXOR(A0, B1, k), ciphertext), A0);
+        gate0 = util::vecXOR(hashXOR(A1, B0, k), ciphertext);
+    } else {
+        ciphertext = hashXORfast(A0, B0, k, hash);
+        gate1 = util::vecXOR(util::vecXOR(hashXORfast(A0, B1, k, hash), ciphertext), A0);
+        gate0 = util::vecXOR(hashXORfast(A1, B0, k, hash), ciphertext);
+    }
+
     if(permuteBitA == 1){
         gate1 = util::vecXOR(gate1, globalDelta);
     } else if(permuteBitB == 1){
@@ -139,6 +155,7 @@ baseGarble::andGate(const vint &globalDelta, int permuteBitA, int permuteBitB, v
         ciphertext = util::vecXOR(ciphertext, globalDelta);
         gate0 = util::vecXOR(gate0, globalDelta);
     }
+
 }
 
 
@@ -175,12 +192,12 @@ vector<vint> baseGarble::encode(vector<labelPair> e, vector<int> x) {
     return X;
 }
 
-vector<vint> baseGarble::eval(tuple<tuple<vint, vector<labelPair>>, vector<labelPair>, vector<labelPair>> F,
+vector<vint> baseGarble::eval(tuple<vint, vector<labelPair>, hashRTCCR> F,
                               vector<vint> X, vector<string> f, int k) {
     //garbled circuit
-    auto [invConst, garbledCircuit] = get<0>(F);
-    auto inputLabels = get<1>(F);
-    auto outputLabels = get<2>(F);
+    auto [invConst, garbledCircuit, hash] = std::move(F);
+    //auto inputLabels = get<1>(F);
+    //auto outputLabels = get<2>(F);
 
     //get number of wires and gates from non-garbled circuit
     string &wireAndGates = f[0]; //number of wires and gates
@@ -192,7 +209,7 @@ vector<vint> baseGarble::eval(tuple<tuple<vint, vector<labelPair>>, vector<label
     auto outputSplit = util::split(outputs, ' ');
     int numberOfOutputBits = util::getBits(f[2]);
 
-    //get input labels from X and put them in wireValues
+    //get input labels from e and put them in wireValues
     auto wireValues = vector< vint>(numberOfWires);
     for (int i = 0; i < X.size(); ++i) {
         wireValues[i] = X[i];
@@ -224,7 +241,7 @@ vector<vint> baseGarble::eval(tuple<tuple<vint, vector<labelPair>>, vector<label
                 //exit(1);
             }
         }
-        auto cipher = evalGate(invConst, k, garbledCircuit, wireValues, i, inputWires, gateType);
+        auto cipher = evalGate(invConst, k, garbledCircuit, wireValues, i, inputWires, gateType, hash);
 
         //save output value in wireValues
         wireValues[outputWires[0]] = cipher;
@@ -239,7 +256,8 @@ vector<vint> baseGarble::eval(tuple<tuple<vint, vector<labelPair>>, vector<label
 vint baseGarble::evalGate(const vint &invConst, int k,
                           const vector<labelPair> &garbledCircuit,
                           const vector<vint> &wireValues, int i, vector<int> inputWires,
-                          const string& gateType) {//get input values
+                          const string& gateType,
+                          hashRTCCR hash) {//get input values
     int input0 = inputWires[0];
     int input1;
     if(gateType == "INV"){
@@ -267,14 +285,27 @@ vint baseGarble::evalGate(const vint &invConst, int k,
         //get gate ciphertexts
         auto [gate0,gate1] = garbledCircuit[i];
         //evaluate gate
-        if (colorBitA == 0 && colorBitB == 0) {
-            cipher = hashXOR(A, B, k);
-        } else if (colorBitA == 0 && colorBitB == 1) {
-            cipher = util::vecXOR(util::vecXOR(hashXOR(A, B, k), gate1), A);
-        } else if (colorBitA == 1 && colorBitB == 0) {
-            cipher = util::vecXOR(hashXOR(A, B, k), gate0);
-        } else if (colorBitA == 1 && colorBitB == 1) {
-            cipher = util::vecXOR(util::vecXOR(util::vecXOR(hashXOR(A, B, k), gate0), gate1), A);
+        if(hash.hashtype == util::RO) {
+            if (colorBitA == 0 && colorBitB == 0) {
+                cipher = hashXOR(A, B, k);
+            } else if (colorBitA == 0 && colorBitB == 1) {
+                cipher = util::vecXOR(util::vecXOR(hashXOR(A, B, k), gate1), A);
+            } else if (colorBitA == 1 && colorBitB == 0) {
+                cipher = util::vecXOR(hashXOR(A, B, k), gate0);
+            } else if (colorBitA == 1 && colorBitB == 1) {
+                cipher = util::vecXOR(util::vecXOR(util::vecXOR(hashXOR(A, B, k), gate0), gate1), A);
+            }
+        }
+        else {
+            if (colorBitA == 0 && colorBitB == 0) {
+                cipher = hashXORfast(A, B, k, hash);
+            } else if (colorBitA == 0 && colorBitB == 1) {
+                cipher = util::vecXOR(util::vecXOR(hashXORfast(A, B, k, hash), gate1), A);
+            } else if (colorBitA == 1 && colorBitB == 0) {
+                cipher = util::vecXOR(hashXORfast(A, B, k, hash), gate0);
+            } else if (colorBitA == 1 && colorBitB == 1) {
+                cipher = util::vecXOR(util::vecXOR(util::vecXOR(hashXORfast(A, B, k, hash), gate0), gate1), A);
+            }
         }
     }
     return cipher;
@@ -329,6 +360,12 @@ vint baseGarble::hashFunc(vint x, int k) {
 
 vint baseGarble::hashXOR(vint &labelA, vint &labelB, int k){
     return util::vecXOR(hashFunc(labelA, k), hashFunc(labelB, k));
+}
+
+vint baseGarble::hashXORfast(vint &labelA, vint &labelB, int k, hashRTCCR &fh){
+    auto a = fh.hash(labelA, {static_cast<unsigned long long>(k)}, fh.getKey(), fh.getIv(), fh.getE(), fh.getAlpha(), fh.getU1(), fh.getU2());
+    auto b = fh.hash(labelA, {static_cast<unsigned long long>(k)}, fh.getKey(), fh.getIv(), fh.getE(), fh.getAlpha(), fh.getU1(), fh.getU2());
+    return util::vecXOR(a, b);
 }
 
 
