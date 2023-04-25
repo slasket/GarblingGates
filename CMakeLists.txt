@@ -12,8 +12,6 @@ set(SOURCES
         bloodcompatibility.h
         util/circuitParser.h
         util/util.h
-        HashFunctions.cpp
-        HashFunctions.h
         schemes/atecaGarble.cpp
         schemes/atecaGarble.h
         schemes/atecaFreeXOR.cpp
@@ -25,7 +23,7 @@ set(SOURCES
         schemes/threeHalves.cpp
         schemes/threeHalves.h
         util/hashRTCCR.h
-        )
+        util/timing.h)
 
 set(TESTS
         tests/test_class.cpp
@@ -37,7 +35,6 @@ set(TESTS
         tests/test_util.cpp
         schemes/atecaGarble.cpp
         schemes/atecaGarble.h
-        HashFunctions.cpp
         schemes/atecaGarble.cpp
         tests/test_ateca.cpp
         tests/test_threeHalves.cpp
