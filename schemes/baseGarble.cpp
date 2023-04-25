@@ -35,7 +35,7 @@ baseGarble::garble(vector<string> f, int k, util::hashtype hashtype) {
     if(hashtype == util::fast){
         vint key = util::genBitsNonCrypto(256);
         vint iv = util::genBitsNonCrypto(256);
-        hash = hashRTCCR(key, iv, k);
+        hash = hashRTCCR(key, iv, k, 1);
     } else
         hash = hashRTCCR();
 
@@ -68,9 +68,17 @@ baseGarble::garble(vector<string> f, int k, util::hashtype hashtype) {
 
         //create output d
         if(outputWires[0] >= numberOfWires - numberOfOutputBits){
-            string outputStrF = util::uintVec2Str(get<0>(wireLabels[outputWires[0]]));
-            string outputStrT = util::uintVec2Str(get<1>(wireLabels[outputWires[0]]));
-            tuple<vint,vint> outputLabel = {util::hash_variable(outputStrF), util::hash_variable(outputStrT)};
+            vector<::uint64_t> &in0 = get<0>(wireLabels[outputWires[0]]);
+            vector<::uint64_t> &in1 = get<1>(wireLabels[outputWires[0]]);
+            tuple<vint, vint> outputLabel;
+            if(hash.hashtype == util::RO){
+                string outputStrF = util::uintVec2Str(in0);
+                string outputStrT = util::uintVec2Str(in1);
+                outputLabel = {util::hash_variable(outputStrF, k), util::hash_variable(outputStrT, k)};
+            } else {
+                outputLabel = {hash.hashVint(in0, {0}), hash.hashVint(in1, {0})};
+            }
+
             encOutputLabels[outputWires[0] - (numberOfWires - numberOfOutputBits)] = outputLabel;
         }
 
@@ -311,15 +319,19 @@ vint baseGarble::evalGate(const vint &invConst, int k,
     return cipher;
 }
 
-vint baseGarble::decode(vector<labelPair> d, vector<vint> Y) {
+vint baseGarble::decode(vector<labelPair> d, vector<vint> Y, int k, hashRTCCR hash) {
     auto outbits = Y.size();
     auto unit64sNeeded = outbits/64 + ((outbits%64!=0) ? 1 : 0);
     auto outputSets =  vector<bitset<64>>(unit64sNeeded);
 
     for (int i = 0; i < outbits; ++i) {
-        //get the lsb of the hash
-        string ystring = util::uintVec2Str(Y[i]);
-        auto yhash = util::hash_variable(ystring, 128);
+        vint yhash;
+        if(hash.hashtype == util::RO) {
+            string ystring = util::uintVec2Str(Y[i]);
+            yhash = util::hash_variable(ystring, k);
+        } else{
+            yhash = hash.hashVint(Y[i], {0});
+        }
         if (yhash == get<0>(d[i])) {
             outputSets = util::insertBitVecBitset(outputSets,0,i);
         } else if (yhash == get<1>(d[i])){
@@ -334,11 +346,16 @@ vint baseGarble::decode(vector<labelPair> d, vector<vint> Y) {
     }
     return y;
 }
-vector<int> baseGarble::decodeBits(vector<labelPair> d, vector<vint> Y) {
+vector<int> baseGarble::decodeBits(vector<labelPair> d, vector<vint> Y, int k, hashRTCCR hash) {
     vector<int> y;
     for (int i = 0; i < Y.size(); ++i) {
-        string ystring = util::uintVec2Str(Y[i]);
-        auto yhash = util::hash_variable(ystring, 128);
+        vint yhash;
+        if(hash.hashtype == util::RO) {
+            string ystring = util::uintVec2Str(Y[i]);
+            yhash = util::hash_variable(ystring, k);
+        } else{
+            yhash = hash.hashVint(Y[i], {0});
+        }
         if (yhash == get<0>(d[i])) {
             y.push_back(0);
         } else if (yhash == get<1>(d[i])) {
@@ -362,9 +379,11 @@ vint baseGarble::hashXOR(vint &labelA, vint &labelB, int k){
     return util::vecXOR(hashFunc(labelA, k), hashFunc(labelB, k));
 }
 
-vint baseGarble::hashXORfast(vint &labelA, vint &labelB, int k, hashRTCCR &fh){
-    auto a = fh.hash(labelA, {static_cast<unsigned long long>(k)}, fh.getKey(), fh.getIv(), fh.getE(), fh.getAlpha(), fh.getU1(), fh.getU2());
-    auto b = fh.hash(labelA, {static_cast<unsigned long long>(k)}, fh.getKey(), fh.getIv(), fh.getE(), fh.getAlpha(), fh.getU1(), fh.getU2());
+vint baseGarble::hashXORfast(vint labelA, vint labelB, int k, hashRTCCR &fh){
+    uint64_t k64 = k;
+    vint tweak = {k64};
+    auto a = fh.hashVint(labelA, tweak);
+    auto b = fh.hashVint(labelB, tweak);
     return util::vecXOR(a, b);
 }
 

@@ -31,13 +31,22 @@ int main() {
     //vector<string> f = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
     //auto x = vector<int>{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     //vector<int> x = util::genFunctionInput(128);
-    vector<string> f = circuitParser::parseCircuit("../tests/circuits/Keccak_f.txt");
-    vector<int> x = util::genFunctionInput(1600);
+    //vector<string> f = circuitParser::parseCircuit("../tests/circuits/Keccak_f.txt");
+    //vector<int> x = util::genFunctionInput(1600);
+    //int k = 128;
+    //timetest(f,x,k,util::baseline, util::fast);
+    //timetest(f,x,k,util::threehalves, util::fast);
+    //timetest(f,x,k,util::ateca, util::fast);
+    //timetest(f,x,k,util::atecaFXOR, util::fast);
+
+    vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 AND"};
     int k = 128;
-    timetest(f,x,k,util::baseline, util::fast);
-    timetest(f,x,k,util::threehalves, util::fast);
-    timetest(f,x,k,util::ateca, util::fast);
-    timetest(f,x,k,util::atecaFXOR, util::fast);
+    auto [F,e,d] = baseGarble::garble(smalltest, k, util::fast);
+    auto hash = get<2>(F);
+    auto X00 = baseGarble::encode(e, {0, 0});
+    auto Y00 = baseGarble::eval(F, X00, smalltest, k);
+    auto y00 = baseGarble::decodeBits(d, Y00, k, hash);
+    cout << (y00[0]) << endl;
     return 0;
 }
 
@@ -57,11 +66,12 @@ void timetest(const vector<string>&f, const vector<int>& x, int k, util::scheme 
 
     switch (type) {
         case util::scheme::baseline:{
-            title = "baseline w. ";
+            /*title = "baseline w. ";
             cout<<title << hashtype<<endl;
             auto t1 = high_resolution_clock::now();
             auto base_C = baseGarble::garble(f, k, hashfunc);//needs hash type
             auto F = get<0>(base_C);
+            auto hash = get<2>(base_C);
             auto t2 = high_resolution_clock::now();
             duration<double, std::milli> ms_double = t2 - t1;
             cout<< "garbling: " <<ms_double.count()<< "ms"<<endl;
@@ -74,8 +84,8 @@ void timetest(const vector<string>&f, const vector<int>& x, int k, util::scheme 
             ms_double = t2 - t1;
             cout<< "evaluation: " <<ms_double.count()<< "ms"<<endl;
 
-            auto base_y = baseGarble::decode(get<2>(base_C), base_Y);
-            cout<< "base: " << base_y[0] <<endl;
+            auto base_y = baseGarble::decode(get<2>(base_C), base_Y, k, hash);
+            cout<< "base: " << base_y[0] <<endl;*/
             break;
         }
         case util::scheme::threehalves:{

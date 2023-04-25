@@ -60,6 +60,17 @@ public:
         this->u1 = util::genBitsNonCrypto(      (k/2)+1);
         this->u2 = util::genBitsNonCrypto(      (k/2)+1);
         this-> e = AES_vint_init(key);
+        this->hashtype = util::fast;
+    }
+    hashRTCCR(const vint& key, vint iv, int k, int base){
+        if(k < 256) k=256;
+        this->key = key;
+        this->iv = iv;
+        this->alpha = util::genBitsNonCrypto(   (k/2));
+        this->u1 = util::genBitsNonCrypto(      (k/2));
+        this->u2 = util::genBitsNonCrypto(      (k/2));
+        this-> e = AES_vint_init(key);
+        this->hashtype = util::fast;
     }
     hashRTCCR(){
     }
@@ -248,12 +259,27 @@ public:
         return res;
     }
 
-    static vint hash(vint &input, const vint& tweak, const vint& key, const vint& iv, EVP_CIPHER_CTX *e, const vint& alpha, vint u1, vint u2){
+    vint hashVint(vint input, vint tweak){
         auto middle = input.begin()+input.size()/2;
         vector<uint64_t> firstHalf(input.begin(), middle);
         vector<uint64_t> secondHalf(middle, input.end());
+        //make sure all input is at least 256 bits
+        if(firstHalf.size() < 2){
+            firstHalf.emplace_back(0);
+            secondHalf.emplace_back(0);
+        }
+        if(tweak.size() < 2){
+            tweak.emplace_back(0);
+        }
         halfLabels in = {firstHalf,secondHalf};
-        return hash(in, tweak, key, iv, e, alpha,std::move(u1),std::move(u2));
+        auto res =  hash(in, tweak, key, iv, e, alpha,u1,u2);
+        int size = res.size() - input.size();
+        if(size > 0){
+            for (int i = 0; i < size; ++i) {
+                res.pop_back();
+            }
+        }
+        return res;
     }
 
 

@@ -21,7 +21,7 @@ public:
     static vector<vint> encode(vector<labelPair> e, vector<int> x);
     static vector<vint> eval(tuple<vint, vector<labelPair>, hashRTCCR> F,
                              vector<vint> X, vector<string> f, int k);
-    static vector<int> decodeBits(vector<labelPair> d, vector<vint> Y);
+    static vector<int> decodeBits(vector<labelPair> d, vector<vint> Y, int k, hashRTCCR hash);
     static vint hashFunc(vint x, int k);
 
     static void
@@ -49,9 +49,9 @@ public:
                          const string& gateType,
                          hashRTCCR hash);
 
-    static vint decode(vector<labelPair> d, vector<vint> Y);
+    static vint decode(vector<labelPair> d, vector<vint> Y, int k, hashRTCCR hash);
 
-    static vint hashXORfast(vint &labelA, vint &labelB, int k, hashRTCCR &fh);
+    static vint hashXORfast(vint labelA, vint labelB, int k, hashRTCCR &fh);
 };
 
 

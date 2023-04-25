@@ -195,75 +195,99 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalXOR )
     {
         for (int i = 0; i < 10; ++i) {
             auto [F, e, d] = baseGarble::garble(smalltest, k, util::fast);
-            auto [smallInvConst, smallGarbledCircuit, hash] = F;
+            auto hash = get<2>(F);
             auto X00 = baseGarble::encode(e, {0, 0});
             auto Y00 = baseGarble::eval(F, X00, smalltest, k);
-            auto y00 = baseGarble::decodeBits(d, Y00);
+            auto y00 = baseGarble::decodeBits(d, Y00, k, hash);
             BOOST_TEST(y00[0] == 0);
         }
     }
 
     BOOST_AUTO_TEST_CASE( test_encode_small01 )
     {
-        auto [F,e,Y] = baseGarble::garble(smalltest, k, util::fast);
+        auto [F,e,d] = baseGarble::garble(smalltest, k, util::fast);
+        auto hash = get<2>(F);
         auto X01 = baseGarble::encode(e, {0, 1});
         auto Y01 = baseGarble::eval(F, X01, smalltest, k);
-        auto y01 = baseGarble::decodeBits(Y, Y01);
+        auto y01 = baseGarble::decodeBits(d, Y01, k, hash);
         BOOST_TEST(y01[0] == 1);
     }
 
     BOOST_AUTO_TEST_CASE( test_encode_small10 )
     {
         auto [F,e,d] = baseGarble::garble(smalltest, k, util::fast);
+        auto hash = get<2>(F);
         auto X10 = baseGarble::encode(e, {1, 0});
         auto Y10 = baseGarble::eval(F, X10, smalltest, k);
-        auto y10 = baseGarble::decodeBits(d, Y10);
+        auto y10 = baseGarble::decodeBits(d, Y10, k, hash);
         BOOST_TEST(y10[0] == 1);
     }
 
     BOOST_AUTO_TEST_CASE( test_encode_small11 )
     {
         auto [F,e,d] = baseGarble::garble(smalltest, k, util::fast);
+        auto hash = get<2>(F);
         auto X11 = baseGarble::encode(e, {1, 1});
         auto Y11 = baseGarble::eval(F, X11, smalltest, k);
-        auto y11 = baseGarble::decodeBits(d, Y11);
+        auto y11 = baseGarble::decodeBits(d, Y11, k, hash);
         BOOST_TEST(y11[0] == 0);
     }
 BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalAND )
-    vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 AND"};
-    int k = 128;
-    auto [F,e,d] = baseGarble::garble(smalltest, k, util::fast);
-    auto X00 = baseGarble::encode(e, {0, 0});
-    auto Y00 = baseGarble::eval(F, X00, smalltest, k);
-    auto y00 = baseGarble::decodeBits(d, Y00);
+    //vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 AND"};
+    //int k = 128;
+    //auto [F,e,d] = baseGarble::garble(smalltest, k, util::fast);
+    //auto hash = get<2>(F);
+    //auto X00 = baseGarble::encode(e, {0, 0});
+    //auto Y00 = baseGarble::eval(F, X00, smalltest, k);
+    //auto y00 = baseGarble::decodeBits(d, Y00, k, hash);
     BOOST_AUTO_TEST_CASE( test_encode_small00 )
     {
+        vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 AND"};
+        int k = 128;
+        auto [F,e,d] = baseGarble::garble(smalltest, k, util::fast);
+        auto hash = get<2>(F);
+        auto X00 = baseGarble::encode(e, {0, 0});
+        auto Y00 = baseGarble::eval(F, X00, smalltest, k);
+        auto y00 = baseGarble::decodeBits(d, Y00, k, hash);
         BOOST_TEST(y00[0] == 0);
     }
 
-    auto X01 = baseGarble::encode(e, {0, 1});
-    auto Y01 = baseGarble::eval(F, X01, smalltest, k);
-    auto y01 = baseGarble::decodeBits(d, Y01);
+
     BOOST_AUTO_TEST_CASE( test_encode_small01 )
     {
+        vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 AND"};
+        int k = 128;
+        auto [F,e,d] = baseGarble::garble(smalltest, k, util::fast);
+        auto hash = get<2>(F);
+        auto X01 = baseGarble::encode(e, {0, 1});
+        auto Y01 = baseGarble::eval(F, X01, smalltest, k);
+        auto y01 = baseGarble::decodeBits(d, Y01, k, hash);
         BOOST_TEST(y01[0] == 0);
     }
 
-    auto X10 = baseGarble::encode(e, {1, 0});
-    auto Y10 = baseGarble::eval(F, X10, smalltest, k);
-    auto y10 = baseGarble::decodeBits(d, Y10);
     BOOST_AUTO_TEST_CASE( test_encode_small10 )
     {
+        vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 AND"};
+        int k = 128;
+        auto [F,e,d] = baseGarble::garble(smalltest, k, util::fast);
+        auto hash = get<2>(F);
+        auto X10 = baseGarble::encode(e, {1, 0});
+        auto Y10 = baseGarble::eval(F, X10, smalltest, k);
+        auto y10 = baseGarble::decodeBits(d, Y10, k, hash);
         BOOST_TEST(y10[0] == 0);
     }
 
-    auto X11 = baseGarble::encode(e, {1, 1});
-    auto Y11 = baseGarble::eval(F, X11, smalltest, k);
-    auto y11 = baseGarble::decodeBits(d, Y11);
     BOOST_AUTO_TEST_CASE( test_encode_small11 )
     {
+        vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 AND"};
+        int k = 128;
+        auto [F,e,d] = baseGarble::garble(smalltest, k, util::fast);
+        auto hash = get<2>(F);
+        auto X11 = baseGarble::encode(e, {1, 1});
+        auto Y11 = baseGarble::eval(F, X11, smalltest, k);
+        auto y11 = baseGarble::decodeBits(d, Y11, k, hash);
         BOOST_TEST(y11[0] == 1);
     }
 BOOST_AUTO_TEST_SUITE_END()
@@ -276,9 +300,10 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalINV )
     {
         for (int i = 0; i < 10; ++i) {
             auto [F,e,d] = baseGarble::garble(smalltest, k, util::fast);
+            auto hash = get<2>(F);
             auto X0 = baseGarble::encode(e, {0});
             auto Y0 = baseGarble::eval(F, X0, smalltest, k);
-            auto y0 = baseGarble::decodeBits(d, Y0);
+            auto y0 = baseGarble::decodeBits(d, Y0, k, hash);
             BOOST_TEST(y0[0] == 1);
         }
     }
@@ -286,9 +311,10 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalINV )
     {
         for (int i = 0; i < 10; ++i) {
             auto [F,e,d] = baseGarble::garble(smalltest, k, util::fast);
+            auto hash = get<2>(F);
             auto X1 = baseGarble::encode(e, {1});
             auto Y1 = baseGarble::eval(F, X1, smalltest, k);
-            auto y1 = baseGarble::decodeBits(d, Y1);
+            auto y1 = baseGarble::decodeBits(d, Y1, k, hash);
             BOOST_TEST(y1[0] == 0);
         }
     }
@@ -296,15 +322,14 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalTwoGates )
     int k = 128;
-    vector<string> smalltest = {"2 4", "2 1 1", "1 1", "2 1 0 1 2 XOR", "2 1 0 1 3 XOR"};
-    auto [F,e,d] = baseGarble::garble(smalltest, k, util::fast);
-    vector<int> inputLabels = {0, 0};
-    auto X = baseGarble::encode(e, inputLabels);
-    auto Y = baseGarble::eval(F, X, smalltest, k);
-    auto y = baseGarble::decodeBits(d, Y);
-
     BOOST_AUTO_TEST_CASE( test_encode_two_gates )
-    {
+    {   vector<string> smalltest = {"2 4", "2 1 1", "1 1", "2 1 0 1 2 XOR", "2 1 0 1 3 XOR"};
+        auto [F,e,d] = baseGarble::garble(smalltest, k, util::fast);
+        auto hash = get<2>(F);
+        vector<int> inputLabels = {0, 0};
+        auto X = baseGarble::encode(e, inputLabels);
+        auto Y = baseGarble::eval(F, X, smalltest, k);
+        auto y = baseGarble::decodeBits(d, Y, k, hash);
         BOOST_TEST(y.size() == 1);
         BOOST_TEST(y[0] == 0);
     }
@@ -313,10 +338,11 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalTwoGates )
     {
         vector<string> smalltest = {"2 4", "2 1 1", "1 1", "2 1 0 1 2 XOR", "2 1 0 1 3 AND"};
         auto [F,e,d] = baseGarble::garble(smalltest, k, util::fast);
+        auto hash = get<2>(F);
         vector<int> inputLabels = {0, 1};
         auto X = baseGarble::encode(e, inputLabels);
         auto Y = baseGarble::eval(F, X, smalltest, k);
-        auto y = baseGarble::decodeBits(d, Y);
+        auto y = baseGarble::decodeBits(d, Y, k, hash);
         BOOST_TEST(y.size() == 1);
         BOOST_TEST(y[0] == 0);
     }
@@ -325,28 +351,42 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalTwoGates )
     {
         vector<string> smalltest = {"2 6", "4 1 1 1 1", "1 1", "2 1 0 1 4 XOR", "2 1 2 3 5 AND"};
         auto [F,e,d] = baseGarble::garble(smalltest, k, util::fast);
+        auto hash = get<2>(F);
         vector<int> inputLabels = {0, 1, 0, 1};
         auto X = baseGarble::encode(e, inputLabels);
         auto Y = baseGarble::eval(F, X, smalltest, k);
-        auto y = baseGarble::decodeBits(d, Y);
+        auto y = baseGarble::decodeBits(d, Y, k, hash);
         BOOST_TEST(y.size() == 1);
         BOOST_TEST(y[0] == 0);
+    }
+
+    BOOST_AUTO_TEST_CASE( test_encode_two_gates4 )
+    {
+        vector<string> smalltest = {"2 6", "4 1 1 1 1", "1 1", "2 1 0 1 4 AND", "2 1 2 3 5 XOR"};
+        auto [F,e,d] = baseGarble::garble(smalltest, k, util::fast);
+        auto hash = get<2>(F);
+        vector<int> inputLabels = {0, 1, 0, 1};
+        auto X = baseGarble::encode(e, inputLabels);
+        auto Y = baseGarble::eval(F, X, smalltest, k);
+        auto y = baseGarble::decodeBits(d, Y, k, hash);
+        BOOST_TEST(y.size() == 1);
+        BOOST_TEST(y[0] == 1);
     }
 BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalBlood )
-    int k = 128;
-    vector<string> bloodtest = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
-    auto [F,e,d] = baseGarble::garble(bloodtest, k, util::fast);
-    vector<int> inputLabelsBlood = {0, 0, 0,
-                                    1, 1, 1,
-                                    1};
-    auto XBlood = baseGarble::encode(e, inputLabelsBlood);
-    auto YBlood = baseGarble::eval(F, XBlood, bloodtest, k);
-    auto yBlood = baseGarble::decodeBits(d, YBlood);
-
     BOOST_AUTO_TEST_CASE( test_encode_blood )
     {
+        int k = 128;
+        vector<string> bloodtest = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
+        auto [F,e,d] = baseGarble::garble(bloodtest, k, util::fast);
+        auto hash = get<2>(F);
+        vector<int> inputLabelsBlood = {0, 0, 0,
+                                        1, 1, 1,
+                                        1};
+        auto XBlood = baseGarble::encode(e, inputLabelsBlood);
+        auto YBlood = baseGarble::eval(F, XBlood, bloodtest, k);
+        auto yBlood = baseGarble::decodeBits(d, YBlood, k, hash);
         BOOST_TEST(yBlood.size() == 1);
         BOOST_TEST(yBlood[0] == 0);
     }
@@ -356,6 +396,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalBig )
     int k = 128;
     vector<string> bigtest = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
     auto [F,e,d] = baseGarble::garble(bigtest, k, util::fast);
+    auto hash = get<2>(F);
     vector<int> inputLabelsBig = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //16
                                        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                                        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -366,7 +407,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalBig )
                                        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
     auto XBig = baseGarble::encode(e, inputLabelsBig);
     auto YBig = baseGarble::eval(F, XBig, bigtest, k);
-    auto yBig = baseGarble::decodeBits(d, YBig);
+    auto yBig = baseGarble::decodeBits(d, YBig, k, hash);
 
     BOOST_AUTO_TEST_CASE( test_encode_big_ones )
     {
@@ -387,7 +428,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalBig )
                                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}; //000...000 + 100...000
     auto XBig_zeroes = baseGarble::encode(e, inputLabelsBig_zeroes);
     auto YBig_zeroes = baseGarble::eval(F, XBig_zeroes, bigtest, k);
-    auto yBig_zeroes = baseGarble::decodeBits(d, YBig_zeroes);
+    auto yBig_zeroes = baseGarble::decodeBits(d, YBig_zeroes, k, hash);
 
     BOOST_AUTO_TEST_CASE( test_encode_big_zeroes )
     {
@@ -398,7 +439,19 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalBig )
             } else
             BOOST_TEST(yBig_zeroes[i] == 0);
         }
+    }
 
+    BOOST_AUTO_TEST_CASE( test_encode_big_numbers )
+    {
+        vector<int> inputLabelsBig_8448plus2051 = vector<int>{0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                                          0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                                          1,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                                          0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+        auto XBig_nums = baseGarble::encode(e, inputLabelsBig_8448plus2051);
+        auto YBig_nums = baseGarble::eval(F, XBig_nums, bigtest, k);
+        auto yBig_nums = baseGarble::decodeBits(d, YBig_nums, k, hash);
+        auto nummer = baseGarble::decode(d, YBig_nums, k, hash);
+        BOOST_TEST(nummer[0] == 10499);
     }
 BOOST_AUTO_TEST_SUITE_END()
 
@@ -406,6 +459,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalBigSub )
     int k = 128;
     vector<string> bigtest = circuitParser::parseCircuit("../tests/circuits/sub64.txt");
     auto [F,e,d] = baseGarble::garble(bigtest, k, util::fast);
+    auto hash = get<2>(F);
     vector<int> inputLabelsBig = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //16
                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -416,7 +470,7 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalBigSub )
                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1}; //100...000 - 100...000
     auto XBig = baseGarble::encode(e, inputLabelsBig);
     auto YBig = baseGarble::eval(F, XBig, bigtest, 128);
-    auto yBig = baseGarble::decodeBits(d, YBig);
+    auto yBig = baseGarble::decodeBits(d, YBig, k, hash);
 
     BOOST_AUTO_TEST_CASE( test_encode_big_ones )
     {
@@ -425,6 +479,19 @@ BOOST_AUTO_TEST_SUITE( Testing_BaseLineEvalBigSub )
             BOOST_TEST(yBig[i] == 0);
         }
         BOOST_TEST(yBig[63] == 1);
+    }
+
+    BOOST_AUTO_TEST_CASE( test_encode_big_numbers )
+    {
+        vector<int> inputLabelsBig_8448minus2051 = vector<int>{0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                                              0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                                              1,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                                              0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+        auto XBig_nums = baseGarble::encode(e, inputLabelsBig_8448minus2051);
+        auto YBig_nums = baseGarble::eval(F, XBig_nums, bigtest, k);
+        auto yBig_nums = baseGarble::decodeBits(d, YBig_nums, k, hash);
+        auto nummer = baseGarble::decode(d, YBig_nums, k, hash);
+        BOOST_TEST(nummer[0] == 6397);
     }
 
 BOOST_AUTO_TEST_SUITE_END()

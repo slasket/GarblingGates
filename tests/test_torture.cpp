@@ -6,6 +6,7 @@
 #include "../util/util.h"
 #include "../schemes/atecaGarble.h"
 #include "../schemes/atecaFreeXOR.h"
+#include "../schemes/baseGarble.h"
 #include "../util/circuitParser.h"
 
 using namespace boost::unit_test;
@@ -55,3 +56,28 @@ BOOST_AUTO_TEST_SUITE( ATECAfreexor_adder_torture )
         }
     }
 BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE( Baseline_adder_torture )
+    auto C = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
+    int l = 128;
+    BOOST_AUTO_TEST_CASE( adder_torture)
+    {
+        for (int i = 0; i < 100; ++i) {
+            auto input = util::genFunctionInput(128);
+            auto [slowF,slowe,slowd] = baseGarble::garble(C, l, util::RO);
+            auto slowhash = get<2>(slowF);
+            auto SlowX00 = baseGarble::encode(slowe, input);
+            auto SlowY00 = baseGarble::eval(slowF, SlowX00, C, l);
+            auto Slowy00 = baseGarble::decode(slowd, SlowY00, l, slowhash);
+
+            auto [fastF,faste,fastd] = baseGarble::garble(C, l, util::fast);
+            auto fasthash = get<2>(fastF);
+            auto FastX00 = baseGarble::encode(faste, input);
+            auto FastY00 = baseGarble::eval(fastF, FastX00, C, l);
+            auto Fasty00 = baseGarble::decode(fastd, FastY00, l, fasthash);
+
+            BOOST_TEST(Slowy00[0]==Fasty00[0]);
+        }
+    }
+BOOST_AUTO_TEST_SUITE_END()
+
