@@ -7,6 +7,7 @@
 #include "../schemes/atecaGarble.h"
 #include "../schemes/atecaFreeXOR.h"
 #include "../schemes/baseGarble.h"
+#include "../schemes/threeHalves.h"
 #include "../util/circuitParser.h"
 
 using namespace boost::unit_test;
@@ -80,4 +81,3 @@ BOOST_AUTO_TEST_SUITE( Baseline_adder_torture )
         }
     }
 BOOST_AUTO_TEST_SUITE_END()
-

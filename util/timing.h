@@ -84,14 +84,14 @@ public:
         switch (type) {
             case util::scheme::baseline:{
                 boost::timer timer;
-                auto base_C = baseGarble::garble(f, k, hashfunc);//needs hash type
+                auto [F,e,d] = baseGarble::garble(f, k, hashfunc);//needs hash type
+                auto hash = get<2>(F);
                 timings[0] += timer.elapsed();
-                auto F = get<0>(base_C);
-                auto base_X = baseGarble::encode(get<1>(base_C), x);
+                auto base_X = baseGarble::encode(e, x);
                 timer.restart();
                 auto base_Y = baseGarble::eval(F, base_X, f, k);
                 timings[1] += timer.elapsed();
-                auto base_y = baseGarble::decode(get<2>(base_C), base_Y);
+                auto base_y = baseGarble::decode(d, base_Y, k, hash);
                 break;
             }
             case util::threehalves:{
@@ -152,18 +152,18 @@ public:
                 title = "baseline w. ";
                 cout<<title << hashtype<<endl;
                 auto t1 = high_resolution_clock::now();
-                auto base_C = baseGarble::garble(f, k, hashfunc);//needs hash type
-                auto F = get<0>(base_C);
+                auto [F,e,d] = baseGarble::garble(f, k, hashfunc);//needs hash type
+                auto hash = get<2>(F);
                 auto t2 = high_resolution_clock::now();
                 duration<double, std::milli> ms_double = t2 - t1;
                 cout<< "garbling: " <<ms_double.count()<< "ms"<<endl;
-                auto base_X = baseGarble::encode(get<1>(base_C), x);
+                auto base_X = baseGarble::encode(e, x);
                 t1 = high_resolution_clock::now();
                 auto base_Y = baseGarble::eval(F, base_X, f, k);
                 t2 = high_resolution_clock::now();
                 ms_double = t2 - t1;
                 cout<< "evaluation: " <<ms_double.count()<< "ms"<<endl;
-                auto base_y = baseGarble::decode(get<2>(base_C), base_Y);
+                auto base_y = baseGarble::decode(d, base_Y, k, hash);
                 cout<< "base: " << base_y[0] <<endl;
                 break;
             }
