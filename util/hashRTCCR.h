@@ -29,6 +29,7 @@ public:
     vint u1;
     vint u2;
     EVP_CIPHER_CTX *e;
+    EVP_CIPHER_CTX *d;
     util::hashtype hashtype = util::RO;
 
     const vint &getKey() const {
@@ -66,6 +67,7 @@ public:
         this->u1 = util::genBitsNonCrypto(      (k/2)+1);
         this->u2 = util::genBitsNonCrypto(      (k/2)+1);
         this-> e = AES_vint_init(key);
+        this-> d = AES_vint_initd(key);
         this->hashtype = util::fast;
     }
     hashRTCCR(const vint& key, vint iv, int k, int base){
@@ -76,6 +78,7 @@ public:
         this->u1 = util::genBitsNonCrypto(      (k/2));
         this->u2 = util::genBitsNonCrypto(      (k/2));
         this-> e = AES_vint_init(key);
+        this-> d = AES_vint_initd(key);
         this->hashtype = util::fast;
     }
     hashRTCCR(){
@@ -161,8 +164,32 @@ public:
         memset(iv, 0, AES_BLOCK_SIZE);
         EVP_CIPHER_CTX *e;
         e = EVP_CIPHER_CTX_new();
-        //EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, iv);
+        EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, iv);
         //EVP_DecryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, iv);
+        EVP_CIPHER_CTX_set_padding(e, 0);
+        free(aes_key);
+        free(iv);
+        return e;
+    }
+
+    static inline EVP_CIPHER_CTX * AES_vint_initd(vint key){
+        if(key.size() != 4){ //4 is hardcoded for 256 bit input
+            int size = 4-key.size();
+            for (int i = 0; i < size; ++i) {
+                key.emplace_back(0);
+            }
+        }
+        int len = key.size() * sizeof(uint64_t);
+        //key from key
+        auto *aes_key = static_cast<unsigned char *>(malloc(len));
+        memcpy(aes_key, key.data(), len);
+        //iv
+        auto *iv = static_cast<unsigned char *>(malloc(AES_BLOCK_SIZE));
+        memset(iv, 0, AES_BLOCK_SIZE);
+        EVP_CIPHER_CTX *e;
+        e = EVP_CIPHER_CTX_new();
+        //EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, iv);
+        EVP_DecryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, iv);
         EVP_CIPHER_CTX_set_padding(e, 0);
         free(aes_key);
         free(iv);
@@ -343,11 +370,12 @@ public:
         auto key = util::genBitsNonCrypto(k);
         vint iv = util::genBitsNonCrypto(128);
         auto e = AES_vint_init(key);
+        auto d = AES_vint_initd(key);
         auto input = util::genBitsNonCrypto(k);
         cout << "input:             " << util::uintVec2Str(input) << endl;
         auto res = AES_vint_encrypt(input, key, iv, e);
         cout << "encrypted input:   " << util::uintVec2Str(res) << endl;
-        res = AES_vint_decrypt(res, key, iv, e);
+        res = AES_vint_decrypt(res, key, iv, d);
         cout << "decrypted input:   " << util::uintVec2Str(res) << endl;
     }
 
