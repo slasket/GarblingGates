@@ -29,11 +29,11 @@ public:
         vint data;
 
         boost::timer timer;
+        auto e123 = hashRTCCR::AES_enc_init(key,iv);
         for (int j = 0; j < amount; ++j) {
             //use index 6 now
             data= util::genBitsNonCrypto(128);
-            auto e = hashRTCCR::AES_vint_init(key);
-            auto res = hashRTCCR::AES_vint_encrypt(data,key,iv,e);
+            auto res = hashRTCCR::AES_enc(data,e123);
 
         }
         cout<<"aes alone "<<timer.elapsed()<<endl;
