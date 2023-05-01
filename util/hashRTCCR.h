@@ -91,6 +91,14 @@ public:
 //may not be correct
     static inline vint gfmulPCF(vint& a, vint& b){
         vint res;
+        padding(a, b);
+        for (int i = 0; i < a.size(); ++i) {
+            res.push_back(gfmulPCF(a[i], b[i]));
+        }
+        return res;
+    }
+
+    static void padding(vint &a, vint &b) {
         int sizeDiff = a.size() - b.size();
         if(sizeDiff > 0){
             for (int i = 0; i < sizeDiff; ++i) {
@@ -101,10 +109,6 @@ public:
                 a.emplace_back(0);
             }
         }
-        for (int i = 0; i < a.size(); ++i) {
-            res.push_back(gfmulPCF(a[i], b[i]));
-        }
-        return res;
     }
 
     static inline vint gfmul(uint64_t a, uint64_t b){
@@ -311,13 +315,16 @@ public:
 
         auto XxorUtweakL = util::vecXOR(get<0>(input), u1tweak);
         auto XxorUtweakR = util::vecXOR(get<1>(input), u2tweak);
-        auto sigma = sigmaFunc(XxorUtweakL,XxorUtweakR, alpha);
+
+
         vint XxorUtweakVint; XxorUtweakVint.reserve(XxorUtweakL.size()*2);
         XxorUtweakVint.insert(XxorUtweakVint.end(), XxorUtweakL.begin(), XxorUtweakL.end());
         XxorUtweakVint.insert(XxorUtweakVint.end(), XxorUtweakR.begin(), XxorUtweakR.end());
+
         auto AESXxorUtweak = AES_vint_encrypt(XxorUtweakVint, key, iv, e);
-        auto res = util::vecXOR(sigma, AESXxorUtweak);
-        return res;
+
+        auto sigma = sigmaFunc(XxorUtweakL,XxorUtweakR, alpha);
+        return util::vecXOR(sigma, AESXxorUtweak);
     }
 
     vint hashVint(vint input, vint tweak){

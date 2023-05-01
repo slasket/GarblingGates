@@ -61,22 +61,22 @@ public:
         //do stuff
 
         ///shake 256 versions
-        vector<double> outlen = {k * pow(2, 0), k * pow(2, 3), k * pow(2, 4)};
-        timer.restart();
-        for (int j = 0; j < amount; ++j) {
-            auto Xk = util::hash_variable(util::uintVec2Str(data[j]), outlen[0]);
-        }
-        cout<<"shake256("<< pow(2,0)<<"x) " <<timer.elapsed()<<endl;
-        timer.restart();
-        for (int j = 0; j < amount; ++j) {
-            auto Xk = util::hash_variable(util::uintVec2Str(data[j]), outlen[1]);
-        }
-        cout<<"shake256("<< pow(2,3)<<"x) " <<timer.elapsed()<<endl;
-        timer.restart();
-        for (int j = 0; j < amount; ++j) {
-            auto Xk = util::hash_variable(util::uintVec2Str(data[j]), outlen[2]);
-        }
-        cout<<"shake256("<< pow(2,4)<<"x) " <<timer.elapsed()<<endl;
+        //vector<double> outlen = {k * pow(2, 0), k * pow(2, 3), k * pow(2, 4)};
+        //timer.restart();
+        //for (int i = 0; i < amount; ++i) {
+        //    auto Xk = util::hash_variable(dataAsString[i], outlen[0]);
+        //}
+        //cout<<"shake256("<< pow(2,0)<<"x) " <<timer.elapsed()<<endl;
+        //timer.restart();
+        //for (int i = 0; i < amount; ++i) {
+        //    auto Xk = util::hash_variable(dataAsString[i], outlen[1]);
+        //}
+        //cout<<"shake256("<< pow(2,3)<<"x) " <<timer.elapsed()<<endl;
+        //timer.restart();
+        //for (int i = 0; i < amount; ++i) {
+        //    auto Xk = util::hash_variable(dataAsString[i], outlen[2]);
+        //}
+        //cout<<"shake256("<< pow(2,4)<<"x) " <<timer.elapsed()<<endl;
     }
 
     static void hashOutputLengthTest(string both){
