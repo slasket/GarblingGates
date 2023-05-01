@@ -11,9 +11,15 @@
 #include <string.h>
 
 #include <utility>
+#include <chrono>
 
 
 using namespace std;
+
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::duration;
+using std::chrono::milliseconds;
 
 class hashRTCCR {
 public:
@@ -140,6 +146,7 @@ public:
     }
 
     static inline EVP_CIPHER_CTX * AES_vint_init(vint key){
+
         if(key.size() != 4){ //4 is hardcoded for 256 bit input
             int size = 4-key.size();
             for (int i = 0; i < size; ++i) {
@@ -185,7 +192,7 @@ public:
         auto *aes_iv = static_cast<unsigned char *>(malloc(AES_BLOCK_SIZE));
         memcpy(aes_iv, iv.data(), AES_BLOCK_SIZE);
 
-        EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, aes_iv);
+        EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), nullptr, aes_key, aes_iv);
         EVP_EncryptUpdate(e, ciphertext, &c_len, plaintext, len);
         EVP_EncryptFinal_ex(e, ciphertext + c_len, &f_len);
         //convert ciphertext to vint

@@ -6,6 +6,13 @@
 #include <utility>
 #include <cassert>
 #include "baseGarble.h"
+#include <boost/timer.hpp>
+#include <iostream>
+#include <chrono>
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::duration;
+using std::chrono::milliseconds;
 
 
 //k is security parameter and f is the function to be garbled with 3 lines of metadata
@@ -71,6 +78,7 @@ baseGarble::garble(vector<string> f, int k, util::hashtype hashtype) {
             vector<::uint64_t> &in0 = get<0>(wireLabels[outputWires[0]]);
             vector<::uint64_t> &in1 = get<1>(wireLabels[outputWires[0]]);
             tuple<vint, vint> outputLabel;
+            auto t1 = high_resolution_clock::now();
             if(hash.hashtype == util::RO){
                 string outputStrF = util::uintVec2Str(in0);
                 string outputStrT = util::uintVec2Str(in1);
@@ -78,6 +86,9 @@ baseGarble::garble(vector<string> f, int k, util::hashtype hashtype) {
             } else {
                 outputLabel = {hash.hashVint(in0, {0}), hash.hashVint(in1, {0})};
             }
+            auto t2 = high_resolution_clock::now();
+            duration<double, std::milli> ms_double = t2 - t1;
+            cout<< "hash, " <<ms_double.count()<<endl;
 
             encOutputLabels[outputWires[0] - (numberOfWires - numberOfOutputBits)] = outputLabel;
         }
@@ -144,6 +155,7 @@ void
 baseGarble::andGate(const vint &globalDelta, int permuteBitA, int permuteBitB, vint &A0,
                     vint &A1, vint &B0, vint &B1, vint &ciphertext,
                     vint &gate0, vint &gate1, int k, hashRTCCR hash) {
+    auto t1 = high_resolution_clock::now();
     if(hash.hashtype == util::RO){
         ciphertext = hashXOR(A0, B0, k);
         gate1 = util::vecXOR(util::vecXOR(hashXOR(A0, B1, k), ciphertext), A0);
@@ -153,6 +165,9 @@ baseGarble::andGate(const vint &globalDelta, int permuteBitA, int permuteBitB, v
         gate1 = util::vecXOR(util::vecXOR(hashXORfast(A0, B1, k, hash), ciphertext), A0);
         gate0 = util::vecXOR(hashXORfast(A1, B0, k, hash), ciphertext);
     }
+    auto t2 = high_resolution_clock::now();
+    duration<double, std::milli> ms_double = t2 - t1;
+    cout<< "hash, " <<ms_double.count()<<endl;
 
     if(permuteBitA == 1){
         gate1 = util::vecXOR(gate1, globalDelta);

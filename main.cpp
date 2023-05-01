@@ -29,27 +29,32 @@ void sliceTest();
 void threehalves_Test();
 void timetest(const vector<string>&f, const vector<int>& x, int k, util::scheme type, util::hashtype hashfunc);
 void repetitionTest(const vector<string>&f,int inputsize, int k,util::hashtype hashfunc, int repetitions);
+
 int main() {
     //vector<string> f = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
     //auto x = vector<int>{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     //vector<int> x = util::genFunctionInput(128);
+
+    auto k=256;
+
+
+    timing::time_AES_V_ourImpl(k);
+    //timing::hashOutputLengthTest("both");
+
     vector<string> f = circuitParser::parseCircuit("../tests/circuits/Keccak_f.txt");
     vector<int> x = util::genFunctionInput(circuitParser::inputsize(f));
-    int k = 128;
-    cout<<"linux fast"<<endl;
-
-    cout<< "Keccak_f test"<<endl;
-    timing::timetest(f,x,k,util::baseline, util::fast);
-    timing::timetest(f,x,k,util::threehalves, util::fast);
-    timing::timetest(f,x,k,util::ateca, util::fast);
-    timing::timetest(f,x,k,util::atecaFXOR, util::fast);
-    cout<<endl;
+    util::hashtype type = util::fast;
+    //timing::time_circuit_all(f,x,k,type);
+    //cout<<endl;
     f = circuitParser::parseCircuit("../tests/circuits/aes_128.txt");
-    timing::repetitionTest(f,k,util::fast,100);
+    //timing::repetitionTest(f,k,type,100);
 
 
     return 0;
 }
+
+
+
 void threehalves_Test() {
     hashRTCCR::testHashRTCCR();
     hashRTCCR::testDecrypt();

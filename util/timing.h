@@ -22,6 +22,90 @@ using namespace std;
 
 class timing{
 public:
+    static void time_AES_V_ourImpl(int k=256) {
+        auto amount = 1000000;
+        vint key = util::genBitsNonCrypto(256);
+        vint iv = util::genBitsNonCrypto(256);
+        vint data;
+
+        boost::timer timer;
+        for (int j = 0; j < amount; ++j) {
+            //use index 6 now
+            data= util::genBitsNonCrypto(128);
+            auto e = hashRTCCR::AES_vint_init(key);
+            auto res = hashRTCCR::AES_vint_encrypt(data,key,iv,e);
+
+        }
+        cout<<"aes alone "<<timer.elapsed()<<endl;
+
+        auto e = hashRTCCR(key,iv,k);
+        timer.restart();
+        for (int j = 0; j < amount; ++j) {
+            //use index 6 now
+            halfLabels dat= {util::genBitsNonCrypto(64),util::genBitsNonCrypto(64)};
+            auto res = hashRTCCR::hash(dat,{500},e.getKey(),e.getIv(),e.getE(),e.getAlpha(),e.getU1(),e.getU2());
+
+        }
+        cout<<"our impl "<<timer.elapsed()<<endl;
+    }
+
+    static void hashOutputLengthTest(string both){
+        using std::chrono::high_resolution_clock;
+        using std::chrono::duration_cast;
+        using std::chrono::duration;
+        using std::chrono::milliseconds;
+        auto k= 128;
+        vector<double> baseline(8);
+        auto internal = 10000;
+        auto external = 100;
+        vint key = util::genBitsNonCrypto(256);
+        vint iv = util::genBitsNonCrypto(256);
+
+        cout<<internal*external <<" hashings tests"<<endl;
+        for (int i = 0; i < external; ++i) {
+            vector<vint> data(internal);
+            vector<string> dataAsString(internal);
+
+            for (int j = 0; j < internal; ++j) {
+                data[j]= util::genBitsNonCrypto(128);
+                dataAsString[j] = util::uintVec2Str(data[j]);
+            }
+            //call aes 128->256
+
+            if (both=="both"){
+                for (int j = 0; j < 6; ++j) {
+                    auto outlen = k*pow(2,j);
+                    auto t1 = high_resolution_clock::now();
+                    for (int l = 0; l < internal; ++l) {
+                        auto Xk = util::hash_variable(dataAsString[l], outlen);
+                    }
+                    auto t2 = high_resolution_clock::now();
+                    duration<double, std::milli> ms_double = t2 - t1;
+                    baseline[j] += ms_double.count();
+                }
+            }
+
+            for (int j = 0; j < internal; ++j) {
+                //use index 6 now
+                auto t1 = high_resolution_clock::now();
+                auto e = hashRTCCR::AES_vint_init(key);
+                auto res = hashRTCCR::AES_vint_encrypt(data[j],key,iv,e);
+                auto t2 = high_resolution_clock::now();
+                duration<double, std::milli> ms_double = t2 - t1;
+                baseline[6] += ms_double.count();
+            }
+
+
+        }
+        for (int i = 0; i < 6; ++i) {
+            auto outlen = k*pow(2,i);
+            cout<<"shake256 "<< outlen<< "-bit ("<<pow(2,i) << "x) output in "<< baseline[i]/1000<< " s" <<endl;
+        }
+        cout<<"aes256 "<< "256-bit output in "<< baseline[6]/1000<< " s" <<endl;
+
+    }
+
+
     static void repetitionTest(const vector<string>&f, int k,util::hashtype hashfunc, int repetitions){
         vector<double> baseline(2);
         vector<double> three(2);
@@ -36,15 +120,15 @@ public:
         }else{
             hashtype= "RO";
         }
-        cout<<"running all schemes for 4 sets " << repetitions <<" reps"<<endl;
+        cout<<"garbling all 4 schemes for aes_128 " << repetitions <<" reps"<<endl;
         cout << "hashtype: "<< hashtype<<endl;
         for (int i = 0; i < repetitions; ++i) {
             //inputgen
             vector<int> x = util::genFunctionInput(inputsize);
             runGarble(f, util::baseline, k, hashfunc, baseline, x);
-            runGarble(f, util::threehalves, k, hashfunc, three, x);
-            runGarble(f, util::ateca, k, hashfunc, ate, x);
-            runGarble(f, util::atecaFXOR, k, hashfunc, ate_f, x);
+            //runGarble(f, util::threehalves, k, hashfunc, three, x);
+            //runGarble(f, util::ateca, k, hashfunc, ate, x);
+            //runGarble(f, util::atecaFXOR, k, hashfunc, ate_f, x);
         }
 
         printResult(util::baseline, baseline, hashfunc);
@@ -135,7 +219,21 @@ public:
         }
     }
 
-    static void timetest(const vector<string>&f, const vector<int>& x, int k, util::scheme type, util::hashtype hashfunc){
+    static void time_circuit_all(const vector<string>&f, const vector<int>& x, int k, util::hashtype hashfunc){
+        if (hashfunc){
+            cout<<"windows fast"<<endl;
+        }else{
+            cout<<"windows slow"<<endl;
+        }
+        //cout<< "Keccak_f test"<<endl;
+        timing::time_circuit(f,x,k,util::baseline, hashfunc);
+        timing::time_circuit(f,x,k,util::threehalves, hashfunc);
+        timing::time_circuit(f,x,k,util::ateca, hashfunc);
+        timing::time_circuit(f,x,k,util::atecaFXOR, hashfunc);
+
+    }
+
+    static void time_circuit(const vector<string>&f, const vector<int>& x, int k, util::scheme type, util::hashtype hashfunc){
         using std::chrono::high_resolution_clock;
         using std::chrono::duration_cast;
         using std::chrono::duration;
@@ -154,10 +252,11 @@ public:
                 cout<<title << hashtype<<endl;
                 auto t1 = high_resolution_clock::now();
                 auto [F,e,d] = baseGarble::garble(f, k, hashfunc);//needs hash type
-                auto hash = get<2>(F);
+
                 auto t2 = high_resolution_clock::now();
                 duration<double, std::milli> ms_double = t2 - t1;
                 cout<< "garbling: " <<ms_double.count()<< "ms"<<endl;
+                auto hash = get<2>(F);
                 auto base_X = baseGarble::encode(e, x);
                 t1 = high_resolution_clock::now();
                 auto base_Y = baseGarble::eval(F, base_X, f, k);
