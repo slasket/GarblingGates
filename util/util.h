@@ -170,7 +170,8 @@ public:
     }
 
     static inline vector<::uint64_t> vecXOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
-        int size = max(left.size(),right.size());
+        auto size = max(left.size(),right.size());
+        left.reserve(size);
         for (int i = 0; i < size; ++i) {
             if(i<left.size() && i<right.size()){
                 left[i] = left[i] ^ right[i];
@@ -414,6 +415,8 @@ public:
         auto [left2, right2] = input2;
         auto newLeft = vecXOR(left1, left2);
         auto newRight = vecXOR(right1, right2);
+        //auto newLeft = vecXOR(get<0>(input1), get<0>(input2));
+        //auto newRight = vecXOR(get<1>(input1), get<1>(input2));
 
         return {newLeft, newRight};
     }

@@ -80,7 +80,7 @@ public:
     static tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels>, halfLabels, hashRTCCR>
     garble(vector<string> f, int k=128, int h = 1);
     static vector<halfLabels> encode(tuple<halfDelta, vector<tuple<halfLabels, int>>> e, vector<int> x);
-    static vector<halfLabels> eval(Ftype F, vector<halfLabels> X, vector<string> f, int k, const halfLabels& invConst, const hashRTCCR& hash, int h = 1);
+    static vector<halfLabels> eval(Ftype F, vector<halfLabels> X, vector<string> f, int k, const halfLabels& invConst, hashRTCCR &hash, int h = 1);
     static vector<int> decodeBits(vector<halfLabels> d, vector<halfLabels> Y, vector<string> f, int k);
     static vint sampleR(int permuteBitA, int permuteBitB);
     static vector<int> computeT(int permuteBitA, int permuteBitB, const string& gateType);

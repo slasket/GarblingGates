@@ -250,7 +250,7 @@ BOOST_AUTO_TEST_SUITE( ThreeHalves_bloodComp )
             auto x = vector<int>{1,1,0,0,0,1,1};
             auto C = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
             int l = 64;
-            auto [F, e, d, ic, hash] = threeHalves::garble(C, 128);
+            auto [F, e, d, ic, hash] = threeHalves::garble(C, 128, util::fast);
             auto encLabels = threeHalves::encode(e, x);
             auto Y = threeHalves::eval(F, encLabels, C, 128, ic, hash);
             auto y = threeHalves::decodeBits(d, Y, C, 128);

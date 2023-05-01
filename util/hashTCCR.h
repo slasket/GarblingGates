@@ -69,7 +69,7 @@ public:
 
 
     static inline vint AES_vint_encrypt(vint input, vint key, vint iv, EVP_CIPHER_CTX *e){
-        if(input.size() != 2){ //2 is hardcoded for 128 bit input
+        if(input.size() < 2){ //2 is hardcoded for 128 bit input
             int size = 2-input.size();
             for (int i = 0; i < size; ++i) {
                 input.emplace_back(0);

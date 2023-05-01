@@ -166,15 +166,19 @@ threeHalves::garble(vector<string> f, int k, int h) {
                     get<0>(lbl).emplace_back(0);
                     get<1>(lbl).emplace_back(0);
                 }
-                auto tweak0 = static_cast<unsigned long long>((3 * k) - 3);
-                auto tweak1 = static_cast<unsigned long long>((3 * k) - 2);
-                auto tweak2 = static_cast<unsigned long long>((3 * k) - 1);
-                hashes[0] = hashRTCCR::hash(A0, {0,0,0,tweak0}, hashRTCCR.getKey(), hashRTCCR.getIv(), hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
-                hashes[1] = hashRTCCR::hash(A1, {0,0,0,tweak0}, hashRTCCR.getKey(), hashRTCCR.getIv(), hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
-                hashes[2] = hashRTCCR::hash(B0, {0,0,0,tweak1}, hashRTCCR.getKey(), hashRTCCR.getIv(), hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
-                hashes[3] = hashRTCCR::hash(B1, {0,0,0,tweak1}, hashRTCCR.getKey(), hashRTCCR.getIv(), hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
-                hashes[4] = hashRTCCR::hash(A0xorB0, {0,0,0,tweak2}, hashRTCCR.getKey(), hashRTCCR.getIv(), hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
-                hashes[5] = hashRTCCR::hash(A0xorB0xorDelta, {0,0,0,tweak2}, hashRTCCR.getKey(), hashRTCCR.getIv(), hashRTCCR.getE(), hashRTCCR.getAlpha(), hashRTCCR.getU1(), hashRTCCR.getU2());
+                ::uint64_t k64 = k;
+                vint tweak0 {((3 * k64) - 3)};
+                vint tweak1 {((3 * k64) - 2)};
+                vint tweak2 {((3 * k64) - 1)};
+                //auto tweak0 = static_cast<unsigned long long>((3 * k) - 3);
+                //auto tweak1 = static_cast<unsigned long long>((3 * k) - 2);
+                //auto tweak2 = static_cast<unsigned long long>((3 * k) - 1);
+                hashes[0] = hashRTCCR.hash(A0             , tweak0);
+                hashes[1] = hashRTCCR.hash(A1             , tweak0);
+                hashes[2] = hashRTCCR.hash(B0             , tweak1);
+                hashes[3] = hashRTCCR.hash(B1             , tweak1);
+                hashes[4] = hashRTCCR.hash(A0xorB0        , tweak2);
+                hashes[5] = hashRTCCR.hash(A0xorB0xorDelta, tweak2);
 
                 int size = hashes[0].size()-(A0Left.size()+1);
                 for (int j = 0; j < size; ++j) {
@@ -308,7 +312,7 @@ vector<halfLabels> threeHalves::encode(tuple<halfDelta, vector<tuple<halfLabels,
     return X;
 }
 
-vector<halfLabels> threeHalves::eval(Ftype F, vector<halfLabels> X, vector<string> f, int k, const halfLabels& invConst, const hashRTCCR& hash, int h) {
+vector<halfLabels> threeHalves::eval(Ftype F, vector<halfLabels> X, vector<string> f, int k, const halfLabels& invConst, hashRTCCR &hash, int h) {
     auto &wireAndGates = f[0];
     auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
     int numberOfWires = stoi(gatesAndWiresSplit[1]);
@@ -448,13 +452,14 @@ vector<halfLabels> threeHalves::eval(Ftype F, vector<halfLabels> X, vector<strin
                 //get<1>(B).emplace_back(0);
                 //get<0>(AxorB).emplace_back(0);
                 //get<1>(AxorB).emplace_back(0);
-                auto tweak0 = static_cast<unsigned long long>((3 * k) - 3);
-                auto tweak1 = static_cast<unsigned long long>((3 * k) - 2);
-                auto tweak2 = static_cast<unsigned long long>((3 * k) - 1);
+                ::uint64_t k64 = k;
+                vint tweak0 {((3 * k64) - 3)};
+                vint tweak1 {((3 * k64) - 2)};
+                vint tweak2 {((3 * k64) - 1)};
 
-                hashes[0] = hashRTCCR::hash(inputs[0], {0,0,0,tweak0}, hash.getKey(), hash.getIv(), hash.getE(), hash.getAlpha(), hash.getU1(), hash.getU2());
-                hashes[1] = hashRTCCR::hash(inputs[1], {0,0,0,tweak1}, hash.getKey(), hash.getIv(), hash.getE(), hash.getAlpha(), hash.getU1(), hash.getU2());
-                hashes[2] = hashRTCCR::hash(inputs[2], {0,0,0,tweak2}, hash.getKey(), hash.getIv(), hash.getE(), hash.getAlpha(), hash.getU1(), hash.getU2());
+                hashes[0] = hash.hash(inputs[0], tweak0);
+                hashes[1] = hash.hash(inputs[1], tweak1);
+                hashes[2] = hash.hash(inputs[2], tweak2);
                 int size = hashes[0].size()-(Al.size()+1);
                 for (int j = 0; j < size; ++j) {
                     for (int hIx = 0; hIx < hashes.size(); ++hIx) {

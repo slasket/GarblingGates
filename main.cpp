@@ -38,7 +38,7 @@ int main() {
     auto k=256;
 
 
-    timing::time_AES_V_ourImpl(k);
+    timing::testHashAll(k);
     //timing::hashOutputLengthTest("both");
 
     vector<string> f = circuitParser::parseCircuit("../tests/circuits/Keccak_f.txt");
@@ -56,7 +56,7 @@ int main() {
 
 
 void threehalves_Test() {
-    hashRTCCR::testHashRTCCR();
+    //hashRTCCR::testHashRTCCR();
     hashRTCCR::testDecrypt();
 
     int lInput =6;
@@ -96,7 +96,8 @@ void threehalves_Test() {
     auto a = util::genBitsNonCrypto(128);
     auto b = util::genBitsNonCrypto(128);
     halfLabels A = {a, b};
-    auto HA = hashRTCCR::hash(A, {0,0,0,1}, hash.getKey(), hash.getIv(), hash.getE(), hash.getAlpha(), hash.getU1(), hash.getU2());
+    vint tweak{1};
+    auto HA = hash.hash(A, tweak);
     util::printUintVec(a);
     util::printUintVec(b);
     util::printUintVec(hash.getAlpha());
@@ -104,7 +105,7 @@ void threehalves_Test() {
     util::printUintVec(hash.getU2());
     cout << "hash1" << endl;
     util::printUintVec(HA);
-    HA = hashRTCCR::hash(A, {0,0,0,1}, hash.getKey(), hash.getIv(), hash.getE(), hash.getAlpha(), hash.getU1(), hash.getU2());
+    HA = hash.hash(A, tweak);
     cout << "hash2" << endl;
     util::printUintVec(HA);
 }

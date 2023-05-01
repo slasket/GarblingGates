@@ -22,7 +22,7 @@ using namespace std;
 
 class timing{
 public:
-    static void time_AES_V_ourImpl(int k=256) {
+    static void testHashAll(int k=256) {
         auto amount = 1000000;
         vint key = util::genBitsNonCrypto(256);
         vint iv = util::genBitsNonCrypto(256);
@@ -32,13 +32,14 @@ public:
         vector<vint> data(amount);
         vector<halfLabels> dat(amount);
         vector<vint> tweak(amount);
+        vector<string> dataAsString(amount);
 
         for (int i = 0; i < amount; ++i) {
             data[i]= util::genBitsNonCrypto(128);
             dat[i]= {util::genBitsNonCrypto(64),util::genBitsNonCrypto(64)};
             tweak[i]= util::genBitsNonCrypto(3*64);
+            dataAsString[i]= util::uintVec2Str(data[i]);
         }
-
 
         auto e123 = hashRTCCR::AES_enc_init(key,iv);
         boost::timer timer;
@@ -47,14 +48,35 @@ public:
         }
         cout<<"aes alone "<<timer.elapsed()<<endl;
 
+        //aes version of algos
+        ///aes threehalves and baseline
         auto e = hashRTCCR(key,iv,k);
-
         timer.restart();
         for (int j = 0; j < amount; ++j) {
             //use index 6 now
-            auto res = hashRTCCR::hash(dat[j],tweak[j],e.getKey(),e.getIv(),e.getE(),e.getAlpha(),e.getU1(),e.getU2());
+            auto res = e.hash(dat[j],tweak[j]);
         }
-        cout<<"our impl "<<timer.elapsed()<<endl;
+        cout<<"hashRTCCR "<<timer.elapsed()<<endl;
+        ///aes ateca and ateca freexor
+        //do stuff
+
+        ///shake 256 versions
+        vector<double> outlen = {k * pow(2, 0), k * pow(2, 3), k * pow(2, 4)};
+        timer.restart();
+        for (int j = 0; j < amount; ++j) {
+            auto Xk = util::hash_variable(util::uintVec2Str(data[j]), outlen[0]);
+        }
+        cout<<"shake256("<< pow(2,0)<<"x) " <<timer.elapsed()<<endl;
+        timer.restart();
+        for (int j = 0; j < amount; ++j) {
+            auto Xk = util::hash_variable(util::uintVec2Str(data[j]), outlen[1]);
+        }
+        cout<<"shake256("<< pow(2,3)<<"x) " <<timer.elapsed()<<endl;
+        timer.restart();
+        for (int j = 0; j < amount; ++j) {
+            auto Xk = util::hash_variable(util::uintVec2Str(data[j]), outlen[2]);
+        }
+        cout<<"shake256("<< pow(2,4)<<"x) " <<timer.elapsed()<<endl;
     }
 
     static void hashOutputLengthTest(string both){
@@ -93,15 +115,15 @@ public:
                 }
             }
 
+            auto e = hashRTCCR::AES_vint_init(key, iv);
+            auto t1 = high_resolution_clock::now();
             for (int j = 0; j < internal; ++j) {
                 //use index 6 now
-                auto t1 = high_resolution_clock::now();
-                auto e = hashRTCCR::AES_vint_init(key, iv);
                 auto res = hashRTCCR::AES_vint_encrypt(data[j],key,iv,e);
-                auto t2 = high_resolution_clock::now();
-                duration<double, std::milli> ms_double = t2 - t1;
-                baseline[6] += ms_double.count();
             }
+            auto t2 = high_resolution_clock::now();
+            duration<double, std::milli> ms_double = t2 - t1;
+            baseline[6] += ms_double.count();
 
 
         }

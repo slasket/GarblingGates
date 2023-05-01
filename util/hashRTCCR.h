@@ -58,7 +58,7 @@ public:
         return hashtype;
     }
 
-    hashRTCCR(const vint& key, vint iv, int k){
+    hashRTCCR(const vint& key, const vint& iv, int k){
         if(k < 256) k=256;
         this->key = key;
         this->iv = iv;
@@ -68,7 +68,7 @@ public:
         this-> e = AES_vint_init(key, iv);
         this->hashtype = util::fast;
     }
-    hashRTCCR(const vint& key, vint iv, int k, int base){
+    hashRTCCR(const vint& key, const vint& iv, int k, int base){
         if(k < 256) k=256;
         this->key = key;
         this->iv = iv;
@@ -89,7 +89,7 @@ public:
     }
 
 //may not be correct
-    static inline vint gfmulPCF(vint a, vint b){
+    static inline vint gfmulPCF(vint& a, vint& b){
         vint res;
         int sizeDiff = a.size() - b.size();
         if(sizeDiff > 0){
@@ -141,7 +141,7 @@ public:
     }
 
 //change to halflabels
-    static vint sigmaFunc(halfLabels input, const vint& alpha){
+    static vint sigmaFunc(vint& labelLeft, vint & labelRight, vint& alpha){
         //gfmul half of input with alpha
         //vint halfInput1;
         //vint halfInput2;
@@ -149,8 +149,9 @@ public:
         //    halfInput1.push_back(input[i]);
         //    halfInput2.push_back(input[i + input.size()/2]);
         //}
-        vint res1 = gfmulPCF(get<0>(input), alpha);
-        vint res2 = gfmulPCF(get<1>(input), alpha);
+        vint res1 = gfmulPCF(labelLeft, alpha);
+        vint res2 = gfmulPCF(labelRight, alpha);
+        res1.reserve(2*res1.size());
         res1.insert(res1.end(), res2.begin(), res2.end());
         return res1;
     }
@@ -244,12 +245,6 @@ public:
         auto *plaintext = static_cast<unsigned char *>(malloc(len));
         memcpy(plaintext, input.data(), len);
 
-        //key from key
-        auto *aes_key = static_cast<unsigned char *>(malloc(len));
-        memcpy(aes_key, key.data(), len);
-        //iv from iv        16 block times 8 bits = 128 bits
-        auto *aes_iv = static_cast<unsigned char *>(malloc(AES_BLOCK_SIZE));
-        memcpy(aes_iv, iv.data(), AES_BLOCK_SIZE);
 
         //EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), nullptr, aes_key, aes_iv);
         EVP_EncryptUpdate(e, ciphertext, &c_len, plaintext, len);
@@ -259,8 +254,6 @@ public:
         memcpy(res.data(), ciphertext, len);
         free(ciphertext);
         free(plaintext);
-        free(aes_key);
-        free(aes_iv);
         EVP_CIPHER_CTX_cleanup(e);
         return res;
     }
@@ -304,7 +297,7 @@ public:
 
 
 //randomized tweakable circular correlation robust hash function
-    static vint hash(halfLabels &input, const vint& tweak, const vint& key, const vint& iv, EVP_CIPHER_CTX *e, const vint& alpha, vint u1, vint u2){
+    vint hash(halfLabels &input, vint& tweak){
         //generate two random GF(2^len/2) elements
         //vint u1 = randomGF2(len/2);
         //vint u2 = randomGF2(len/2);
@@ -313,14 +306,15 @@ public:
         auto u2tweak = gfmulPCF((u2), tweak);
         //u1tweak.insert(u1tweak.end(), u2tweak.begin(), u2tweak.end());
         //vint Utweak = u1tweak;
-        halfLabels Utweak = {u1tweak, u2tweak};
-        auto XxorUtweak = util::halfLabelXOR(input, Utweak);
-        //auto XxorUtweakL = util::vecXOR(get<0>(input), Utweak);
-        //auto XxorUtweakR = util::vecXOR(get<1>(input), Utweak);
-        auto sigma = sigmaFunc(XxorUtweak, alpha);
-        vint XxorUtweakVint;
-        XxorUtweakVint.insert(XxorUtweakVint.end(), get<0>(XxorUtweak).begin(), get<0>(XxorUtweak).end());
-        XxorUtweakVint.insert(XxorUtweakVint.end(), get<1>(XxorUtweak).begin(), get<1>(XxorUtweak).end());
+        //halfLabels Utweak = {u1tweak, u2tweak};
+        //auto XxorUtweak = util::halfLabelXOR(input, Utweak);
+
+        auto XxorUtweakL = util::vecXOR(get<0>(input), u1tweak);
+        auto XxorUtweakR = util::vecXOR(get<1>(input), u2tweak);
+        auto sigma = sigmaFunc(XxorUtweakL,XxorUtweakR, alpha);
+        vint XxorUtweakVint; XxorUtweakVint.reserve(XxorUtweakL.size()*2);
+        XxorUtweakVint.insert(XxorUtweakVint.end(), XxorUtweakL.begin(), XxorUtweakL.end());
+        XxorUtweakVint.insert(XxorUtweakVint.end(), XxorUtweakR.begin(), XxorUtweakR.end());
         auto AESXxorUtweak = AES_vint_encrypt(XxorUtweakVint, key, iv, e);
         auto res = util::vecXOR(sigma, AESXxorUtweak);
         return res;
@@ -341,7 +335,7 @@ public:
         //    tweak.emplace_back(0);
         //}
         halfLabels in = {firstHalf,secondHalf};
-        auto res =  hash(in, tweak, key, iv, e, alpha,u1,u2);
+        auto res =  hash(in, tweak);
         vector<uint64_t> resfirstHalf(input.begin(), middle);
         vector<uint64_t> ressecondHalf(middle, input.end());
         //pop back if resfirstHalf is larger than hafl of input
@@ -375,41 +369,40 @@ public:
         //cout << "decrypted input:   " << util::uintVec2Str(res) << endl;
     }
 
-    static void testHashRTCCR() {
-        int k = 256;
-        auto key = util::genBitsNonCrypto(k);
-        vint iv = util::genBitsNonCrypto(128);
-        auto e = AES_vint_init(key, iv);
-        auto inputL = util::genBitsNonCrypto(k/2);
-        auto inputR = util::genBitsNonCrypto(k/2);
-        halfLabels input = make_tuple(inputL, inputR);
-        auto tweak = util::genBitsNonCrypto(k/2);
-        vint sigmaValue = util::genBitsNonCrypto(k/2);
-        vint u1 = util::genBitsNonCrypto(k/2);
-        vint u2 = util::genBitsNonCrypto(k/2);
-
-
-        auto res = hash(input, tweak, key, iv, e, sigmaValue, u1, u2);
-        cout << "res: " << util::uintVec2Str(res) << endl;
-        util::printUintVec(res);
-        res = hash(input, tweak, key, iv, e, sigmaValue, u1, u2);
-        cout << "res: " << util::uintVec2Str(res) << endl;
-        util::printUintVec(res);
-        auto inputL2 = util::genBitsNonCrypto(k/2);
-        auto inputR2 = util::genBitsNonCrypto(k/2);
-        halfLabels input2 = make_tuple(inputL2, inputR2);
-        auto tweak2 = util::genBitsNonCrypto(k/2);
-        auto key2 = util::genBitsNonCrypto(k);
-        auto res2 = hash(input2, tweak2, key, iv, e, sigmaValue, u1, u2);
-        cout << "res2: " << util::uintVec2Str(res2) << endl;
-        util::printUintVec(res2);
-        auto res1 = hash(input, tweak, key, iv, e, sigmaValue, u1, u2);
-        cout << "res: " << util::uintVec2Str(res1) << endl;
-        util::printUintVec(res1);
-        auto res3 = hash(input2, tweak2, key, iv, e, sigmaValue, u1, u2);
-        cout << "res2: " << util::uintVec2Str(res3) << endl;
-        util::printUintVec(res3);
-    }
+    //static void testHashRTCCR() {
+    //    int k = 256;
+    //    auto key = util::genBitsNonCrypto(k);
+    //    vint iv = util::genBitsNonCrypto(128);
+    //    auto e = AES_vint_init(key, iv);
+    //    auto inputL = util::genBitsNonCrypto(k/2);
+    //    auto inputR = util::genBitsNonCrypto(k/2);
+    //    halfLabels input = make_tuple(inputL, inputR);
+    //    auto tweak = util::genBitsNonCrypto(k/2);
+    //    vint sigmaValue = util::genBitsNonCrypto(k/2);
+    //    vint u1 = util::genBitsNonCrypto(k/2);
+    //    vint u2 = util::genBitsNonCrypto(k/2);
+    //    auto ctx1.hashRTCCR(key,iv,k);
+    //    auto res = hash(input, tweak, key, iv, e, sigmaValue, u1, u2);
+    //    cout << "res: " << util::uintVec2Str(res) << endl;
+    //    util::printUintVec(res);
+    //    res = hash(input, tweak, key, iv, e, sigmaValue, u1, u2);
+    //    cout << "res: " << util::uintVec2Str(res) << endl;
+    //    util::printUintVec(res);
+    //    auto inputL2 = util::genBitsNonCrypto(k/2);
+    //    auto inputR2 = util::genBitsNonCrypto(k/2);
+    //    halfLabels input2 = make_tuple(inputL2, inputR2);
+    //    auto tweak2 = util::genBitsNonCrypto(k/2);
+    //    auto key2 = util::genBitsNonCrypto(k);
+    //    auto res2 = hash(input2, tweak2, key, iv, e, sigmaValue, u1, u2);
+    //    cout << "res2: " << util::uintVec2Str(res2) << endl;
+    //    util::printUintVec(res2);
+    //    auto res1 = hash(input, tweak, key, iv, e, sigmaValue, u1, u2);
+    //    cout << "res: " << util::uintVec2Str(res1) << endl;
+    //    util::printUintVec(res1);
+    //    auto res3 = hash(input2, tweak2, key, iv, e, sigmaValue, u1, u2);
+    //    cout << "res2: " << util::uintVec2Str(res3) << endl;
+    //    util::printUintVec(res3);
+    //}
 };
 
 #endif //GARBLINGGATES_HASHRTCCR_H
