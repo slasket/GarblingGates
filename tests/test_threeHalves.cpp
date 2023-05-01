@@ -243,19 +243,21 @@ BOOST_AUTO_TEST_SUITE( Testing_Gen_Halves )
 BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( ThreeHalves_bloodComp )
-    int lInput =6; int rInput = 1;
-    auto x = vector<int>{1,1,0,0,0,1,1};
-    auto C = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
-    int l = 64;
-    auto [F, e, d, ic, hash] = threeHalves::garble(C, 128);
-    auto encLabels = threeHalves::encode(e, x);
-    auto Y = threeHalves::eval(F, encLabels, C, 128, ic, hash);
-    auto y = threeHalves::decodeBits(d, Y, C, 128);
-    ::uint64_t bloodCompAns = bloodcompatibility::bloodCompLookup(lInput,rInput);
     BOOST_AUTO_TEST_CASE( decoding_Y )
     {
-        BOOST_TEST(y.size()==1);
-        BOOST_TEST(y[0]==bloodCompAns);
+        for (int i = 0; i < 100; ++i) {
+            int lInput =6; int rInput = 1;
+            auto x = vector<int>{1,1,0,0,0,1,1};
+            auto C = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
+            int l = 64;
+            auto [F, e, d, ic, hash] = threeHalves::garble(C, 128);
+            auto encLabels = threeHalves::encode(e, x);
+            auto Y = threeHalves::eval(F, encLabels, C, 128, ic, hash);
+            auto y = threeHalves::decodeBits(d, Y, C, 128);
+            ::uint64_t bloodCompAns = bloodcompatibility::bloodCompLookup(lInput,rInput);
+            BOOST_TEST(y.size()==1);
+            BOOST_TEST(y[0]==bloodCompAns);
+        }
     }
 BOOST_AUTO_TEST_SUITE_END()
 

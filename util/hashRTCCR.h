@@ -29,7 +29,6 @@ public:
     vint u1;
     vint u2;
     EVP_CIPHER_CTX *e;
-    EVP_CIPHER_CTX *d;
     util::hashtype hashtype = util::RO;
 
     const vint &getKey() const {
@@ -92,6 +91,16 @@ public:
 //may not be correct
     static inline vint gfmulPCF(vint a, vint b){
         vint res;
+        int sizeDiff = a.size() - b.size();
+        if(sizeDiff > 0){
+            for (int i = 0; i < sizeDiff; ++i) {
+                b.emplace_back(0);
+            }
+        } else if(sizeDiff < 0){
+            for (int i = 0; i < -sizeDiff; ++i) {
+                a.emplace_back(0);
+            }
+        }
         for (int i = 0; i < a.size(); ++i) {
             res.push_back(gfmulPCF(a[i], b[i]));
         }
@@ -321,23 +330,35 @@ public:
         auto middle = input.begin()+input.size()/2;
         vector<uint64_t> firstHalf(input.begin(), middle);
         vector<uint64_t> secondHalf(middle, input.end());
+        //vector<uint64_t> firstHalf = {input[0]};
+        //vector<uint64_t> secondHalf = {input[1]};
         //make sure all input is at least 256 bits
-        if(firstHalf.size() < 2){
-            firstHalf.emplace_back(0);
-            secondHalf.emplace_back(0);
-        }
-        if(tweak.size() < 2){
-            tweak.emplace_back(0);
-        }
+        //if(secondHalf.size() < 2){
+        //    firstHalf.emplace_back(0);
+        //    secondHalf.emplace_back(0);
+        //}
+        //if(tweak.size() < 2){
+        //    tweak.emplace_back(0);
+        //}
         halfLabels in = {firstHalf,secondHalf};
         auto res =  hash(in, tweak, key, iv, e, alpha,u1,u2);
-        int size = res.size() - input.size();
-        if(size > 0){
-            for (int i = 0; i < size; ++i) {
-                res.pop_back();
-            }
+        vector<uint64_t> resfirstHalf(input.begin(), middle);
+        vector<uint64_t> ressecondHalf(middle, input.end());
+        //pop back if resfirstHalf is larger than hafl of input
+        if(resfirstHalf.size() > input.size()/2){
+            resfirstHalf.pop_back();
+            ressecondHalf.pop_back();
         }
-        return res;
+        resfirstHalf.reserve(resfirstHalf.size() + ressecondHalf.size());
+        resfirstHalf.insert(resfirstHalf.end(), ressecondHalf.begin(), ressecondHalf.end());
+
+        //int size = res.size() - input.size();
+        //if(size > 0){
+        //    for (int i = 0; i < size; ++i) {
+        //        res.pop_back();
+        //    }
+        //}
+        return resfirstHalf;
     }
 
 
