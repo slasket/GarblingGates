@@ -66,8 +66,7 @@ public:
         this->alpha = util::genBitsNonCrypto(   (k/2)+1);
         this->u1 = util::genBitsNonCrypto(      (k/2)+1);
         this->u2 = util::genBitsNonCrypto(      (k/2)+1);
-        this-> e = AES_vint_init(key);
-        this-> d = AES_vint_initd(key);
+        this-> e = AES_vint_init(key, iv);
         this->hashtype = util::fast;
     }
     hashRTCCR(const vint& key, vint iv, int k, int base){
@@ -77,8 +76,7 @@ public:
         this->alpha = util::genBitsNonCrypto(   (k/2));
         this->u1 = util::genBitsNonCrypto(      (k/2));
         this->u2 = util::genBitsNonCrypto(      (k/2));
-        this-> e = AES_vint_init(key);
-        this-> d = AES_vint_initd(key);
+        this-> e = AES_vint_init(key, iv);
         this->hashtype = util::fast;
     }
     hashRTCCR(){
@@ -148,7 +146,7 @@ public:
         return res1;
     }
 
-    static inline EVP_CIPHER_CTX * AES_vint_init(vint key){
+    static inline EVP_CIPHER_CTX * AES_vint_init(vint key, vint iv){
         if(key.size() != 4){ //4 is hardcoded for 256 bit input
             int size = 4-key.size();
             for (int i = 0; i < size; ++i) {
@@ -160,39 +158,16 @@ public:
         auto *aes_key = static_cast<unsigned char *>(malloc(len));
         memcpy(aes_key, key.data(), len);
         //iv
-        auto *iv = static_cast<unsigned char *>(malloc(AES_BLOCK_SIZE));
-        memset(iv, 0, AES_BLOCK_SIZE);
+        auto *aes_iv = static_cast<unsigned char *>(malloc(AES_BLOCK_SIZE));
+        memcpy(aes_iv, iv.data(), AES_BLOCK_SIZE);
         EVP_CIPHER_CTX *e;
         e = EVP_CIPHER_CTX_new();
-        EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, iv);
+        EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, aes_iv);
         //EVP_DecryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, iv);
         EVP_CIPHER_CTX_set_padding(e, 0);
         free(aes_key);
-        free(iv);
-        return e;
-    }
-
-    static inline EVP_CIPHER_CTX * AES_vint_initd(vint key){
-        if(key.size() != 4){ //4 is hardcoded for 256 bit input
-            int size = 4-key.size();
-            for (int i = 0; i < size; ++i) {
-                key.emplace_back(0);
-            }
-        }
-        int len = key.size() * sizeof(uint64_t);
-        //key from key
-        auto *aes_key = static_cast<unsigned char *>(malloc(len));
-        memcpy(aes_key, key.data(), len);
-        //iv
-        auto *iv = static_cast<unsigned char *>(malloc(AES_BLOCK_SIZE));
-        memset(iv, 0, AES_BLOCK_SIZE);
-        EVP_CIPHER_CTX *e;
-        e = EVP_CIPHER_CTX_new();
-        //EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, iv);
-        EVP_DecryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, iv);
-        EVP_CIPHER_CTX_set_padding(e, 0);
-        free(aes_key);
-        free(iv);
+        free(aes_iv);
+        EVP_CIPHER_CTX_cleanup(e);
         return e;
     }
 
@@ -267,7 +242,7 @@ public:
         auto *aes_iv = static_cast<unsigned char *>(malloc(AES_BLOCK_SIZE));
         memcpy(aes_iv, iv.data(), AES_BLOCK_SIZE);
 
-        EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), nullptr, aes_key, aes_iv);
+        //EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), nullptr, aes_key, aes_iv);
         EVP_EncryptUpdate(e, ciphertext, &c_len, plaintext, len);
         EVP_EncryptFinal_ex(e, ciphertext + c_len, &f_len);
         //convert ciphertext to vint
@@ -277,6 +252,7 @@ public:
         free(plaintext);
         free(aes_key);
         free(aes_iv);
+        EVP_CIPHER_CTX_cleanup(e);
         return res;
     }
 
@@ -369,21 +345,20 @@ public:
         int k = 256;
         auto key = util::genBitsNonCrypto(k);
         vint iv = util::genBitsNonCrypto(128);
-        auto e = AES_vint_init(key);
-        auto d = AES_vint_initd(key);
+        auto e = AES_vint_init(key, iv);
         auto input = util::genBitsNonCrypto(k);
         cout << "input:             " << util::uintVec2Str(input) << endl;
         auto res = AES_vint_encrypt(input, key, iv, e);
         cout << "encrypted input:   " << util::uintVec2Str(res) << endl;
-        res = AES_vint_decrypt(res, key, iv, d);
-        cout << "decrypted input:   " << util::uintVec2Str(res) << endl;
+        //res = AES_vint_decrypt(res, key, iv, d);
+        //cout << "decrypted input:   " << util::uintVec2Str(res) << endl;
     }
 
     static void testHashRTCCR() {
         int k = 256;
         auto key = util::genBitsNonCrypto(k);
         vint iv = util::genBitsNonCrypto(128);
-        auto e = AES_vint_init(key);
+        auto e = AES_vint_init(key, iv);
         auto inputL = util::genBitsNonCrypto(k/2);
         auto inputR = util::genBitsNonCrypto(k/2);
         halfLabels input = make_tuple(inputL, inputR);

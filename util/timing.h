@@ -96,7 +96,7 @@ public:
             for (int j = 0; j < internal; ++j) {
                 //use index 6 now
                 auto t1 = high_resolution_clock::now();
-                auto e = hashRTCCR::AES_vint_init(key);
+                auto e = hashRTCCR::AES_vint_init(key, iv);
                 auto res = hashRTCCR::AES_vint_encrypt(data[j],key,iv,e);
                 auto t2 = high_resolution_clock::now();
                 duration<double, std::milli> ms_double = t2 - t1;
