@@ -36,7 +36,7 @@ public:
         for (int i = 0; i < amount; ++i) {
             data[i]= util::genBitsNonCrypto(128);
             dat[i]= {util::genBitsNonCrypto(64),util::genBitsNonCrypto(64)};
-            tweak[i]= util::genBitsNonCrypto(64);
+            tweak[i]= util::genBitsNonCrypto(3*64);
         }
 
 

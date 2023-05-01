@@ -146,7 +146,6 @@ public:
     }
 
     static inline EVP_CIPHER_CTX * AES_vint_init(vint key){
-
         if(key.size() != 4){ //4 is hardcoded for 256 bit input
             int size = 4-key.size();
             for (int i = 0; i < size; ++i) {
