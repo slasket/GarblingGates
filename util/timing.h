@@ -26,25 +26,33 @@ public:
         auto amount = 1000000;
         vint key = util::genBitsNonCrypto(256);
         vint iv = util::genBitsNonCrypto(256);
-        vint data;
+        ////
+        vint keys = util::genBitsNonCrypto(128);
+        vint ivs = util::genBitsNonCrypto(128);
+        vector<vint> data(amount);
+        vector<halfLabels> dat(amount);
+        vector<vint> tweak(amount);
 
-        boost::timer timer;
+        for (int i = 0; i < amount; ++i) {
+            data[i]= util::genBitsNonCrypto(128);
+            dat[i]= {util::genBitsNonCrypto(64),util::genBitsNonCrypto(64)};
+            tweak[i]= util::genBitsNonCrypto(64);
+        }
+
+
         auto e123 = hashRTCCR::AES_enc_init(key,iv);
+        boost::timer timer;
         for (int j = 0; j < amount; ++j) {
-            //use index 6 now
-            data= util::genBitsNonCrypto(128);
-            auto res = hashRTCCR::AES_enc(data,e123);
-
+            auto res = hashRTCCR::AES_enc(data[j],e123);
         }
         cout<<"aes alone "<<timer.elapsed()<<endl;
 
         auto e = hashRTCCR(key,iv,k);
+
         timer.restart();
         for (int j = 0; j < amount; ++j) {
             //use index 6 now
-            halfLabels dat= {util::genBitsNonCrypto(64),util::genBitsNonCrypto(64)};
-            auto res = hashRTCCR::hash(dat,{500},e.getKey(),e.getIv(),e.getE(),e.getAlpha(),e.getU1(),e.getU2());
-
+            auto res = hashRTCCR::hash(dat[j],tweak[j],e.getKey(),e.getIv(),e.getE(),e.getAlpha(),e.getU1(),e.getU2());
         }
         cout<<"our impl "<<timer.elapsed()<<endl;
     }
