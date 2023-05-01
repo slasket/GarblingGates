@@ -38,16 +38,16 @@ int main() {
     auto k=256;
 
 
-    timing::testHashAll(k);
+    //timing::testHashAll(k);
     //timing::hashOutputLengthTest("both");
 
     vector<string> f = circuitParser::parseCircuit("../tests/circuits/Keccak_f.txt");
     vector<int> x = util::genFunctionInput(circuitParser::inputsize(f));
-    util::hashtype type = util::fast;
-    //timing::time_circuit_all(f,x,k,type);
-    //cout<<endl;
+    util::hashtype type = util::RO;
+    timing::time_circuit_all(f,x,k,type);
+    cout<<endl;
     f = circuitParser::parseCircuit("../tests/circuits/aes_128.txt");
-    //timing::repetitionTest(f,k,type,100);
+    timing::repetitionTest(f,k,type,100);
 
 
     return 0;

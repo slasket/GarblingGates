@@ -98,7 +98,7 @@ public:
         return res;
     }
 
-    static void padding(vint &a, vint &b) {
+    static inline void padding(vint &a, vint &b) {
         int sizeDiff = a.size() - b.size();
         if(sizeDiff > 0){
             for (int i = 0; i < sizeDiff; ++i) {
@@ -145,7 +145,7 @@ public:
     }
 
 //change to halflabels
-    static vint sigmaFunc(vint& labelLeft, vint & labelRight, vint& alpha){
+    static inline vint sigmaFunc(vint& labelLeft, vint & labelRight, vint& alpha){
         //gfmul half of input with alpha
         //vint halfInput1;
         //vint halfInput2;
@@ -316,15 +316,12 @@ public:
         auto XxorUtweakL = util::vecXOR(get<0>(input), u1tweak);
         auto XxorUtweakR = util::vecXOR(get<1>(input), u2tweak);
 
-
         vint XxorUtweakVint; XxorUtweakVint.reserve(XxorUtweakL.size()*2);
         XxorUtweakVint.insert(XxorUtweakVint.end(), XxorUtweakL.begin(), XxorUtweakL.end());
         XxorUtweakVint.insert(XxorUtweakVint.end(), XxorUtweakR.begin(), XxorUtweakR.end());
 
         auto AESXxorUtweak = AES_vint_encrypt(XxorUtweakVint, key, iv, e);
-
-        auto sigma = sigmaFunc(XxorUtweakL,XxorUtweakR, alpha);
-        return util::vecXOR(sigma, AESXxorUtweak);
+        return util::vecXOR(sigmaFunc(XxorUtweakL,XxorUtweakR, alpha), AESXxorUtweak);
     }
 
     vint hashVint(vint input, vint tweak){

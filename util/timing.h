@@ -38,7 +38,7 @@ public:
             data[i]= util::genBitsNonCrypto(128);
             dat[i]= {util::genBitsNonCrypto(64),util::genBitsNonCrypto(64)};
             tweak[i]= util::genBitsNonCrypto(3*64);
-            dataAsString[i]= util::uintVec2Str(data[i]);
+            //dataAsString[i]= util::uintVec2Str(data[i]);
         }
 
         auto e123 = hashRTCCR::AES_enc_init(key,iv);
@@ -156,9 +156,9 @@ public:
             //inputgen
             vector<int> x = util::genFunctionInput(inputsize);
             runGarble(f, util::baseline, k, hashfunc, baseline, x);
-            //runGarble(f, util::threehalves, k, hashfunc, three, x);
-            //runGarble(f, util::ateca, k, hashfunc, ate, x);
-            //runGarble(f, util::atecaFXOR, k, hashfunc, ate_f, x);
+            runGarble(f, util::threehalves, k, hashfunc, three, x);
+            runGarble(f, util::ateca, k, hashfunc, ate, x);
+            runGarble(f, util::atecaFXOR, k, hashfunc, ate_f, x);
         }
 
         printResult(util::baseline, baseline, hashfunc);
