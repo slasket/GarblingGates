@@ -9,7 +9,7 @@
 
 
 tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels>, halfLabels, hashRTCCR>
-threeHalves::garble(vector<string> f, int k, int h) {
+threeHalves::garble(vector<string> f, int k, util::hashtype h) {
     //get number of wires and gates
     auto &wireAndGates = f[0];
     auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
@@ -142,14 +142,14 @@ threeHalves::garble(vector<string> f, int k, int h) {
             //A0 XOR B0 XOR Delta = A0 XOR B1
             halfLabels A0xorB0xorDelta = {util::vecXOR(A0Left, B1Left), util::vecXOR(A0Right, B1Right)};
             vector<halfLabels> inputs({A0, B0, A1, B1, A0xorB0, A0xorB0xorDelta});
-            if (h==0) {
+            if (h == util::RO) {
             hashes[0] = util::hash_variable(util::halfLabelsToFullLabelString(A0) + to_string(((3 * k) - 3)),   (k / 2) + 8);
             hashes[1] = util::hash_variable(util::halfLabelsToFullLabelString(A1) + to_string(((3 * k) - 3)),   (k / 2) + 8);
             hashes[2] = util::hash_variable(util::halfLabelsToFullLabelString(B0) + to_string(((3 * k) - 2)),   (k / 2) + 8);
             hashes[3] = util::hash_variable(util::halfLabelsToFullLabelString(B1) + to_string(((3 * k) - 2)),   (k / 2) + 8);
             hashes[4] = util::hash_variable(util::halfLabelsToFullLabelString(A0xorB0) + to_string(((3 * k) - 1)),     (k / 2) + 8);
             hashes[5] = util::hash_variable(                    util::halfLabelsToFullLabelString(A0xorB0xorDelta) + to_string(((3 * k) - 1)), (k / 2) + 8);
-            } else if(h==1){
+            } else if(h==util::fast){
                 //get<0>(A0).emplace_back(0);
                 //get<1>(A0).emplace_back(0);
                 //get<0>(A1).emplace_back(0);
@@ -312,7 +312,7 @@ vector<halfLabels> threeHalves::encode(tuple<halfDelta, vector<tuple<halfLabels,
     return X;
 }
 
-vector<halfLabels> threeHalves::eval(Ftype F, vector<halfLabels> X, vector<string> f, int k, const halfLabels& invConst, hashRTCCR &hash, int h) {
+vector<halfLabels> threeHalves::eval(Ftype F, vector<halfLabels> X, vector<string> f, int k, const halfLabels& invConst, hashRTCCR &hash, util::hashtype h) {
     auto &wireAndGates = f[0];
     auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
     int numberOfWires = stoi(gatesAndWiresSplit[1]);
@@ -434,14 +434,14 @@ vector<halfLabels> threeHalves::eval(Ftype F, vector<halfLabels> X, vector<strin
             vector<vint> hashes(3);
             halfLabels AxorB = {util::vecXOR(Al, Bl), util::vecXOR(Ar, Br)};
             vector<halfLabels> inputs({A, B, AxorB});
-            if(h==0) {
+            if(h==util::RO) {
                 hashes[0] = util::hash_variable(util::halfLabelsToFullLabelString(A) + to_string(((3 * k) - 3)),
                                               (k / 2) + 8);
                 hashes[1] = util::hash_variable(util::halfLabelsToFullLabelString(B) + to_string(((3 * k) - 2)),
                                               (k / 2) + 8);
                 hashes[2] = util::hash_variable(util::halfLabelsToFullLabelString(AxorB) + to_string(((3 * k) - 1)),
                                                   (k / 2) + 8);
-            } else if(h==1){
+            } else if(h==util::fast){
                 for (halfLabels lbl:inputs) {
                     get<0>(lbl).emplace_back(0);
                     get<1>(lbl).emplace_back(0);

@@ -47,7 +47,7 @@ int main() {
     timing::time_circuit_all(f,x,k,type);
     cout<<endl;
     f = circuitParser::parseCircuit("../tests/circuits/aes_128.txt");
-    timing::repetitionTest(f,k,type,100);
+    timing::repetitionTest(f,k,type,1);
 
 
     return 0;
@@ -64,9 +64,9 @@ void threehalves_Test() {
     auto xb = vector<int>{1,1,0,0,0,1,1};
     auto Cb = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
 
-    auto [Fb, eb, db, icb, hashb] = threeHalves::garble(Cb, 128);
+    auto [Fb, eb, db, icb, hashb] = threeHalves::garble(Cb, 128, util::fast);
     auto encLabelsb = threeHalves::encode(eb, xb);
-    auto Yb = threeHalves::eval(Fb, encLabelsb, Cb, 128, icb, hashb);
+    auto Yb = threeHalves::eval(Fb, encLabelsb, Cb, 128, icb, hashb, util::fast);
     auto yb = threeHalves::decode(db, Yb, Cb, 128);
     uint64_t bloodCompAns = bloodcompatibility::bloodCompLookup(lInput,rInput);
 
@@ -75,18 +75,18 @@ void threehalves_Test() {
     vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 AND"};
     int k = 256;
     int h = 1;
-    auto [F,e,d,ic, hash] = threeHalves::garble(smalltest, k, h);
+    auto [F,e,d,ic, hash] = threeHalves::garble(smalltest, k, util::fast);
     auto x = vector<int>{1, 1};
     auto encLabels = threeHalves::encode(e, x);
-    auto Y = threeHalves::eval(F, encLabels, smalltest, k, ic, hash, h);
+    auto Y = threeHalves::eval(F, encLabels, smalltest, k, ic, hash, util::fast);
     auto y = threeHalves::decode(d, Y, smalltest, k);
     if(y.size() == 1) {
         cout << y[0] << endl;
     }
     k = 128;
-    auto [F1,e1,d1,ic1, hash1] = threeHalves::garble(smalltest, k, h);
+    auto [F1,e1,d1,ic1, hash1] = threeHalves::garble(smalltest, k, util::fast);
     encLabels = threeHalves::encode(e1, x);
-    Y = threeHalves::eval(F1, encLabels, smalltest, k, ic1, hash1, h);
+    Y = threeHalves::eval(F1, encLabels, smalltest, k, ic1, hash1, util::fast);
     y = threeHalves::decode(d1, Y, smalltest, k);
     if(y.size() == 1) {
         cout << y[0] << endl;
