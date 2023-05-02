@@ -15,6 +15,9 @@
 #include <openssl/evp.h>
 #include <immintrin.h>
 #include <tuple>
+#include <algorithm>
+#include <cstring>
+#include <cstddef>
 #include "string.h"
 
 //Namespace for custom types
@@ -265,32 +268,50 @@ public:
     }
 
     //perform variable output length hash
-    static inline vector<uint64_t> hash_variable(const std::string& input, int output_length_bits = 128)
+    static inline vector<uint64_t> hash_variable(const vint& in, const vint& tweak , int output_length_bits = 128)
     {
-        size_t output_length_bytes = (output_length_bits+7) / 8;
+        //append tweak
+        vector<::uint64_t> input = in;
+        input.insert(input.end(), tweak.begin(),tweak.end());
+        //input conversion
+        if (input.size()<4){
+            int diff = 4-input.size();
+            for (int i = 0; i < diff; ++i) {
+                input.emplace_back(0);
+            }
+        }
+        //util::printUintVec(input);
+        int len = input.size()* sizeof(byte);
+        int byteInputSize = sizeof(::uint64_t)*input.size();
+
+        size_t size_in_bytes = input.size() * sizeof(uint64_t);
+        vector<unsigned char> arr(size_in_bytes);
+        memcpy(arr.data(), reinterpret_cast<const unsigned char*>(input.data()), size_in_bytes);
+
+        unsigned char* converted = &arr[0];
+        //auto *plaintext = static_cast<unsigned char *>(malloc(len));
+        //memcpy(plaintext, input.data(), len);
+        auto xdd = reinterpret_cast<const unsigned char*>(input.data());
+        //printf("%s\n", xdd);
+
+        //size_t input_length_bytes = (len+7) / 8;
         EVP_MD_CTX* ctx = EVP_MD_CTX_create();
         EVP_DigestInit_ex(ctx, EVP_shake256(), NULL);
-        EVP_DigestUpdate(ctx, input.c_str(), input.size());
-        std::string output(output_length_bytes, '\0');
-        EVP_DigestFinalXOF(ctx, reinterpret_cast<unsigned char *>(&output[0]), output_length_bytes);
+        EVP_DigestUpdate(ctx, reinterpret_cast<const unsigned char*>(input.data()), byteInputSize);
+        size_t output_length_bytes = (output_length_bits+7) / 8;
+
+        auto *ciphertext = static_cast<unsigned char *>(malloc(output_length_bytes));
+        EVP_DigestFinalXOF(ctx, ciphertext, output_length_bytes);
+        //printf("%s\n", ciphertext);
+
+
+        //convert the input back into uint64_t's
+        vint res(output_length_bytes/sizeof(::uint64_t));
+        memcpy(res.data(), ciphertext, output_length_bytes);
+        free(ciphertext);
+        //free(plaintext);
         EVP_MD_CTX_destroy(ctx);
-        //convert output to vector<uint64_t>
-        vector<uint64_t> output_vector;
-        for (int i = 0; i < output_length_bytes; i+=8) {
-            uint64_t temp = 0;
-            auto rest = output_length_bytes%8;
-            if(rest != 0 && i >= output_length_bytes - 8 ){
-                for (int j = 0; j < rest; ++j) {
-                    temp += (uint64_t)output[i+j] << (j*8);
-                }
-            } else {
-                for (int j = 0; j < 8; ++j) {
-                    temp += (uint64_t)output[i+j] << (j*8);
-                }
-            }
-            output_vector.push_back(temp);
-        }
-        return output_vector;
+        return res;
     }
 
     //source: https://stackoverflow.com/questions/75652101/aes-with-openssl-in-c
@@ -514,6 +535,10 @@ public:
         // (i.e. when the input is greater than the ceiling)
         return input >= ceil ? input % ceil : input;
         // NB: the assumption here is that the numbers are positive
+    }
+    static inline vint vecConcat(vint a, const vint& b){
+        a.insert(a.end(), b.begin(), b.end());
+        return a;
     }
 };
 

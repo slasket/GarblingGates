@@ -24,6 +24,7 @@ class timing{
 public:
     static void testHashAll(int k=256) {
         auto amount = 1000000;
+
         vint key = util::genBitsNonCrypto(256);
         vint iv = util::genBitsNonCrypto(256);
         ////
@@ -107,7 +108,7 @@ public:
                     auto outlen = k*pow(2,j);
                     auto t1 = high_resolution_clock::now();
                     for (int l = 0; l < internal; ++l) {
-                        auto Xk = util::hash_variable(dataAsString[l], outlen);
+                        auto Xk = util::hash_variable(data[l],{}, outlen);
                     }
                     auto t2 = high_resolution_clock::now();
                     duration<double, std::milli> ms_double = t2 - t1;
@@ -256,10 +257,10 @@ public:
             cout<<"windows slow"<<endl;
         }
         //cout<< "Keccak_f test"<<endl;
-        timing::time_circuit(f,x,k,util::baseline, hashfunc);
-        timing::time_circuit(f,x,k,util::threehalves, hashfunc);
+        //timing::time_circuit(f,x,k,util::baseline, hashfunc);
+        //timing::time_circuit(f,x,k,util::threehalves, hashfunc);
         timing::time_circuit(f,x,k,util::ateca, hashfunc);
-        timing::time_circuit(f,x,k,util::atecaFXOR, hashfunc);
+        //timing::time_circuit(f,x,k,util::atecaFXOR, hashfunc);
 
     }
 
@@ -314,8 +315,8 @@ public:
                 ms_double = t2 - t1;
                 cout<< "evaluation: " <<ms_double.count()<< "ms"<<endl;
 
-                auto three_y = threeHalves::decode(three_d, three_Y, f, k);
-                cout<< "three: " << three_y[0] <<endl;
+                //auto three_y = threeHalves::decode(three_d, three_Y, f, k);
+                //cout<< "three: " << three_y[0] <<endl;
                 break;
             }
             case util::scheme::ateca:{

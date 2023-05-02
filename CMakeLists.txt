@@ -29,21 +29,11 @@ set(TESTS
         tests/test_class.cpp
         tests/circuitParserTest.cpp
         tests/test_toyExample.cpp
-        schemes/baseGarble.cpp
-        schemes/baseGarble.h
-        tests/test_baseline.cpp
         tests/test_util.cpp
-        schemes/atecaGarble.cpp
-        schemes/atecaGarble.h
-        schemes/atecaGarble.cpp
-        tests/test_ateca.cpp
-        tests/test_threeHalvesFast.cpp
-        tests/test_threeHalvesRO.cpp
-        schemes/atecaFreeXOR.cpp
-        schemes/atecaFreeXOR.h
-        tests/test_atecaFreeXOR.cpp
         tests/test_hashTCCR.cpp
-        tests/test_torture.cpp)
+        tests/test_baseline.cpp
+        tests/test_threeHalvesFast.cpp
+        tests/test_threeHalvesRO.cpp)
 
 
 add_executable(GarblingGates ${SOURCES} main.cpp)

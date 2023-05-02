@@ -82,7 +82,8 @@ baseGarble::garble(vector<string> f, int k, util::hashtype hashtype) {
             if(hash.hashtype == util::RO){
                 string outputStrF = util::uintVec2Str(in0);
                 string outputStrT = util::uintVec2Str(in1);
-                outputLabel = {util::hash_variable(outputStrF, k), util::hash_variable(outputStrT, k)};
+
+                outputLabel = {util::hash_variable(in0,{0}, k), util::hash_variable(in1,{0}, k)};
             } else {
                 outputLabel = {hash.hashVint(in0, {0}), hash.hashVint(in1, {0})};
             }
@@ -343,7 +344,7 @@ vint baseGarble::decode(vector<labelPair> d, vector<vint> Y, int k, hashRTCCR ha
         vint yhash;
         if(hash.hashtype == util::RO) {
             string ystring = util::uintVec2Str(Y[i]);
-            yhash = util::hash_variable(ystring, k);
+            yhash = util::hash_variable(Y[i],{0}, k);
         } else{
             yhash = hash.hashVint(Y[i], {0});
         }
@@ -367,7 +368,7 @@ vector<int> baseGarble::decodeBits(vector<labelPair> d, vector<vint> Y, int k, h
         vint yhash;
         if(hash.hashtype == util::RO) {
             string ystring = util::uintVec2Str(Y[i]);
-            yhash = util::hash_variable(ystring, k);
+            yhash = util::hash_variable(Y[i],{0}, k);
         } else{
             yhash = hash.hashVint(Y[i], {0});
         }
@@ -384,8 +385,8 @@ vector<int> baseGarble::decodeBits(vector<labelPair> d, vector<vint> Y, int k, h
 }
 
 vint baseGarble::hashFunc(vint x, int k) {
-    auto xstring = util::printBitsetofVectorofUints(std::move(x));
-    return util::hash_variable(xstring, k);
+    //auto xstring = util::printBitsetofVectorofUints(std::move(x));
+    return util::hash_variable(x,{0}, k);
 }
 
 

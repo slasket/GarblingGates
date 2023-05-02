@@ -138,21 +138,22 @@ atecaFreeXOR::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, i
     if (c.getHash()==util::RO){
         vint l00 = get<0>(in0);
         l00.insert(l00.end(), get<0>(in1).begin(), get<0>(in1).end());
-        l00.push_back(gateNo);
+        //l00.push_back(gateNo);
         auto l01 = get<0>(in0);
         l01.insert(l01.end(), get<1>(in1).begin(), get<1>(in1).end());
-        l01.push_back(gateNo);
+        //l01.push_back(gateNo);
         auto l10 = get<1>(in0);
         l10.insert(l10.end(), get<0>(in1).begin(), get<0>(in1).end());
-        l10.push_back(gateNo);
+        //l10.push_back(gateNo);
         auto l11 = get<1>(in0);
         l11.insert(l11.end(), get<1>(in1).begin(), get<1>(in1).end());
-        l11.push_back(gateNo);
+        //l11.push_back(gateNo);
         //actually compute the hashes
-        X_00 = util::hash_variable(util::uintVec2Str(l00), internalParam);
-        X_01 = util::hash_variable(util::uintVec2Str(l01), internalParam);
-        X_10 = util::hash_variable(util::uintVec2Str(l10), internalParam);
-        X_11 = util::hash_variable(util::uintVec2Str(l11), internalParam);
+        vint tweak {static_cast<unsigned long>(gateNo)};
+        X_00 = util::hash_variable(l00,tweak, internalParam);
+        X_01 = util::hash_variable(l01,tweak, internalParam);
+        X_10 = util::hash_variable(l10,tweak, internalParam);
+        X_11 = util::hash_variable(l11,tweak, internalParam);
     }else{
         auto [a0,a1] = in0;
         auto [b0,b1] = in1;
@@ -222,8 +223,8 @@ atecaFreeXOR::DecodingInfo(const vector<tuple<vint, vint>> &D, int k, const hash
                 L1wdi.clear();
                 L1wdi.insert(L1wdi.begin(), L1.begin(), L1.end());
                 L1wdi.insert(L1wdi.end(), di.begin(), di.end());
-                hashL0 = util::hash_variable(util::uintVec2Str(L0wdi), k);
-                hashL1 = util::hash_variable(util::uintVec2Str(L1wdi), k);
+                hashL0 = util::hash_variable(L0wdi,{0}, k);
+                hashL1 = util::hash_variable(L1wdi,{0}, k);
             }else{
             //this is not the cleanest code ever
                 hashL0 = hashTCCR::hash(L0, di, c.getIv(), c.getE(), c.getU1(), c.getU2(), 0, k);
@@ -299,9 +300,10 @@ atecaFreeXOR::eval(const vector<vint> &F, const vector<vint> &X, vector<string> 
             vint hash;
             if (c.hashtype==util::RO){
                 labelA.insert(labelA.end(), labelB.begin(), labelB.end());
-                labelA.push_back(gateNo);
-                auto hashInputLabel = util::uintVec2Str(labelA);
-                hash = util::hash_variable(hashInputLabel,internalSecParam);
+                //labelA.push_back(gateNo);
+                vint tweak{static_cast<unsigned long>(gateNo)};
+                //auto hashInputLabel = util::uintVec2Str(labelA);
+                hash = util::hash_variable(labelA,tweak,internalSecParam);
             }else{
                 hash= hashTCCR::hash(labelA, labelB, c.getIv(), c.getE(), c.getU1(), c.getU2(), gateNo, internalSecParam);
             }
@@ -328,7 +330,7 @@ vint atecaFreeXOR::decode(vector<vint> Y, vector<vint> d, const hashTCCR& dc) {
         vint hash;
         if (dc.hashtype==util::RO){
             Y[i].insert(Y[i].end(), d[i].begin(), d[i].end());
-            hash = util::hash_variable(util::uintVec2Str(Y[i]), 64);
+            hash = util::hash_variable(Y[i],{0}, 64);
         }else{
             hash= hashTCCR::hash(Y[i], d[i], dc.getIv(), dc.getE(), dc.getU1(), dc.getU2(), 0, 128);
         }

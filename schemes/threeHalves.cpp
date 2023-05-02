@@ -143,12 +143,23 @@ threeHalves::garble(vector<string> f, int k, util::hashtype h) {
             halfLabels A0xorB0xorDelta = {util::vecXOR(A0Left, B1Left), util::vecXOR(A0Right, B1Right)};
             vector<halfLabels> inputs({A0, B0, A1, B1, A0xorB0, A0xorB0xorDelta});
             if (h == util::RO) {
-            hashes[0] = util::hash_variable(util::halfLabelsToFullLabelString(A0) + to_string(((3 * k) - 3)),   (k / 2) + 8);
-            hashes[1] = util::hash_variable(util::halfLabelsToFullLabelString(A1) + to_string(((3 * k) - 3)),   (k / 2) + 8);
-            hashes[2] = util::hash_variable(util::halfLabelsToFullLabelString(B0) + to_string(((3 * k) - 2)),   (k / 2) + 8);
-            hashes[3] = util::hash_variable(util::halfLabelsToFullLabelString(B1) + to_string(((3 * k) - 2)),   (k / 2) + 8);
-            hashes[4] = util::hash_variable(util::halfLabelsToFullLabelString(A0xorB0) + to_string(((3 * k) - 1)),     (k / 2) + 8);
-            hashes[5] = util::hash_variable(                    util::halfLabelsToFullLabelString(A0xorB0xorDelta) + to_string(((3 * k) - 1)), (k / 2) + 8);
+                vector<vint> in_for_RO(inputs.size());
+                vint tweak {static_cast<unsigned long>(((3 * k) - 3))};
+                for (int j = 0; j < inputs.size(); ++j) {
+                    //inputgen
+                    in_for_RO[j] = util::vecConcat(get<0>(inputs[j]),get<1>(inputs[j]));
+                    //in_for_RO[j] = util::vecConcat(in_for_RO[j],{static_cast<unsigned long>((3*k)-tval)});
+                    if (j==1||j==3){
+                        tweak[0] = tweak[0]+1;
+                    }
+                    hashes[j] = util::hash_variable(in_for_RO[j],tweak , ((k / 2) + 8));
+                }
+            //hashes[0] = util::hash_variable(util::halfLabelsToFullLabelString(A0) + to_string(((3 * k) - 3)),   (k / 2) + 8);
+            //hashes[1] = util::hash_variable(util::halfLabelsToFullLabelString(A1) + to_string(((3 * k) - 3)),   (k / 2) + 8);
+            //hashes[2] = util::hash_variable(util::halfLabelsToFullLabelString(B0) + to_string(((3 * k) - 2)),   (k / 2) + 8);
+            //hashes[3] = util::hash_variable(util::halfLabelsToFullLabelString(B1) + to_string(((3 * k) - 2)),   (k / 2) + 8);
+            //hashes[4] = util::hash_variable(util::halfLabelsToFullLabelString(A0xorB0) + to_string(((3 * k) - 1)),     (k / 2) + 8);
+            //hashes[5] = util::hash_variable(util::halfLabelsToFullLabelString(A0xorB0xorDelta) + to_string(((3 * k) - 1)), (k / 2) + 8);
             } else if(h==util::fast){
                 //get<0>(A0).emplace_back(0);
                 //get<1>(A0).emplace_back(0);
@@ -435,12 +446,17 @@ vector<halfLabels> threeHalves::eval(Ftype F, vector<halfLabels> X, vector<strin
             halfLabels AxorB = {util::vecXOR(Al, Bl), util::vecXOR(Ar, Br)};
             vector<halfLabels> inputs({A, B, AxorB});
             if(h==util::RO) {
-                hashes[0] = util::hash_variable(util::halfLabelsToFullLabelString(A) + to_string(((3 * k) - 3)),
-                                              (k / 2) + 8);
-                hashes[1] = util::hash_variable(util::halfLabelsToFullLabelString(B) + to_string(((3 * k) - 2)),
-                                              (k / 2) + 8);
-                hashes[2] = util::hash_variable(util::halfLabelsToFullLabelString(AxorB) + to_string(((3 * k) - 1)),
-                                                  (k / 2) + 8);
+                vector<vint> in_for_RO(inputs.size());
+                ::uint64_t tweak = (3 * k) - 3;
+                for (int j = 0; j < inputs.size(); ++j) {
+                    //inputgen
+                    in_for_RO[j] = util::vecConcat(get<0>(inputs[j]),get<1>(inputs[j]));
+
+                    hashes[j]= util::hash_variable(in_for_RO[j],{tweak+j},(k/2)+8);
+                }
+                //hashes[0] = util::hash_variable(util::halfLabelsToFullLabelString(A) + to_string(((3 * k) - 3)),(k / 2) + 8);
+                //hashes[1] = util::hash_variable(util::halfLabelsToFullLabelString(B) + to_string(((3 * k) - 2)),(k / 2) + 8);
+                //hashes[2] = util::hash_variable(util::halfLabelsToFullLabelString(AxorB) + to_string(((3 * k) - 1)),(k / 2) + 8);
             } else if(h==util::fast){
                 for (halfLabels lbl:inputs) {
                     get<0>(lbl).emplace_back(0);
@@ -676,9 +692,10 @@ vector<int> threeHalves::decodeBits(vector<halfLabels> d, vector<halfLabels> Y, 
 }
 
 vector<uint64_t> threeHalves::hashPrime(const vint& input, int k, int tweak) {
-    string inputString = util::uintVec2Str(input);
-    auto leftHalfHash = util::hash_variable( inputString + to_string(tweak), k);
-    auto rightHalfHash = util::hash_variable( inputString + to_string(tweak+1), k);
+    //string inputString = util::uintVec2Str(input);
+
+    auto leftHalfHash = util::hash_variable( input, {(::uint64_t)tweak}, k);
+    auto rightHalfHash = util::hash_variable( input,{(::uint64_t)(tweak+1)}, k);
     auto numberOfUIntBlocks = leftHalfHash.size();
     vint msbOfLeftHalf(numberOfUIntBlocks/2);
     vint msbOfRightHalf(numberOfUIntBlocks/2);
