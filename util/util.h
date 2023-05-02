@@ -280,19 +280,13 @@ public:
                 input.emplace_back(0);
             }
         }
-        //util::printUintVec(input);
-        int len = input.size()* sizeof(byte);
+
         int byteInputSize = sizeof(::uint64_t)*input.size();
 
         size_t size_in_bytes = input.size() * sizeof(uint64_t);
         vector<unsigned char> arr(size_in_bytes);
         memcpy(arr.data(), reinterpret_cast<const unsigned char*>(input.data()), size_in_bytes);
 
-        unsigned char* converted = &arr[0];
-        //auto *plaintext = static_cast<unsigned char *>(malloc(len));
-        //memcpy(plaintext, input.data(), len);
-        auto xdd = reinterpret_cast<const unsigned char*>(input.data());
-        //printf("%s\n", xdd);
 
         //size_t input_length_bytes = (len+7) / 8;
         EVP_MD_CTX* ctx = EVP_MD_CTX_create();
@@ -303,7 +297,6 @@ public:
         auto *ciphertext = static_cast<unsigned char *>(malloc(output_length_bytes));
         EVP_DigestFinalXOF(ctx, ciphertext, output_length_bytes);
         //printf("%s\n", ciphertext);
-
 
         //convert the input back into uint64_t's
         vint res(output_length_bytes/sizeof(::uint64_t));

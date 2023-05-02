@@ -34,7 +34,7 @@ public:
         vector<halfLabels> dat(amount);
         vector<vint> tweak(amount);
         vector<string> dataAsString(amount);
-
+        cout << amount << " hashes alone"<<endl;
         for (int i = 0; i < amount; ++i) {
             data[i]= util::genBitsNonCrypto(128);
             dat[i]= {util::genBitsNonCrypto(64),util::genBitsNonCrypto(64)};
@@ -61,23 +61,23 @@ public:
         ///aes ateca and ateca freexor
         //do stuff
 
-        ///shake 256 versions
-        //vector<double> outlen = {k * pow(2, 0), k * pow(2, 3), k * pow(2, 4)};
-        //timer.restart();
-        //for (int i = 0; i < amount; ++i) {
-        //    auto Xk = util::hash_variable(dataAsString[i], outlen[0]);
-        //}
-        //cout<<"shake256("<< pow(2,0)<<"x) " <<timer.elapsed()<<endl;
-        //timer.restart();
-        //for (int i = 0; i < amount; ++i) {
-        //    auto Xk = util::hash_variable(dataAsString[i], outlen[1]);
-        //}
-        //cout<<"shake256("<< pow(2,3)<<"x) " <<timer.elapsed()<<endl;
-        //timer.restart();
-        //for (int i = 0; i < amount; ++i) {
-        //    auto Xk = util::hash_variable(dataAsString[i], outlen[2]);
-        //}
-        //cout<<"shake256("<< pow(2,4)<<"x) " <<timer.elapsed()<<endl;
+        //shake 256 versions
+        vector<double> outlen = {k * pow(2, 0), k * pow(2, 3), k * pow(2, 4)};
+        timer.restart();
+        for (int i = 0; i < amount; ++i) {
+            auto Xk = util::hash_variable(data[i],{}, outlen[0]);
+        }
+        cout<<"shake256("<< pow(2,0)<<"x) " <<timer.elapsed()<<endl;
+        timer.restart();
+        for (int i = 0; i < amount; ++i) {
+            auto Xk = util::hash_variable(data[i],{}, outlen[1]);
+        }
+        cout<<"shake256("<< pow(2,3)<<"x) " <<timer.elapsed()<<endl;
+        timer.restart();
+        for (int i = 0; i < amount; ++i) {
+            auto Xk = util::hash_variable(data[i],{}, outlen[2]);
+        }
+        cout<<"shake256("<< pow(2,4)<<"x) " <<timer.elapsed()<<endl;
     }
 
     static void hashOutputLengthTest(string both){
@@ -95,11 +95,14 @@ public:
         cout<<internal*external <<" hashings tests"<<endl;
         for (int i = 0; i < external; ++i) {
             vector<vint> data(internal);
-            vector<string> dataAsString(internal);
+            vector<halfLabels> dat(internal);
+            vector<vint> tweak(internal);
 
             for (int j = 0; j < internal; ++j) {
                 data[j]= util::genBitsNonCrypto(128);
-                dataAsString[j] = util::uintVec2Str(data[j]);
+                dat[i]= {util::genBitsNonCrypto(64),util::genBitsNonCrypto(64)};
+                tweak[i]= util::genBitsNonCrypto(3*64);
+                //dataAsString[j] = util::uintVec2Str(data[j]);
             }
             //call aes 128->256
 
@@ -108,7 +111,7 @@ public:
                     auto outlen = k*pow(2,j);
                     auto t1 = high_resolution_clock::now();
                     for (int l = 0; l < internal; ++l) {
-                        auto Xk = util::hash_variable(data[l],{}, outlen);
+                        auto Xk = util::hash_variable(data[l],tweak[l], outlen);
                     }
                     auto t2 = high_resolution_clock::now();
                     duration<double, std::milli> ms_double = t2 - t1;
@@ -126,12 +129,23 @@ public:
             duration<double, std::milli> ms_double = t2 - t1;
             baseline[6] += ms_double.count();
 
+            auto rtccr = hashRTCCR(key, iv,256);
+            t1 = high_resolution_clock::now();
+            for (int j = 0; j < internal; ++j) {
+                //use index 6 now
+                auto res = rtccr.hash(dat[j],tweak[j]);
+            }
+            t2 = high_resolution_clock::now();
+            ms_double = t2 - t1;
+            baseline[7] += ms_double.count();
+
 
         }
         for (int i = 0; i < 6; ++i) {
             auto outlen = k*pow(2,i);
             cout<<"shake256 "<< outlen<< "-bit ("<<pow(2,i) << "x) output in "<< baseline[i]/1000<< " s" <<endl;
         }
+        cout<<"RTCCR  "<< "256-bit output in "<< baseline[7]/1000<< " s" <<endl;
         cout<<"aes256 "<< "256-bit output in "<< baseline[6]/1000<< " s" <<endl;
 
     }
@@ -257,10 +271,10 @@ public:
             cout<<"windows slow"<<endl;
         }
         //cout<< "Keccak_f test"<<endl;
-        //timing::time_circuit(f,x,k,util::baseline, hashfunc);
-        //timing::time_circuit(f,x,k,util::threehalves, hashfunc);
+        timing::time_circuit(f,x,k,util::baseline, hashfunc);
+        timing::time_circuit(f,x,k,util::threehalves, hashfunc);
         timing::time_circuit(f,x,k,util::ateca, hashfunc);
-        //timing::time_circuit(f,x,k,util::atecaFXOR, hashfunc);
+        timing::time_circuit(f,x,k,util::atecaFXOR, hashfunc);
 
     }
 
@@ -315,8 +329,8 @@ public:
                 ms_double = t2 - t1;
                 cout<< "evaluation: " <<ms_double.count()<< "ms"<<endl;
 
-                //auto three_y = threeHalves::decode(three_d, three_Y, f, k);
-                //cout<< "three: " << three_y[0] <<endl;
+                auto three_y = threeHalves::decode(three_d, three_Y, f, k);
+                cout<< "three: " << three_y[0] <<endl;
                 break;
             }
             case util::scheme::ateca:{

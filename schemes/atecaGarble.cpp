@@ -95,7 +95,6 @@ atecaGarble::GarbleCircuit(int k, vector<std::string> C, vector<tuple<vint, vint
 
             //calculate garble
             //auto t1 = high_resolution_clock::now();
-            cout<<"garbling circuit"<<endl;
             garbledGate = Gate(wires[in0], wires[in1], type, gateNo, k, c);
             //auto t2 = high_resolution_clock::now();
             //duration<double, std::milli> ms_double = t2 - t1;
@@ -120,11 +119,9 @@ vector<vint>
 atecaGarble::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, const string &typ, int gateNo, int k,
                   const hashTCCR& c) {
     int internalParam= k * 8;
-    //auto iv = c.getIv();
     //actually compute the hashes
     vint X_00;vint X_01;vint X_10;vint X_11;
     //auto t1 = high_resolution_clock::now();
-    cout<< "gateno "<< gateNo<<endl;
     if (c.getHash()==util::RO){
         auto [l00,l11] = in0;
         auto [l_0,l_1] = in1;
@@ -140,22 +137,10 @@ atecaGarble::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, co
         //l11.push_back(gateNo);
         vint tweak {static_cast<unsigned long>(gateNo)};
         X_00 = util::hash_variable(l00, tweak, internalParam);
-        util::printUintVec(l00);
-        util::printUintVec(X_00);
         X_01 = util::hash_variable(l01, tweak, internalParam);
-        util::printUintVec(l01);
-        util::printUintVec(X_00);
         X_10 = util::hash_variable(l10, tweak, internalParam);
-        util::printUintVec(l10);
-        util::printUintVec(X_00);
         X_11 = util::hash_variable(l11, tweak, internalParam);
-        util::printUintVec(l11);
-        util::printUintVec(X_00);
-        cout<<""<<endl;
-        vint xd{1,1,2,3};
-        auto haha = util::hash_variable(xd, tweak, internalParam);
-        util::printUintVec(haha);
-        cout<<""<<endl;
+
     }else{
         //do fast stuff
         auto [a0,a1] = in0;

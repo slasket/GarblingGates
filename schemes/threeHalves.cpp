@@ -144,15 +144,15 @@ threeHalves::garble(vector<string> f, int k, util::hashtype h) {
             vector<halfLabels> inputs({A0, B0, A1, B1, A0xorB0, A0xorB0xorDelta});
             if (h == util::RO) {
                 vector<vint> in_for_RO(inputs.size());
-                vint tweak {static_cast<unsigned long>(((3 * k) - 3))};
+                uint64_t tweak ((3 * k) - 3);
                 for (int j = 0; j < inputs.size(); ++j) {
                     //inputgen
                     in_for_RO[j] = util::vecConcat(get<0>(inputs[j]),get<1>(inputs[j]));
                     //in_for_RO[j] = util::vecConcat(in_for_RO[j],{static_cast<unsigned long>((3*k)-tval)});
                     if (j==1||j==3){
-                        tweak[0] = tweak[0]+1;
+                        tweak += 1;
                     }
-                    hashes[j] = util::hash_variable(in_for_RO[j],tweak , ((k / 2) + 8));
+                    hashes[j] = util::hash_variable(in_for_RO[j], {tweak}, ((k / 2) + 8));
                 }
             //hashes[0] = util::hash_variable(util::halfLabelsToFullLabelString(A0) + to_string(((3 * k) - 3)),   (k / 2) + 8);
             //hashes[1] = util::hash_variable(util::halfLabelsToFullLabelString(A1) + to_string(((3 * k) - 3)),   (k / 2) + 8);

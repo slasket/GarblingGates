@@ -36,24 +36,16 @@ int main() {
     //vector<int> x = util::genFunctionInput(128);
 
     auto k=256;
-
-    vint tweak = {0};
-    vint test1 = {8021930603744189668, 9034112383556308211, 11224098271218725880, 1377502641440623457 };
-    vint test2 = {8021930603744189668, 9034112383556308211, 3404791051857095103, 10806621124229314180};
-    util::printUintVec(util::hash_variable(test1, tweak,  1024));
-    util::printUintVec(util::hash_variable(test2, tweak,  1024));
-
-    cout<<""<<endl;
     //timing::testHashAll(k);
-    //timing::hashOutputLengthTest("both");
-
-    vector<string> f = circuitParser::parseCircuit("../tests/circuits/xorIntoAnd.txt");
+    timing::hashOutputLengthTest("both");
+    k=128;
+    vector<string> f = circuitParser::parseCircuit("../tests/circuits/Keccak_f.txt");
     vector<int> x = util::genFunctionInput(circuitParser::inputsize(f));
     util::hashtype type = util::RO;
-    timing::time_circuit_all(f,x,128,type);
+    timing::time_circuit_all(f,x,k,type);
     cout<<endl;
     f = circuitParser::parseCircuit("../tests/circuits/aes_128.txt");
-    //timing::repetitionTest(f,k,type,100);
+    timing::repetitionTest(f,k,type,100);
 
 
     return 0;
