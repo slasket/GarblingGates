@@ -62,9 +62,9 @@ public:
         if(k < 256) k=256;
         this->key = key;
         this->iv = iv;
-        this->alpha = util::genBitsNonCrypto(   (k/2)+1);
-        this->u1 = util::genBitsNonCrypto(      (k/2)+1);
-        this->u2 = util::genBitsNonCrypto(      (k/2)+1);
+        this->alpha = util::genBitsNonCrypto((k/2)+1);
+        this->u1 =    util::genBitsNonCrypto((k/2)+1);
+        this->u2 =    util::genBitsNonCrypto((k/2)+1);
         this-> e = AES_vint_init(key, iv);
         this->hashtype = util::fast;
     }
@@ -173,12 +173,11 @@ public:
         memcpy(aes_iv, iv.data(), AES_BLOCK_SIZE);
         EVP_CIPHER_CTX *e;
         e = EVP_CIPHER_CTX_new();
-        EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, aes_iv);
+        //EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, aes_iv);
         //EVP_DecryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, iv);
         EVP_CIPHER_CTX_set_padding(e, 0);
         free(aes_key);
         free(aes_iv);
-        EVP_CIPHER_CTX_cleanup(e);
         return e;
     }
 
@@ -198,9 +197,13 @@ public:
         //plaintext from input
         auto *plaintext = static_cast<unsigned char *>(malloc(len));
         memcpy(plaintext, input.data(), len);
+        auto *aes_key = static_cast<unsigned char *>(malloc(len));
+        memcpy(aes_key, key.data(), len);
+        //iv
+        auto *aes_iv = static_cast<unsigned char *>(malloc(AES_BLOCK_SIZE));
+        memcpy(aes_iv, iv.data(), AES_BLOCK_SIZE);
 
-
-        //EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), nullptr, aes_key, aes_iv);
+        EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), nullptr, aes_key, aes_iv);
         EVP_EncryptUpdate(e, ciphertext, &c_len, plaintext, len);
         EVP_EncryptFinal_ex(e, ciphertext + c_len, &f_len);
         //convert ciphertext to vint
@@ -269,7 +272,6 @@ public:
         vint XxorUtweakVint; XxorUtweakVint.reserve(XxorUtweakL.size()*2);
         XxorUtweakVint.insert(XxorUtweakVint.end(), XxorUtweakL.begin(), XxorUtweakL.end());
         XxorUtweakVint.insert(XxorUtweakVint.end(), XxorUtweakR.begin(), XxorUtweakR.end());
-
         auto AESXxorUtweak = AES_vint_encrypt(XxorUtweakVint, key, iv, e);
         return util::vecXOR(sigmaFunc(XxorUtweakL,XxorUtweakR, alpha), AESXxorUtweak);
     }

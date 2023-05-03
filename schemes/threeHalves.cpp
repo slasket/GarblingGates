@@ -140,7 +140,7 @@ threeHalves::garble(vector<string> f, int k, util::hashtype h) {
             halfLabels A0xorB0 = {util::vecXOR(A0Left, B0Left), util::vecXOR(A0Right, B0Right)};
             //A0 XOR B0 XOR Delta = A0 XOR B1
             halfLabels A0xorB0xorDelta = {util::vecXOR(A0Left, B1Left), util::vecXOR(A0Right, B1Right)};
-            vector<halfLabels> inputs({A0, B0, A1, B1, A0xorB0, A0xorB0xorDelta});
+            vector<halfLabels> inputs({A0, A1, B0, B1, A0xorB0, A0xorB0xorDelta});
             if (h == util::RO) {
                 vector<vint> in_for_RO(inputs.size());
                 uint64_t tweak ((3 * k) - 3);
@@ -148,7 +148,7 @@ threeHalves::garble(vector<string> f, int k, util::hashtype h) {
                     //inputgen
                     in_for_RO[j] = util::vecConcat(get<0>(inputs[j]),get<1>(inputs[j]));
                     //in_for_RO[j] = util::vecConcat(in_for_RO[j],{static_cast<unsigned long>((3*k)-tval)});
-                    if (j==1||j==3){
+                    if (j==2||j==4){
                         tweak += 1;
                     }
                     hashes[j] = util::hash_variable(in_for_RO[j], {tweak}, ((k / 2) + 8));
@@ -189,7 +189,9 @@ threeHalves::garble(vector<string> f, int k, util::hashtype h) {
                 hashes[3] = hashRTCCR.hash(B1             , tweak1);
                 hashes[4] = hashRTCCR.hash(A0xorB0        , tweak2);
                 hashes[5] = hashRTCCR.hash(A0xorB0xorDelta, tweak2);
-
+                //for (auto xd:hashes) {
+                //    util::printUintVec(xd);
+                //}
                 int size = hashes[0].size()-(A0Left.size()+1);
                 for (int j = 0; j < size; ++j) {
                     for (int hIx = 0; hIx < hashes.size(); ++hIx) {
@@ -475,6 +477,10 @@ vector<halfLabels> threeHalves::eval(Ftype F, vector<halfLabels> X, vector<strin
                 hashes[0] = hash.hash(inputs[0], tweak0);
                 hashes[1] = hash.hash(inputs[1], tweak1);
                 hashes[2] = hash.hash(inputs[2], tweak2);
+                //cout<<endl;
+                //for (auto xd:hashes) {
+                //    util::printUintVec(xd);
+                //}
                 int size = hashes[0].size()-(Al.size()+1);
                 for (int j = 0; j < size; ++j) {
                     for (int hIx = 0; hIx < hashes.size(); ++hIx) {

@@ -79,7 +79,7 @@ public:
         using std::chrono::milliseconds;
         auto k= 128;
         vector<double> times(15);
-        auto internal = 10000;
+        auto internal = 1000;
         auto external = 100;
         vint key = util::genBitsNonCrypto(256);
         vint iv = util::genBitsNonCrypto(256);
@@ -136,12 +136,12 @@ public:
             auto tccr = hashTCCR(k);
             for (int j = 10; j < 18; ++j) {
                 auto outlen = k*pow(2,(j-10));
-                auto t1 = high_resolution_clock::now();
+                t1 = high_resolution_clock::now();
                 for (int l = 0; l < internal; ++l) {
                     auto Xk = tccr.hash(data[l],data[l],tweak[l][0],outlen);
                 }
-                auto t2 = high_resolution_clock::now();
-                duration<double, std::milli> ms_double = t2 - t1;
+                t2 = high_resolution_clock::now();
+                ms_double = t2 - t1;
                 times[j] += ms_double.count();
             }
 

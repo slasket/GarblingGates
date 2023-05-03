@@ -34,16 +34,17 @@ int main() {
     //vector<int> x = util::genFunctionInput(128);
 
     auto k=256;
-    timing::testLabelLength();
     timing::hashOutputLengthTest();
-    k=128;
-    vector<string> f = circuitParser::parseCircuit("../tests/circuits/Keccak_f.txt");
-    vector<int> x = util::genFunctionInput(circuitParser::inputsize(f));
-    util::hashtype type = util::fast;
-    //timing::time_circuit_all(f,x,k,type);
-    cout<<endl;
-    f = circuitParser::parseCircuit("../tests/circuits/aes_128.txt");
-    timing::repetitionTest(f,k,type,100);
+    //timing::testLabelLength();
+
+    //k=128;
+    //vector<string> f = circuitParser::parseCircuit("../tests/circuits/Keccak_f.txt");
+    //vector<int> x = util::genFunctionInput(circuitParser::inputsize(f));
+    //util::hashtype type = util::fast;
+    ///timing::time_circuit_all(f,x,k,type);
+    //dout<<endl;
+    //f = circuitParser::parseCircuit("../tests/circuits/aes_128.txt");
+    //timing::repetitionTest(f,k,type,100);
 
 
     return 0;
@@ -171,9 +172,9 @@ void testFreexorAteca() {
     cout<<"encoding"<<endl;
     auto encodedInput = atecaFreeXOR::encode(encodingInfo, finput);
     cout<<"eval"<<endl;
-    auto Y = atecaFreeXOR::eval(F, encodedInput, C, secL, invVar, hashTCCR());
+    auto Y = atecaFreeXOR::eval(F, encodedInput, C, secL, invVar, hashtype);
     cout<<"decoding"<<endl;
-    auto y = atecaFreeXOR::decode(Y, decoding, hashTCCR());
+    auto y = atecaFreeXOR::decode(Y, decoding, hashtype);
     util::printUintVec(y);
     cout<< "bloodAns "<< bloodCompAns<<endl;
 }
@@ -190,9 +191,9 @@ void testsubAteca() {
     cout<<"encoding"<<endl;
     auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
     cout<<"eval"<<endl;
-    auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), hashTCCR());
+    auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), get<5>(feds));
     cout<<"decoding"<<endl;
-    auto y = atecaGarble::decode(Y, get<2>(feds), hashTCCR());
+    auto y = atecaGarble::decode(Y, get<2>(feds), get<5>(feds));
     util::printUintVec(y);
 }
 

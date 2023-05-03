@@ -294,13 +294,13 @@ public:
         EVP_DigestInit_ex(ctx, EVP_shake256(), NULL);
         //EVP_DigestUpdate(ctx, reinterpret_cast<const unsigned char*>(input.data()), size_in_bytes);
         EVP_DigestUpdate(ctx, reinterpret_cast<const unsigned char*>(input.data()), size_in_bytes);
-        size_t output_length_bytes = (output_length_bits+7) / 8;
+        size_t output_length_bytes = (output_length_bits+7) / sizeof(uint64_t);
 
         auto *ciphertext = static_cast<unsigned char *>(malloc(output_length_bytes));
         EVP_DigestFinalXOF(ctx, ciphertext, output_length_bytes);
 
         //convert the input back into uint64_t's
-        vint res(output_length_bytes);
+        vint res((output_length_bytes+7)/sizeof(::uint64_t));
         memcpy(res.data(), ciphertext, output_length_bytes);
         free(ciphertext);
         //free(plaintext);
