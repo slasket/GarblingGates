@@ -299,7 +299,7 @@ public:
         //printf("%s\n", ciphertext);
 
         //convert the input back into uint64_t's
-        vint res(output_length_bytes/sizeof(::uint64_t));
+        vint res((output_length_bytes+7)/sizeof(::uint64_t));
         memcpy(res.data(), ciphertext, output_length_bytes);
         free(ciphertext);
         //free(plaintext);
