@@ -22,8 +22,8 @@ using namespace std;
 
 class timing{
 public:
-    static void testHashAll(int k=256) {
-        auto amount = 1000000;
+    static void testLabelLength(int label_incs=8) {
+        auto amount = 100000;
 
         vint key = util::genBitsNonCrypto(256);
         vint iv = util::genBitsNonCrypto(256);
@@ -33,60 +33,52 @@ public:
         vector<vint> data(amount);
         vector<halfLabels> dat(amount);
         vector<vint> tweak(amount);
-        vector<string> dataAsString(amount);
-        cout << amount << " hashes alone"<<endl;
-        for (int i = 0; i < amount; ++i) {
-            data[i]= util::genBitsNonCrypto(128);
-            dat[i]= {util::genBitsNonCrypto(64),util::genBitsNonCrypto(64)};
-            tweak[i]= util::genBitsNonCrypto(3*64);
-            //dataAsString[i]= util::uintVec2Str(data[i]);
+        vector<double> hashvariable_times(label_incs);
+        vector<double> tccr_times(label_incs);
+
+        for (int i = 0; i < label_incs; ++i) {
+            //cout << "i "<<i<<endl;
+            for (int j = 0; j < amount; ++j) {
+                data[j]= util::genBitsNonCrypto(pow(2,(7+i)));
+                //dat[j]= {util::genBitsNonCrypto(64),util::genBitsNonCrypto(64)};
+                tweak[j]= util::genBitsNonCrypto(64);
+            }
+
+            auto outlen = 128;
+            auto t1 = high_resolution_clock::now();
+            for (int l = 0; l < amount; ++l) {
+                auto Xk = util::hash_variable(data[l],tweak[l], outlen);
+            }
+            auto t2 = high_resolution_clock::now();
+            duration<double, std::milli> ms_double = t2 - t1;
+            hashvariable_times[i] += ms_double.count();
+
+
+            auto tccr = hashTCCR(128);
+            t1 = high_resolution_clock::now();
+            for (int l = 0; l < amount; ++l) {
+                auto Xk = tccr.hash(data[l],data[l],tweak[l][0],outlen);
+            }
+            t2 = high_resolution_clock::now();
+            ms_double = t2 - t1;
+            tccr_times[i] += ms_double.count();
+        }
+        for (int i = 0; i < label_incs; ++i) {
+            cout<< "shake256 "<< hashvariable_times[i]/1000<< " s for "<<  pow(2,(7+i)) << " label length"<<endl;
+        }
+        for (int i = 0; i < label_incs; ++i) {
+            cout<< "tccr     "<< tccr_times[i]/1000<< " s for "<<  pow(2,(7+i)) << " label length"<<endl;
         }
 
-        auto e123 = hashRTCCR::AES_enc_init(key,iv);
-        boost::timer timer;
-        for (int j = 0; j < amount; ++j) {
-            auto res = hashRTCCR::AES_enc(data[j],e123);
-        }
-        cout<<"aes alone "<<timer.elapsed()<<endl;
-
-        //aes version of algos
-        ///aes threehalves and baseline
-        auto e = hashRTCCR(key,iv,k);
-        timer.restart();
-        for (int j = 0; j < amount; ++j) {
-            //use index 6 now
-            auto res = e.hash(dat[j],tweak[j]);
-        }
-        cout<<"hashRTCCR "<<timer.elapsed()<<endl;
-        ///aes ateca and ateca freexor
-        //do stuff
-
-        //shake 256 versions
-        vector<double> outlen = {k * pow(2, 0), k * pow(2, 3), k * pow(2, 4)};
-        timer.restart();
-        for (int i = 0; i < amount; ++i) {
-            auto Xk = util::hash_variable(data[i],{}, outlen[0]);
-        }
-        cout<<"shake256("<< pow(2,0)<<"x) " <<timer.elapsed()<<endl;
-        timer.restart();
-        for (int i = 0; i < amount; ++i) {
-            auto Xk = util::hash_variable(data[i],{}, outlen[1]);
-        }
-        cout<<"shake256("<< pow(2,3)<<"x) " <<timer.elapsed()<<endl;
-        timer.restart();
-        for (int i = 0; i < amount; ++i) {
-            auto Xk = util::hash_variable(data[i],{}, outlen[2]);
-        }
-        cout<<"shake256("<< pow(2,4)<<"x) " <<timer.elapsed()<<endl;
     }
 
-    static void hashOutputLengthTest(string both){
+    static void hashOutputLengthTest(){
         using std::chrono::high_resolution_clock;
         using std::chrono::duration_cast;
         using std::chrono::duration;
         using std::chrono::milliseconds;
         auto k= 128;
-        vector<double> baseline(8);
+        vector<double> times(15);
         auto internal = 10000;
         auto external = 100;
         vint key = util::genBitsNonCrypto(256);
@@ -106,47 +98,67 @@ public:
             }
             //call aes 128->256
 
-            if (both=="both"){
-                for (int j = 0; j < 6; ++j) {
-                    auto outlen = k*pow(2,j);
-                    auto t1 = high_resolution_clock::now();
-                    for (int l = 0; l < internal; ++l) {
-                        auto Xk = util::hash_variable(data[l],tweak[l], outlen);
-                    }
-                    auto t2 = high_resolution_clock::now();
-                    duration<double, std::milli> ms_double = t2 - t1;
-                    baseline[j] += ms_double.count();
+
+            for (int j = 0; j < 8; ++j) {
+                auto outlen = k*pow(2,j);
+                auto t1 = high_resolution_clock::now();
+                for (int l = 0; l < internal; ++l) {
+                    auto Xk = util::hash_variable(data[l],tweak[l], outlen);
                 }
+                auto t2 = high_resolution_clock::now();
+                duration<double, std::milli> ms_double = t2 - t1;
+                times[j] += ms_double.count();
             }
+
 
             auto e = hashRTCCR::AES_vint_init(key, iv);
             auto t1 = high_resolution_clock::now();
             for (int j = 0; j < internal; ++j) {
                 //use index 6 now
-                auto res = hashRTCCR::AES_vint_encrypt(data[j],key,iv,e);
+                auto res = hashRTCCR::AES_vint_encrypt(data[j], key, iv,e);
+                //cout<<"aes length "<< res.size()<<endl;
             }
             auto t2 = high_resolution_clock::now();
             duration<double, std::milli> ms_double = t2 - t1;
-            baseline[6] += ms_double.count();
+            times[8] += ms_double.count();
 
             auto rtccr = hashRTCCR(key, iv,256);
             t1 = high_resolution_clock::now();
             for (int j = 0; j < internal; ++j) {
                 //use index 6 now
                 auto res = rtccr.hash(dat[j],tweak[j]);
+                //cout<<"rt length "<< res.size()<<endl;
             }
             t2 = high_resolution_clock::now();
             ms_double = t2 - t1;
-            baseline[7] += ms_double.count();
+            times[9] += ms_double.count();
+
+            auto tccr = hashTCCR(k);
+            for (int j = 10; j < 18; ++j) {
+                auto outlen = k*pow(2,(j-10));
+                auto t1 = high_resolution_clock::now();
+                for (int l = 0; l < internal; ++l) {
+                    auto Xk = tccr.hash(data[l],data[l],tweak[l][0],outlen);
+                }
+                auto t2 = high_resolution_clock::now();
+                duration<double, std::milli> ms_double = t2 - t1;
+                times[j] += ms_double.count();
+            }
 
 
         }
-        for (int i = 0; i < 6; ++i) {
+        for (int i = 0; i < 8; ++i) {
             auto outlen = k*pow(2,i);
-            cout<<"shake256 "<< outlen<< "-bit ("<<pow(2,i) << "x) output in "<< baseline[i]/1000<< " s" <<endl;
+            cout << "shake256 " << times[i] / 1000 << " s " << outlen << "-bit (" << pow(2,i) << "x) output"<<  endl;
         }
-        cout<<"RTCCR  "<< "256-bit output in "<< baseline[7]/1000<< " s" <<endl;
-        cout<<"aes256 "<< "256-bit output in "<< baseline[6]/1000<< " s" <<endl;
+        for (int i = 10; i < 18; ++i) {
+            auto outlen = k*pow(2,(i-10));
+            cout << "TCCR     " << times[i] / 1000 << " s "<< outlen << "-bit (" << pow(2,(i-10)) << "x) output"<< endl;
+        }
+
+        cout << "RTCCR    " << times[9] / 1000 << " s " << "128-bit output" << endl;
+        cout << "aes128   " << times[8] / 1000 << " s "<< "128-bit output"  << endl;
+
 
     }
 

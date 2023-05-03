@@ -27,8 +27,6 @@ void testBaseOT(int v, int k , int l, int elgamalKeySize);
 void sliceTest();
 
 void threehalves_Test();
-void timetest(const vector<string>&f, const vector<int>& x, int k, util::scheme type, util::hashtype hashfunc);
-void repetitionTest(const vector<string>&f,int inputsize, int k,util::hashtype hashfunc, int repetitions);
 
 int main() {
     //vector<string> f = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
@@ -36,13 +34,13 @@ int main() {
     //vector<int> x = util::genFunctionInput(128);
 
     auto k=256;
-    //timing::testHashAll(k);
-    timing::hashOutputLengthTest("both");
+    timing::testLabelLength();
+    timing::hashOutputLengthTest();
     k=128;
     vector<string> f = circuitParser::parseCircuit("../tests/circuits/Keccak_f.txt");
     vector<int> x = util::genFunctionInput(circuitParser::inputsize(f));
-    util::hashtype type = util::RO;
-    timing::time_circuit_all(f,x,k,type);
+    util::hashtype type = util::fast;
+    //timing::time_circuit_all(f,x,k,type);
     cout<<endl;
     f = circuitParser::parseCircuit("../tests/circuits/aes_128.txt");
     timing::repetitionTest(f,k,type,100);

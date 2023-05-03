@@ -89,7 +89,6 @@ threeHalves::garble(vector<string> f, int k, util::hashtype h) {
             //cout << "rVec: " << endl;
             //util::printUintVec(rVec);
 
-
             //Compute A1 and B1
             auto A1 = util::halfLabelXOR(A0, delta);
             auto B1 = util::halfLabelXOR(B0, delta);

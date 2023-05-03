@@ -273,7 +273,7 @@ public:
         //append tweak
         vector<::uint64_t> input = in;
         input.insert(input.end(), tweak.begin(),tweak.end());
-        //input conversion
+        //input padding
         if (input.size()<4){
             int diff = 4-input.size();
             for (int i = 0; i < diff; ++i) {
@@ -281,25 +281,26 @@ public:
             }
         }
 
-        int byteInputSize = sizeof(::uint64_t)*input.size();
+        //int byteInputSize = sizeof(::uint64_t)*input.size();
 
         size_t size_in_bytes = input.size() * sizeof(uint64_t);
-        vector<unsigned char> arr(size_in_bytes);
-        memcpy(arr.data(), reinterpret_cast<const unsigned char*>(input.data()), size_in_bytes);
 
+        //auto *plaintext = static_cast<unsigned char *>(malloc(size_in_bytes));
+        //memcpy(plaintext, input.data(), size_in_bytes);
+        //vector<unsigned char> arr(size_in_bytes);
+        //memcpy(arr.data(), reinterpret_cast<const unsigned char*>(input.data()), size_in_bytes);
 
-        //size_t input_length_bytes = (len+7) / 8;
         EVP_MD_CTX* ctx = EVP_MD_CTX_create();
         EVP_DigestInit_ex(ctx, EVP_shake256(), NULL);
-        EVP_DigestUpdate(ctx, reinterpret_cast<const unsigned char*>(input.data()), byteInputSize);
+        //EVP_DigestUpdate(ctx, reinterpret_cast<const unsigned char*>(input.data()), size_in_bytes);
+        EVP_DigestUpdate(ctx, reinterpret_cast<const unsigned char*>(input.data()), size_in_bytes);
         size_t output_length_bytes = (output_length_bits+7) / 8;
 
         auto *ciphertext = static_cast<unsigned char *>(malloc(output_length_bytes));
         EVP_DigestFinalXOF(ctx, ciphertext, output_length_bytes);
-        //printf("%s\n", ciphertext);
 
         //convert the input back into uint64_t's
-        vint res((output_length_bytes+7)/sizeof(::uint64_t));
+        vint res(output_length_bytes);
         memcpy(res.data(), ciphertext, output_length_bytes);
         free(ciphertext);
         //free(plaintext);

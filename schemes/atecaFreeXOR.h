@@ -26,8 +26,8 @@ public:
     static vector<vint> encode(vector<tuple<vint,vint>> e, vector<int> x);
     static vector<vint>
     eval(const vector<vint> &F, const vector<vint> &X, vector<string> C, int k, tuple<vint, vint> invVar,
-         const hashTCCR& c);
-    static vint decode(vector<vint> Y, vector<vint> d, const hashTCCR& dc);
+         hashTCCR &c);
+    static vint decode(vector<vint> Y, vector<vint> d, hashTCCR &dc);
 
 
 private:
@@ -38,9 +38,9 @@ private:
     //single Gate garble
     static vector<vint>
     Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, int gateNo, int k,
-         const vint &globalDelta, const hashTCCR &c);
+         const vint &globalDelta, hashTCCR &c);
     static vector<vint>
-    DecodingInfo(const vector<tuple<vint, vint>> &D, int k, const hashTCCR& c);
+    DecodingInfo(const vector<tuple<vint, vint>> &D, int k, hashTCCR &c);
 
     static tuple<vint, vint> genInvVar(int k, vint globalDelta);
 

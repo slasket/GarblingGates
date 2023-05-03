@@ -91,14 +91,6 @@ public:
 //may not be correct
     static inline vint gfmulPCF(vint& a, vint& b){
         vint res;
-        padding(a, b);
-        for (int i = 0; i < a.size(); ++i) {
-            res.push_back(gfmulPCF(a[i], b[i]));
-        }
-        return res;
-    }
-
-    static inline void padding(vint &a, vint &b) {
         int sizeDiff = a.size() - b.size();
         if(sizeDiff > 0){
             for (int i = 0; i < sizeDiff; ++i) {
@@ -109,7 +101,12 @@ public:
                 a.emplace_back(0);
             }
         }
+        for (int i = 0; i < a.size(); ++i) {
+            res.push_back(gfmulPCF(a[i], b[i]));
+        }
+        return res;
     }
+
 
     static inline vint gfmul(uint64_t a, uint64_t b){
         vint res = {0};
@@ -185,54 +182,7 @@ public:
         return e;
     }
 
-    static inline EVP_CIPHER_CTX * AES_enc_init(vint key,vint iv){
-        if(key.size() != 4){ //4 is hardcoded for 256 bit input
-            int size = 4-key.size();
-            for (int i = 0; i < size; ++i) {
-                key.emplace_back(0);
-            }
-        }
-        int len = key.size() * sizeof(uint64_t);
-        //key from key
-        auto *aes_key = static_cast<unsigned char *>(malloc(len));
-        memcpy(aes_key, key.data(), len);
-        //iv
-        auto *aes_iv = static_cast<unsigned char *>(malloc(AES_BLOCK_SIZE));
-        memcpy(aes_iv, iv.data(), AES_BLOCK_SIZE);
-        EVP_CIPHER_CTX *e;
-        e = EVP_CIPHER_CTX_new();
-        EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, aes_iv);
-        //EVP_DecryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, iv);
-        EVP_CIPHER_CTX_set_padding(e, 0);
-        free(aes_key);
-        free(aes_iv);
-        return e;
-    }
 
-    static inline vint AES_enc(vint input, EVP_CIPHER_CTX *e){
-        if(input.size() != 4){ //4 is hardcoded for 256 bit input
-            int size = 4-input.size();
-            for (int i = 0; i < size; ++i) {
-                input.emplace_back(0);
-            }
-        }
-        int len = input.size() * sizeof(uint64_t);
-        int c_len = len + AES_BLOCK_SIZE;
-        int f_len = 0;
-        auto *ciphertext = static_cast<unsigned char *>(malloc(c_len));
-        //plaintext from input
-        auto *plaintext = static_cast<unsigned char *>(malloc(len));
-        memcpy(plaintext, input.data(), len);
-
-        EVP_EncryptUpdate(e, ciphertext, &c_len, plaintext, len);
-        EVP_EncryptFinal_ex(e, ciphertext + c_len, &f_len);
-        //convert ciphertext to vint
-        vint res(len/sizeof(uint64_t), 0);
-        memcpy(res.data(), ciphertext, len);
-        free(ciphertext);
-        free(plaintext);
-        return res;
-    }
 
     static inline vint AES_vint_encrypt(vint input, vint key, vint iv, EVP_CIPHER_CTX *e){
         if(input.size() != 4){ //4 is hardcoded for 256 bit input

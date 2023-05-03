@@ -15,7 +15,7 @@ BOOST_AUTO_TEST_SUITE( TCCR_Encryption_128 )
     vint y = {2,4};
     int tweak = 15;
     int internalLength = 8*128;
-    auto cipher = hashTCCR::hash(x,y,c.getIv(),c.e,c.getU1(),c.getU2(),tweak,internalLength);
+    auto cipher = c.hash(x,y,tweak,internalLength);
     auto plain = hashTCCR::decypthash(x,y,c.getIv(),c.e,c.getU1(),c.getU2(),cipher);
     BOOST_AUTO_TEST_CASE( test_decryption )
     {
@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_SUITE( TCCR_Encryption_128_16internal )
     vint y = util::genBitsNonCrypto(128);
     int tweak = 450;
     int internalLength = 16*128;
-    auto cipher = hashTCCR::hash(x,y,c.getIv(),c.e,c.getU1(),c.getU2(),tweak,internalLength);
+    auto cipher = c.hash(x,y,tweak,internalLength);
     auto plain = hashTCCR::decypthash(x,y,c.getIv(),c.e,c.getU1(),c.getU2(),cipher);
     BOOST_AUTO_TEST_CASE( test_decryption_16internal )
     {
@@ -62,7 +62,7 @@ BOOST_AUTO_TEST_SUITE( TCCR_arbitrary_label_length )
     vint y = util::genBitsNonCrypto(384);
     int tweak = 420;
     int internalLength = 8*384;
-    auto cipher = hashTCCR::hash(x,y,c.getIv(),c.e,c.getU1(),c.getU2(),tweak,internalLength);
+    auto cipher = c.hash(x,y,tweak,internalLength);
     auto plain = hashTCCR::decypthash(x,y,c.getIv(),c.e,c.getU1(),c.getU2(),cipher);
     BOOST_AUTO_TEST_CASE( test_decryption )
     {
@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_SUITE( TCCR_torture_test_128bit )
             vint y = util::genBitsNonCrypto(bitsize);
             int tweak = 15;
             int internalLength = 8*bitsize;
-            auto cipher = hashTCCR::hash(x,y,c.getIv(),c.e,c.getU1(),c.getU2(),tweak,internalLength);
+            auto cipher = c.hash(x,y,tweak,internalLength);
             auto plain = hashTCCR::decypthash(x,y,c.getIv(),c.e,c.getU1(),c.getU2(),cipher);
             vint input;
             //create the counters as 64 bit blocks

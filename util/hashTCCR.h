@@ -157,7 +157,7 @@ public:
 
 
 
-    static inline vint hash(vint &x, vint &y, const vint& iv, EVP_CIPHER_CTX *e, const vint &u1, const vint &u2, int tweak, int internalLength){
+    inline vint hash(vint &x, vint &y, int tweak, int internalLength){
         //split Y perform hashRTCCR::gfmulPCF(Y/2,Y/2)
         vint yFirstHalf(y.begin(),y.begin()+(y.size()/2));
         vint ySecondHalf(y.begin()+(y.size()/2),y.end());

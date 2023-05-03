@@ -131,7 +131,7 @@ atecaFreeXOR::GarbleCircuit(int k, vector<std::string> C, vector<tuple<vint, vin
 
 vector<vint>
 atecaFreeXOR::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, int gateNo, int k,
-                   const vint &globalDelta, const hashTCCR &c) {
+                   const vint &globalDelta, hashTCCR &c) {
     int internalParam= k * 16;
     vint X_00;vint X_01;vint X_10;vint X_11;
     //auto t1 = high_resolution_clock::now();
@@ -157,10 +157,10 @@ atecaFreeXOR::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, i
     }else{
         auto [a0,a1] = in0;
         auto [b0,b1] = in1;
-        X_00 = hashTCCR::hash(a0,b0,c.getIv(),c.getE(),c.getU1(),c.getU2(),gateNo,internalParam);
-        X_01 = hashTCCR::hash(a0,b1,c.getIv(),c.getE(),c.getU1(),c.getU2(),gateNo,internalParam);
-        X_10 = hashTCCR::hash(a1,b0,c.getIv(),c.getE(),c.getU1(),c.getU2(),gateNo,internalParam);
-        X_11 = hashTCCR::hash(a1,b1,c.getIv(),c.getE(),c.getU1(),c.getU2(),gateNo,internalParam);
+        X_00 = c.hash(a0,b0,gateNo,internalParam);
+        X_01 = c.hash(a0,b1,gateNo,internalParam);
+        X_10 = c.hash(a1,b0,gateNo,internalParam);
+        X_11 = c.hash(a1,b1,gateNo,internalParam);
     }
     //auto t2 = high_resolution_clock::now();
     //duration<double, std::milli> ms_double = t2 - t1;
@@ -201,7 +201,7 @@ atecaFreeXOR::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, i
 }
 
 vector<vint>
-atecaFreeXOR::DecodingInfo(const vector<tuple<vint, vint>> &D, int k, const hashTCCR& c) {
+atecaFreeXOR::DecodingInfo(const vector<tuple<vint, vint>> &D, int k, hashTCCR &c) {
     //RO from 2l->1
     vector<vint> d(D.size());
     for (int i = 0; i < D.size(); ++i) {
@@ -227,8 +227,8 @@ atecaFreeXOR::DecodingInfo(const vector<tuple<vint, vint>> &D, int k, const hash
                 hashL1 = util::hash_variable(L1wdi,{0}, k);
             }else{
             //this is not the cleanest code ever
-                hashL0 = hashTCCR::hash(L0, di, c.getIv(), c.getE(), c.getU1(), c.getU2(), 0, k);
-                hashL1 = hashTCCR::hash(L1, di, c.getIv(), c.getE(), c.getU1(), c.getU2(), 0, k);
+                hashL0 = c.hash(L0, di, 0, k);
+                hashL1 = c.hash(L1, di, 0, k);
             }
             lsbHL0=util::checkBit(hashL0[0],0);
             lsbHL1=util::checkBit(hashL1[0],0);
@@ -254,7 +254,7 @@ atecaFreeXOR::encode(vector<tuple<vint, vint>> e, vector<int> x) {
 
 vector<vint>
 atecaFreeXOR::eval(const vector<vint> &F, const vector<vint> &X, vector<string> C, int k, tuple<vint, vint> invVar,
-                   const hashTCCR& c) {
+                   hashTCCR &c) {
     int internalSecParam = 16 * k;
     int outputBits =stoi( util::split(C[2], ' ')[1]);
     int numberOfWires = stoi(util::split(C[0], ' ')[1]);
@@ -305,7 +305,7 @@ atecaFreeXOR::eval(const vector<vint> &F, const vector<vint> &X, vector<string> 
                 //auto hashInputLabel = util::uintVec2Str(labelA);
                 hash = util::hash_variable(labelA,tweak,internalSecParam);
             }else{
-                hash= hashTCCR::hash(labelA, labelB, c.getIv(), c.getE(), c.getU1(), c.getU2(), gateNo, internalSecParam);
+                hash= c.hash(labelA, labelB, gateNo, internalSecParam);
             }
             const auto& delta = F[gateNo];
             gateOut = util::fastproj(hash, delta,k);
@@ -320,7 +320,7 @@ atecaFreeXOR::eval(const vector<vint> &F, const vector<vint> &X, vector<string> 
     return outputY;
 }
 
-vint atecaFreeXOR::decode(vector<vint> Y, vector<vint> d, const hashTCCR& dc) {
+vint atecaFreeXOR::decode(vector<vint> Y, vector<vint> d, hashTCCR &dc) {
     auto outbits = Y.size();
     auto unit64sNeeded = outbits/64 + ((outbits%64!=0) ? 1 : 0);
     auto outputSets =  vector<bitset<64>>(unit64sNeeded);
@@ -332,7 +332,7 @@ vint atecaFreeXOR::decode(vector<vint> Y, vector<vint> d, const hashTCCR& dc) {
             Y[i].insert(Y[i].end(), d[i].begin(), d[i].end());
             hash = util::hash_variable(Y[i],{0}, 64);
         }else{
-            hash= hashTCCR::hash(Y[i], d[i], dc.getIv(), dc.getE(), dc.getU1(), dc.getU2(), 0, 128);
+            hash= dc.hash(Y[i], d[i], 0, 128);
         }
         int lsbHash=util::checkBit(hash[0],0);
         outputSets = util::insertBitVecBitset(outputSets,lsbHash,i);
