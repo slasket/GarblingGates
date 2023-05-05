@@ -45,8 +45,8 @@ BOOST_AUTO_TEST_SUITE( ATECAfreexor_adder_torture )
             auto input = util::genFunctionInput(128);
             auto Slowfeds00 = atecaFreeXOR::garble(C, l, util::RO);
             auto SlowX00 = atecaFreeXOR::encode(get<1>(Slowfeds00), input);
-            auto SlowY00 = atecaFreeXOR::eval(get<0>(Slowfeds00), SlowX00, C, get<3>(Slowfeds00), get<4>(Slowfeds00), hashTCCR());
-            auto Slowy00 = atecaFreeXOR::decode(SlowY00, get<2>(Slowfeds00), hashTCCR());
+            auto SlowY00 = atecaFreeXOR::eval(get<0>(Slowfeds00), SlowX00, C, get<3>(Slowfeds00), get<4>(Slowfeds00), get<5>(Slowfeds00));
+            auto Slowy00 = atecaFreeXOR::decode(SlowY00, get<2>(Slowfeds00), get<5>(Slowfeds00));
 
             auto Fastfeds00 = atecaFreeXOR::garble(C, l, util::fast);
             auto FastX00 = atecaFreeXOR::encode(get<1>(Fastfeds00), input);
