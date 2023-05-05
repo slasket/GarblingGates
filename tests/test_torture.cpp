@@ -22,8 +22,8 @@ BOOST_AUTO_TEST_SUITE( ATECA_adder_torture )
             auto input = util::genFunctionInput(128);
             auto Slowfeds00 = atecaGarble::garble(C, l, util::RO);
             auto SlowX00 = atecaGarble::encode(get<1>(Slowfeds00), input);
-            auto SlowY00 = atecaGarble::eval(get<0>(Slowfeds00), SlowX00, C, get<3>(Slowfeds00), get<4>(Slowfeds00), hashTCCR());
-            auto Slowy00 = atecaGarble::decode(SlowY00, get<2>(Slowfeds00), hashTCCR());
+            auto SlowY00 = atecaGarble::eval(get<0>(Slowfeds00), SlowX00, C, get<3>(Slowfeds00), get<4>(Slowfeds00), get<5>(Slowfeds00));
+            auto Slowy00 = atecaGarble::decode(SlowY00, get<2>(Slowfeds00), get<5>(Slowfeds00));
 
             auto Fastfeds00 = atecaGarble::garble(C, l, util::fast);
             auto FastX00 = atecaGarble::encode(get<1>(Fastfeds00), input);
