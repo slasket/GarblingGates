@@ -22,7 +22,7 @@ using namespace std;
 
 class timing{
 public:
-    static void testLabelLength(int label_incs=8) {
+    static void testLabelLength(int label_incs=5) {
         auto amount = 100000;
 
         vint key = util::genBitsNonCrypto(256);
@@ -44,7 +44,7 @@ public:
                 tweak[j]= util::genBitsNonCrypto(64);
             }
 
-            auto outlen = 128;
+            auto outlen = pow(2,(11+i));
             auto t1 = high_resolution_clock::now();
             for (int l = 0; l < amount; ++l) {
                 auto Xk = util::hash_variable(data[l],tweak[l], outlen);
@@ -57,17 +57,17 @@ public:
             auto tccr = hashTCCR(128);
             t1 = high_resolution_clock::now();
             for (int l = 0; l < amount; ++l) {
-                auto Xk = tccr.hash(data[l],data[l],tweak[l][0],outlen);
+                auto Xk = tccr.hash(data[l],data[l],tweak[l],outlen);
             }
             t2 = high_resolution_clock::now();
             ms_double = t2 - t1;
             tccr_times[i] += ms_double.count();
         }
         for (int i = 0; i < label_incs; ++i) {
-            cout<< "shake256 "<< hashvariable_times[i]/1000<< " s for "<<  pow(2,(7+i)) << " label length"<<endl;
+            cout<< "shake256 "<< hashvariable_times[i]/100<< " s for "<<  pow(2,(7+i)) << " label length"<<endl;
         }
         for (int i = 0; i < label_incs; ++i) {
-            cout<< "tccr     "<< tccr_times[i]/1000<< " s for "<<  pow(2,(7+i)) << " label length"<<endl;
+            cout<< "tccr     "<< tccr_times[i]/100<< " s for "<<  pow(2,(7+i)) << " label length"<<endl;
         }
 
     }
@@ -78,7 +78,7 @@ public:
         using std::chrono::duration;
         using std::chrono::milliseconds;
         auto k= 128;
-        vector<double> times(15);
+        vector<double> times(18);
         auto internal = 1000;
         auto external = 100;
         vint key = util::genBitsNonCrypto(256);
@@ -138,7 +138,7 @@ public:
                 auto outlen = k*pow(2,(j-10));
                 t1 = high_resolution_clock::now();
                 for (int l = 0; l < internal; ++l) {
-                    auto Xk = tccr.hash(data[l],data[l],tweak[l][0],outlen);
+                    auto Xk = tccr.hash(data[l],data[l],tweak[l],outlen);
                 }
                 t2 = high_resolution_clock::now();
                 ms_double = t2 - t1;

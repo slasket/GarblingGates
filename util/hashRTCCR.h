@@ -215,7 +215,6 @@ public:
         memcpy(res.data(), ciphertext, len);
         free(ciphertext);
         free(plaintext);
-
         free(aes_iv);
         //EVP_CIPHER_CTX_cleanup(e);
         return res;

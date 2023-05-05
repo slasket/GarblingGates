@@ -32,9 +32,20 @@ int main() {
     //vector<string> f = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
     //auto x = vector<int>{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     //vector<int> x = util::genFunctionInput(128);
+    int k = 128;
+    auto finput = vector<int>{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                              0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                              1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                              0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    auto C = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
+    auto feds = atecaFreeXOR::garble(C, k, util::fast);
+    auto encodedInput = atecaFreeXOR::encode(get<1>(feds), finput);
+    auto Y = atecaFreeXOR::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), get<5>(feds));
+    auto y = atecaFreeXOR::decode(Y, get<2>(feds), get<5>(feds));
 
-    auto k=256;
-    timing::hashOutputLengthTest();
+
+    //auto k=256;
+    //timing::hashOutputLengthTest();
     //timing::testLabelLength();
 
     //k=128;

@@ -145,10 +145,10 @@ atecaGarble::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, co
         //do fast stuff
         auto [a0,a1] = in0;
         auto [b0,b1] = in1;
-        X_00 = c.hash(a0,b0,gateNo,internalParam);
-        X_01 = c.hash(a0,b1,gateNo,internalParam);
-        X_10 = c.hash(a1,b0,gateNo,internalParam);
-        X_11 = c.hash(a1,b1,gateNo,internalParam);
+        X_00 = c.hash(a0,b0,{(::uint64_t)gateNo},internalParam);
+        X_01 = c.hash(a0,b1,{(::uint64_t)gateNo},internalParam);
+        X_10 = c.hash(a1,b0,{(::uint64_t)gateNo},internalParam);
+        X_11 = c.hash(a1,b1,{(::uint64_t)gateNo},internalParam);
         //util::printUintVec(X_00);
         //util::printUintVec(X_01);
         //util::printUintVec(X_10);
@@ -225,11 +225,11 @@ vector<vint> atecaGarble::DecodingInfo(const vector<tuple<vint, vint>> &D, int k
                 L1wdi.clear();
                 L1wdi.insert(L1wdi.begin(), L1.begin(), L1.end());
                 L1wdi.insert(L1wdi.end(), di.begin(), di.end());
-                hashL0 = util::hash_variable(L0wdi,{0}, k);
-                hashL1 = util::hash_variable(L1wdi,{0}, k);
+                hashL0 = util::hash_variable(L0wdi,{0}, 128);
+                hashL1 = util::hash_variable(L1wdi,{0}, 128);
             }else{
-                hashL0 = c.hash(L0, di, 0, k);
-                hashL1 = c.hash(L1, di, 0, k);
+                hashL0 = c.hash(L0, di, {}, 128);
+                hashL1 = c.hash(L1, di, {}, 128);
             }
             lsbHL0=util::checkBit(hashL0[0],0);
             lsbHL1=util::checkBit(hashL1[0],0);
@@ -301,7 +301,7 @@ atecaGarble::eval(const vector<vint> &F, const vector<vint> &X, vector<string> C
             //hashInputLabel = util::uintVec2Str(labelA);
             hashout = util::hash_variable(labelA,tweak,internalSecParam);
         }else{
-            hashout= dc.hash(labelA, labelB, gateNo, internalSecParam);
+            hashout= dc.hash(labelA, labelB, {(::uint64_t)gateNo}, internalSecParam);
 
         }
         const auto& delta = F[gateNo];
@@ -325,9 +325,9 @@ vint atecaGarble::decode(vector<vint> Y, vector<vint> d, hashTCCR &dc) {
         vint hash;
         if (dc.hashtype==util::RO){
             Y[i].insert(Y[i].end(), d[i].begin(), d[i].end());
-            hash = util::hash_variable(Y[i],{0}, 64);
+            hash = util::hash_variable(Y[i],{0}, 128);
         }else{
-            hash= dc.hash(Y[i], d[i], 0, 128);
+            hash= dc.hash(Y[i], d[i], {}, 128);
         }
         int lsbHash=util::checkBit(hash[0],0);
         outputSets = util::insertBitVecBitset(outputSets,lsbHash,i);
