@@ -173,7 +173,8 @@ public:
         memcpy(aes_iv, iv.data(), AES_BLOCK_SIZE);
         EVP_CIPHER_CTX *e;
         e = EVP_CIPHER_CTX_new();
-        //EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, aes_iv);
+        EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, aes_iv);
+
         //EVP_DecryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, iv);
         EVP_CIPHER_CTX_set_padding(e, 0);
         free(aes_key);
@@ -203,7 +204,12 @@ public:
         auto *aes_iv = static_cast<unsigned char *>(malloc(AES_BLOCK_SIZE));
         memcpy(aes_iv, iv.data(), AES_BLOCK_SIZE);
 
-        EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), nullptr, aes_key, aes_iv);
+        //set iv without init
+        //EVP_CIPHER_CTX_ctrl(e, EVP_CTRL_GCM_SET_IVLEN, AES_BLOCK_SIZE, aes_iv);
+        //EVP_CIPHER_CTX_ctrl(e, EVP_CTRL_AEAD_SET_IV_FIXED, AES_BLOCK_SIZE, aes_iv);
+
+        memcpy((void *) EVP_CIPHER_CTX_iv(e), aes_iv, AES_BLOCK_SIZE); // set new IV value
+        //EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), nullptr, aes_key, aes_iv);
         EVP_EncryptUpdate(e, ciphertext, &c_len, plaintext, len);
         EVP_EncryptFinal_ex(e, ciphertext + c_len, &f_len);
         //convert ciphertext to vint
@@ -211,7 +217,7 @@ public:
         memcpy(res.data(), ciphertext, len);
         free(ciphertext);
         free(plaintext);
-        EVP_CIPHER_CTX_cleanup(e);
+        //EVP_CIPHER_CTX_cleanup(e);
         return res;
     }
 
@@ -238,7 +244,7 @@ public:
         auto *aes_iv = static_cast<unsigned char *>(malloc(AES_BLOCK_SIZE));
         memcpy(aes_iv, iv.data(), AES_BLOCK_SIZE);
 
-        EVP_DecryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, aes_iv);
+        //EVP_DecryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, aes_iv);
         EVP_DecryptUpdate(e, plaintext, &p_len, ciphertext, len);
         EVP_DecryptFinal_ex(e, plaintext + p_len, &f_len);
         //convert plaintext to vint
