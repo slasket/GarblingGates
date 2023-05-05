@@ -3,6 +3,7 @@
 //
 #include <boost/test/unit_test.hpp>
 #include "../util/util.h"
+#include "../util/hashRTCCR.h"
 using namespace boost::unit_test;
 
 BOOST_AUTO_TEST_SUITE( Testing_generateRandomLabels )
@@ -56,6 +57,29 @@ BOOST_AUTO_TEST_SUITE( Testing_generateRandomLabels )
         }
     }
 
+
+BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE( Testing_CorrectHashing )
+
+    BOOST_AUTO_TEST_CASE( test_sameHashes )
+    {
+        auto key = util::genBitsNonCrypto(128);
+        auto iv = util::genBitsNonCrypto(128);
+        auto test = util::genBitsNonCrypto(128);
+        auto test2 = util::genBitsNonCrypto(128);
+        auto hash = hashRTCCR(key,iv,128);
+        auto hash1 = hashRTCCR::AES_vint_encrypt(test, key, iv, hash.getE());
+        auto hash2 = hashRTCCR::AES_vint_encrypt(test2, key, iv, hash.getE());
+
+
+        auto hash4 = hashRTCCR::AES_vint_encrypt(test2, key, iv, hash.getE());
+        auto hash3 = hashRTCCR::AES_vint_encrypt(test, key, iv, hash.getE());
+        BOOST_TEST(hash1 != hash2);
+        BOOST_TEST(hash3 != hash4);
+        BOOST_TEST(hash2 == hash4);
+        BOOST_TEST(hash1 == hash3);
+    }
 
 BOOST_AUTO_TEST_SUITE_END()
 
