@@ -361,7 +361,7 @@ vint inline atecaGarble::masksForSlices(const vint& X_00, const vint& X_01, cons
     auto mask0000 =  util::vecAND(util::vecAND(util::vecAND(l00a0, l01a0), l10a0), l11a0);///0000
     auto mask1111 =  util::vecAND(util::vecAND(util::vecAND(X_00, X_01), X_10), X_11);///1111
 
-    vector<::uint64_t> masksORed;
+    vector<::uint64_t> masksORed(X_00.size());
     //or with 0000 0001 1110 or 1111
     //if there is a one in this vector one of the masks had an 1 in the ith bit
     if (typ=="AND"){

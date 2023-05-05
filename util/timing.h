@@ -283,10 +283,10 @@ public:
             cout<<"windows slow"<<endl;
         }
         //cout<< "Keccak_f test"<<endl;
-        timing::time_circuit(f,x,k,util::baseline, hashfunc);
-        timing::time_circuit(f,x,k,util::threehalves, hashfunc);
+        //timing::time_circuit(f,x,k,util::baseline, hashfunc);
+        //timing::time_circuit(f,x,k,util::threehalves, hashfunc);
         timing::time_circuit(f,x,k,util::ateca, hashfunc);
-        timing::time_circuit(f,x,k,util::atecaFXOR, hashfunc);
+        //timing::time_circuit(f,x,k,util::atecaFXOR, hashfunc);
 
     }
 
