@@ -198,8 +198,6 @@ public:
         //plaintext from input
         auto *plaintext = static_cast<unsigned char *>(malloc(len));
         memcpy(plaintext, input.data(), len);
-        auto *aes_key = static_cast<unsigned char *>(malloc(len));
-        memcpy(aes_key, key.data(), len);
         //iv
         auto *aes_iv = static_cast<unsigned char *>(malloc(AES_BLOCK_SIZE));
         memcpy(aes_iv, iv.data(), AES_BLOCK_SIZE);
@@ -217,6 +215,8 @@ public:
         memcpy(res.data(), ciphertext, len);
         free(ciphertext);
         free(plaintext);
+
+        free(aes_iv);
         //EVP_CIPHER_CTX_cleanup(e);
         return res;
     }
