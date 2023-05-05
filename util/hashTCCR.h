@@ -59,7 +59,7 @@ public:
     hashTCCR(){
     }
 
-    static inline EVP_CIPHER_CTX * AES_vint_init(vint& key, vint& iv){
+    static  EVP_CIPHER_CTX * AES_vint_init(vint& key, vint& iv){
         EVP_CIPHER_CTX *e;
         e = EVP_CIPHER_CTX_new();
 
@@ -78,7 +78,7 @@ public:
     }
 
 
-    static inline vint AES_vint_encrypt(vint input,vint key, vint& iv, EVP_CIPHER_CTX *e){
+    static  vint AES_vint_encrypt(vint input,vint key, vint& iv, EVP_CIPHER_CTX *e){
         if(input.size() < 2){ //2 is hardcoded for 128 bit input
             int size = 2-input.size();
             for (int i = 0; i < size; ++i) {
@@ -113,7 +113,7 @@ public:
         return res;
     }
 
-    static inline vint AES_vint_decrypt(vint input, vint key, vint iv, EVP_CIPHER_CTX *e){
+    static  vint AES_vint_decrypt(vint input, vint key, vint iv, EVP_CIPHER_CTX *e){
         if(input.size() != 2){ //4 is hardcoded for 256 bit input
             int size = 2-input.size();
             for (int i = 0; i < size; ++i) {
@@ -149,7 +149,7 @@ public:
         free(aes_iv);
         return res;
     }
-    static inline uint64_t gfmulPCF(uint64_t a, uint64_t b){
+    static  uint64_t gfmulPCF(uint64_t a, uint64_t b){
         auto aepi64 = _mm_set_epi64x(0,a);
         auto bepi64 = _mm_set_epi64x(0,b);
         auto res = _mm_clmulepi64_si128(aepi64, bepi64, 0);
@@ -157,7 +157,7 @@ public:
     }
 
 //may not be correct
-    static inline vint gfmulPCF(vint a, vint b){
+    static vint gfmulPCF(vint a, vint b){
         vint res;
         for (int i = 0; i < a.size(); ++i) {
             res.push_back(gfmulPCF(a[i], b[i]));
@@ -167,13 +167,14 @@ public:
 
 
 
-    inline vint hash(vint& x, vint& y, vint tweak, int internalLength){
+     vint hash(vint& x, vint& y, vint tweak, int internalLength){
         //split Y perform hashRTCCR::gfmulPCF(Y/2,Y/2)
         vint yFirstHalf(y.begin(),y.begin()+(y.size()/2));
         vint ySecondHalf(y.begin()+(y.size()/2),y.end());
         auto y0 = gfmulPCF(u1, yFirstHalf);
         auto y1 = gfmulPCF(u2, ySecondHalf);
         //compute e ^ U(Y)
+        y0.reserve(y0.size()*2);
         y0.insert(y0.end(), y1.begin(),y1.end());
         vint block0 = util::vecXOR(x,y0);
         //block0.emplace_back(tweak);
@@ -190,7 +191,7 @@ public:
         return res;
     }
 
-    inline vint decypthash(vint ciphertext){
+     vint decypthash(vint ciphertext){
         //split Y perform hashRTCCR::gfmulPCF(Y/2,Y/2)
          vint res = AES_vint_decrypt(std::move(ciphertext),key,iv,e);
         return res;
