@@ -191,6 +191,14 @@ public:
         return res;
     }
 
+    vint prfHash(vint& x , vint & y, vint tweak, int internalLength){
+        vint block0 = util::vecXOR(util::vecXOR(x,y), tweak);
+        vint input(internalLength/64);
+        std::iota(input.begin(), input.end(), 1);
+        input= util::vecXOR(input,block0);
+        return AES_vint_encrypt(input,key,iv, e);
+    }
+
      vint decypthash(vint ciphertext){
         //split Y perform hashRTCCR::gfmulPCF(Y/2,Y/2)
          vint res = AES_vint_decrypt(std::move(ciphertext),key,iv,e);

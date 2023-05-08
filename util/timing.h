@@ -44,7 +44,7 @@ public:
                 tweak[j]= util::genBitsNonCrypto(64);
             }
 
-            auto outlen = pow(2,(11+i));
+            auto outlen =pow(2,(11+i)); //pow(2,(11+i));
             auto t1 = high_resolution_clock::now();
             for (int l = 0; l < amount; ++l) {
                 auto Xk = util::hash_variable(data[l],tweak[l], outlen);
@@ -111,11 +111,12 @@ public:
             }
 
 
-            auto e = hashRTCCR::AES_vint_init(key, iv);
+            auto e = hashTCCR(k);
             auto t1 = high_resolution_clock::now();
+
             for (int j = 0; j < internal; ++j) {
                 //use index 6 now
-                auto res = hashRTCCR::AES_vint_encrypt(data[j], key, iv,e);
+                auto res = e.prfHash(data[j], key, tweak[j],128);
                 //cout<<"aes length "<< res.size()<<endl;
             }
             auto t2 = high_resolution_clock::now();
@@ -157,7 +158,7 @@ public:
         }
 
         cout << "RTCCR    " << times[9] / 1000 << " s " << "128-bit output" << endl;
-        cout << "aes128   " << times[8] / 1000 << " s "<< "128-bit output"  << endl;
+        cout << "PRF   " << times[8] / 1000 << " s "<< "128-bit output"  << endl;
 
 
     }
@@ -182,8 +183,8 @@ public:
         for (int i = 0; i < repetitions; ++i) {
             //inputgen
             vector<int> x = util::genFunctionInput(inputsize);
-            runGarble(f, util::baseline, k, hashfunc, baseline, x);
-            runGarble(f, util::threehalves, k, hashfunc, three, x);
+            //runGarble(f, util::baseline, k, hashfunc, baseline, x);
+            //runGarble(f, util::threehalves, k, hashfunc, three, x);
             runGarble(f, util::ateca, k, hashfunc, ate, x);
             runGarble(f, util::atecaFXOR, k, hashfunc, ate_f, x);
         }
@@ -283,8 +284,8 @@ public:
             cout<<"windows slow"<<endl;
         }
         //cout<< "Keccak_f test"<<endl;
-        timing::time_circuit(f,x,k,util::baseline, hashfunc);
-        timing::time_circuit(f,x,k,util::threehalves, hashfunc);
+        //timing::time_circuit(f,x,k,util::baseline, hashfunc);
+        //timing::time_circuit(f,x,k,util::threehalves, hashfunc);
         timing::time_circuit(f,x,k,util::ateca, hashfunc);
         timing::time_circuit(f,x,k,util::atecaFXOR, hashfunc);
 
