@@ -81,3 +81,25 @@ BOOST_AUTO_TEST_SUITE( Baseline_adder_torture )
         }
     }
 BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE( Threehalves_adder_torture )
+    auto C = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
+    int l = 128;
+    BOOST_AUTO_TEST_CASE( adder_torture)
+    {
+        for (int i = 0; i < 100; ++i) {
+            auto input = util::genFunctionInput(128);
+            auto [slowF,slowe,slowd,slowic, slowhash] = threeHalves::garble(C, l, util::RO);
+            auto SlowX00 = threeHalves::encode(slowe, input);
+            auto SlowY00 = threeHalves::eval(slowF, SlowX00, C, l, slowic, slowhash, util::RO);
+            auto Slowy00 = threeHalves::decode(slowd, SlowY00, C, l);
+
+            auto [fastF,faste,fastd,fastic, fasthash] = threeHalves::garble(C, l, util::fast);
+            auto FastX00 = threeHalves::encode(faste, input);
+            auto FastY00 = threeHalves::eval(fastF, FastX00, C, l, fastic, fasthash, util::fast);
+            auto Fasty00 = threeHalves::decode(fastd, FastY00, C, l);
+
+            BOOST_TEST(Slowy00[0]==Fasty00[0]);
+        }
+    }
+BOOST_AUTO_TEST_SUITE_END()
