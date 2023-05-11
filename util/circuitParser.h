@@ -162,15 +162,18 @@ public:
         auto res = circuitParser::parseCircuit(path);
         util::printStrVec(res);
     }
-    static int getInputSize(vector<tuple<vector<int>,vector<int>,string>>& c){
+    static int getInputSize(circuit & c){
         return get<0>(c[1])[0];
     }
 
-    static int getWires(vector<tuple<vector<int>,vector<int>,string>>& c){
+    static int getWires(circuit& c){
         return get<1>(c[0])[0];
     }
-    static int getGates(vector<tuple<vector<int>,vector<int>,string>>& c){
+    static int getGates(circuit& c){
         return get<0>(c[0])[0];
+    }
+    static int getOutBits(circuit& c){
+        return get<1>(c[1])[0];
     }
 
 

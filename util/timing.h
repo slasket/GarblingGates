@@ -207,7 +207,7 @@ public:
     }
 
 
-    static void repetitionTest(const vector<string>&f, int k,util::hashtype hashfunc, int repetitions){
+    static void repetitionTest(const vector<string>&f, circuit& f2, int k,util::hashtype hashfunc, int repetitions){
         vector<double> baseline(2);
         vector<double> three(2);
         vector<double> ate(2);
@@ -226,10 +226,10 @@ public:
         for (int i = 0; i < repetitions; ++i) {
             //inputgen
             vector<int> x = util::genFunctionInput(inputsize);
-            runGarble(f, util::baseline, k, hashfunc, baseline, x);
-            runGarble(f, util::threehalves, k, hashfunc, three, x);
-            runGarble(f, util::ateca, k, hashfunc, ate, x);
-            runGarble(f, util::atecaFXOR, k, hashfunc, ate_f, x);
+            runGarble(f,f2, util::baseline, k, hashfunc, baseline, x);
+            runGarble(f,f2, util::threehalves, k, hashfunc, three, x);
+            runGarble(f,f2, util::ateca, k, hashfunc, ate, x);
+            runGarble(f,f2, util::atecaFXOR, k, hashfunc, ate_f, x);
         }
 
         printResult(util::baseline, baseline, hashfunc);
@@ -266,7 +266,7 @@ public:
         }
     }
 
-    static void runGarble(const vector<string> &f, util::scheme type, int k, util::hashtype &hashfunc, vector<double> &timings, vector<int> &x) {
+    static void runGarble(const vector<string> &f, circuit& f2, util::scheme type, int k, util::hashtype &hashfunc, vector<double> &timings, vector<int> &x) {
         switch (type) {
             case util::scheme::baseline:{
                 boost::timer timer;
@@ -295,24 +295,24 @@ public:
             }
             case util::ateca:{
                 boost::timer timer;
-                auto [ate_F, ate_e, ate_d, ate_k, ate_ic, ate_hash] = atecaGarble::garble(f, k, hashfunc);
+                auto [ate_F, ate_e, ate_d, ate_k, ate_ic, ate_hash] = atecaGarble::garble(f2, k, hashfunc);
                 timings[0] += timer.elapsed();
 
                 auto ate_X = atecaGarble::encode(ate_e, x);
                 timer.restart();
-                auto ate_Y = atecaGarble::eval(ate_F, ate_X, f, ate_k, ate_ic, ate_hash);
+                auto ate_Y = atecaGarble::eval(ate_F, ate_X, f2, ate_k, ate_ic, ate_hash);
                 timings[1] += timer.elapsed();
                 auto ate_y = atecaGarble::decode(ate_Y, ate_d, ate_hash);
                 break;
             }
             case util::atecaFXOR:{
                 boost::timer timer;
-                auto [atef_F, atef_e, atef_d, atef_k, atef_ic, atef_hash] = atecaFreeXOR::garble(f, k, hashfunc);
+                auto [atef_F, atef_e, atef_d, atef_k, atef_ic, atef_hash] = atecaFreeXOR::garble(f2, k, hashfunc);
                 timings[0] += timer.elapsed();
 
                 auto atef_X = atecaFreeXOR::encode(atef_e, x);
                 timer.restart();
-                auto atef_Y = atecaFreeXOR::eval(atef_F, atef_X, f, atef_k, atef_ic, atef_hash);
+                auto atef_Y = atecaFreeXOR::eval(atef_F, atef_X, f2, atef_k, atef_ic, atef_hash);
                 timings[1] += timer.elapsed();
                 auto atef_y = atecaFreeXOR::decode(atef_Y, atef_d, atef_hash);
                 break;
@@ -320,21 +320,21 @@ public:
         }
     }
 
-    static void time_circuit_all(const vector<string>&f, const vector<int>& x, int k, util::hashtype hashfunc){
+    static void time_circuit_all(const vector<string>&f, circuit& f2, const vector<int>& x, int k, util::hashtype hashfunc){
         if (hashfunc){
             cout<<"windows fast"<<endl;
         }else{
             cout<<"windows slow"<<endl;
         }
         //cout<< "Keccak_f test"<<endl;
-        //timing::time_circuit(f,x,k,util::baseline, hashfunc);
-        //timing::time_circuit(f,x,k,util::threehalves, hashfunc);
-        timing::time_circuit(f,x,k,util::ateca, hashfunc);
-        timing::time_circuit(f,x,k,util::atecaFXOR, hashfunc);
+        timing::time_circuit(f,f2,x,k,util::baseline, hashfunc);
+        timing::time_circuit(f,f2,x,k,util::threehalves, hashfunc);
+        timing::time_circuit(f,f2,x,k,util::ateca, hashfunc);
+        timing::time_circuit(f,f2,x,k,util::atecaFXOR, hashfunc);
 
     }
 
-    static void time_circuit(const vector<string>&f, const vector<int>& x, int k, util::scheme type, util::hashtype hashfunc){
+    static void time_circuit(const vector<string>&f, circuit& f2, const vector<int>& x, int k, util::scheme type, util::hashtype hashfunc){
         using std::chrono::high_resolution_clock;
         using std::chrono::duration_cast;
         using std::chrono::duration;
@@ -393,7 +393,7 @@ public:
                 title = "ateca w. ";
                 cout<<title << hashtype<<endl;
                 auto t1 = high_resolution_clock::now();
-                auto [ate_F, ate_e, ate_d, ate_k, ate_ic, ate_hash] = atecaGarble::garble(f, k, hashfunc);
+                auto [ate_F, ate_e, ate_d, ate_k, ate_ic, ate_hash] = atecaGarble::garble(f2, k, hashfunc);
                 auto t2 = high_resolution_clock::now();
                 duration<double, std::milli> ms_double = t2 - t1;
                 cout<< "garbling: " <<ms_double.count()<< "ms"<<endl;
@@ -403,7 +403,7 @@ public:
                 auto ate_X = atecaGarble::encode(ate_e, x);
 
                 t1 = high_resolution_clock::now();
-                auto ate_Y = atecaGarble::eval(ate_F, ate_X, f, ate_k, ate_ic, ate_hash);
+                auto ate_Y = atecaGarble::eval(ate_F, ate_X, f2, ate_k, ate_ic, ate_hash);
                 t2 = high_resolution_clock::now();
                 ms_double = t2 - t1;
                 cout<< "evaluation: " <<ms_double.count()<< "ms"<<endl;
@@ -416,7 +416,7 @@ public:
                 title = "ateca-Freexor w. ";
                 cout<<title << hashtype<<endl;
                 auto t1 = high_resolution_clock::now();
-                auto [atef_F, atef_e, atef_d, atef_k, atef_ic, atef_hash] = atecaFreeXOR::garble(f, k, hashfunc);
+                auto [atef_F, atef_e, atef_d, atef_k, atef_ic, atef_hash] = atecaFreeXOR::garble(f2, k, hashfunc);
                 auto t2 = high_resolution_clock::now();
                 duration<double, std::milli> ms_double = t2 - t1;
                 cout<< "garbling: " <<ms_double.count()<< "ms"<<endl;
@@ -425,7 +425,7 @@ public:
                 auto atef_X = atecaFreeXOR::encode(atef_e, x);
 
                 t1 = high_resolution_clock::now();
-                auto atef_Y = atecaFreeXOR::eval(atef_F, atef_X, f, atef_k, atef_ic, atef_hash);
+                auto atef_Y = atecaFreeXOR::eval(atef_F, atef_X, f2, atef_k, atef_ic, atef_hash);
                 t2 = high_resolution_clock::now();
                 ms_double = t2 - t1;
                 cout<< "evaluation: " <<ms_double.count()<< "ms"<<endl;

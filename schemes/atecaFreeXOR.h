@@ -20,20 +20,20 @@ class atecaFreeXOR {
 public:
     //garbler public function
     static tuple<vector<vint>, vector<tuple<vint, vint>>, vector<vint>, int, tuple<vint, vint>, hashTCCR>
-    garble(const vector<std::string> &f, int k= 128, util::hashtype hashtype= util::RO);
+    garble(vector<tuple<vector<int>, vector<int>, string>> &f, int k= 128, util::hashtype hashtype= util::RO);
 
     //Evaluator functions
     static vector<vint> encode(vector<tuple<vint,vint>> e, vector<int> x);
     static vector<vint>
-    eval(const vector<vint> &F, const vector<vint> &X, vector<string> C, int k, tuple<vint, vint> invVar,
+    eval(const vector<vint> &F, const vector<vint> &X, vector<tuple<vector<int>, vector<int>, string>> &C, int k, tuple<vint, vint> invVar,
          hashTCCR &c);
     static vint decode(vector<vint> Y, vector<vint> d, hashTCCR &dc);
 
 
 private:
-    static tuple<vector<tuple<vint,vint>>,vint> Init(vector<std::string> C, int k);
+    static tuple<vector<tuple<vint,vint>>,vint> Init(vector<tuple<vector<int>, vector<int>, string>> &C, int k);
     static tuple<vector<vint>, vector<tuple<vint, vint>>, tuple<vint, vint>, hashTCCR>
-    GarbleCircuit(int k, vector<std::string> C, vector<tuple<vint, vint>> encoding,
+    GarbleCircuit(int k, vector<tuple<vector<int>, vector<int>, string>> &C, vector<tuple<vint, vint>> encoding,
                   const tuple<vint, vint> &invVar, const vint &globalDelta, util::hashtype hashtype);
     //single Gate garble
     static vector<vint>

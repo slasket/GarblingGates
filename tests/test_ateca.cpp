@@ -12,7 +12,7 @@ using namespace boost::unit_test;
 
 
 BOOST_AUTO_TEST_SUITE( ATECA_garbling_values )
-    auto C = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
+    auto C = circuitParser::parse("../tests/circuits/BloodComp.txt");
     int l = 64;
     auto feds = atecaGarble::garble(C, l, util::RO);
     auto F = get<0>(feds);
@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( ATECA_input_encoding_choice )
     auto finput = vector<int>{0,0,0,0,0,0,1};
-    auto C = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
+    auto C = circuitParser::parse("../tests/circuits/BloodComp.txt");
     int l = 128;
     auto feds = atecaGarble::garble(C, l, util::RO);
     auto F = get<0>(feds);
@@ -110,7 +110,7 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( ATECA_garbled_Output )
     auto finput = vector<int>{0,0,0,0,0,0,1};
-    auto C = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
+    auto C = circuitParser::parse("../tests/circuits/BloodComp.txt");
     int l = 128;
     auto feds = atecaGarble::garble(C, l, util::RO);
     auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( ATECA_decoding_garbled_Y )
     auto finput = vector<int>{0,0,0,0,0,0,1};
-    auto C = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
+    auto C = circuitParser::parse("../tests/circuits/BloodComp.txt");
     int l = 128;
     auto feds = atecaGarble::garble(C, l, util::RO);
     auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE( ATECA_xorTest )
     auto finput1 = vector<int>{0,0};
     auto finput2 = vector<int>{0,1};
-    auto C = circuitParser::parseCircuit("../tests/circuits/xorTest.txt");
+    auto C = circuitParser::parse("../tests/circuits/xorTest.txt");
     int l = 128;
     auto feds = atecaGarble::garble(C, l, util::RO);
     auto encodingInfo = get<1>(feds);
@@ -165,7 +165,7 @@ BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE( ATECA_andTest )
     auto finput1 = vector<int>{1,1};
     auto finput2 = vector<int>{0,1};
-    auto C = circuitParser::parseCircuit("../tests/circuits/andTest.txt");
+    auto C = circuitParser::parse("../tests/circuits/andTest.txt");
     int l = 128;
     auto feds = atecaGarble::garble(C, l, util::RO);
     auto encodingInfo = get<1>(feds);
@@ -193,7 +193,7 @@ BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE( ATECA_BloodComp_Alternate )
     int lInput =6; int rInput = 1;
     auto finput = vector<int>{1,1,0,0,0,1,1};
-    auto C = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
+    auto C = circuitParser::parse("../tests/circuits/BloodComp.txt");
     int l = 128;
     auto feds = atecaGarble::garble(C, l, util::RO);
     auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
@@ -217,7 +217,7 @@ BOOST_AUTO_TEST_SUITE( ATECA_adder64bit )
                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                                   1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-        auto C = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
+        auto C = circuitParser::parse("../tests/circuits/adder64.txt");
         auto feds = atecaGarble::garble(C, 128, util::RO);
         auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
         auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), get<5>(feds));
@@ -237,7 +237,7 @@ BOOST_AUTO_TEST_SUITE( ATECA_adder64bit )
                                   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
                                   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
                                   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
-        auto C = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
+        auto C = circuitParser::parse("../tests/circuits/adder64.txt");
         auto feds = atecaGarble::garble(C, 128, util::RO);
         auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
         auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), get<5>(feds));
@@ -260,7 +260,7 @@ BOOST_AUTO_TEST_SUITE( ATECA_sub64 )
                               0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                               1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                               0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-    auto C = circuitParser::parseCircuit("../tests/circuits/sub64.txt");
+    auto C = circuitParser::parse("../tests/circuits/sub64.txt");
     auto feds = atecaGarble::garble(C, 128, util::RO);
     auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
     auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), get<5>(feds));
@@ -278,7 +278,7 @@ BOOST_AUTO_TEST_SUITE( ATECA_sub64 )
                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                                   1,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-        auto C = circuitParser::parseCircuit("../tests/circuits/sub64.txt");
+        auto C = circuitParser::parse("../tests/circuits/sub64.txt");
         auto feds = atecaGarble::garble(C, 128, util::RO);
         auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
         auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), get<5>(feds));
@@ -291,7 +291,7 @@ BOOST_AUTO_TEST_SUITE( ATECA_sub64 )
 BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( ATECA_fast_v_slow_xor )
-    auto C = circuitParser::parseCircuit("../tests/circuits/xorTest.txt");
+    auto C = circuitParser::parse("../tests/circuits/xorTest.txt");
     int l = 128;
     BOOST_AUTO_TEST_CASE( xor_slow )
     {
@@ -335,7 +335,7 @@ BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE( ATECA_fast_hash_simple )
     int lInput =6; int rInput = 1;
     auto finput = vector<int>{1,1,0,0,0,1,1};
-    auto C = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
+    auto C = circuitParser::parse("../tests/circuits/BloodComp.txt");
     int l = 128;
     auto feds = atecaGarble::garble(C, l, util::fast);
     auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
@@ -358,7 +358,7 @@ BOOST_AUTO_TEST_SUITE( ATECA_fasthash_adder64bit )
                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                                   1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-        auto C = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
+        auto C = circuitParser::parse("../tests/circuits/adder64.txt");
         auto feds = atecaGarble::garble(C, k, util::fast);
         auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
         auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), get<5>(feds));
@@ -378,7 +378,7 @@ BOOST_AUTO_TEST_SUITE( ATECA_fasthash_adder64bit )
                                   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
                                   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
                                   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
-        auto C = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
+        auto C = circuitParser::parse("../tests/circuits/adder64.txt");
         auto feds = atecaGarble::garble(C, k, util::fast);
         auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
         auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), get<5>(feds));
@@ -403,7 +403,7 @@ BOOST_AUTO_TEST_SUITE( ATECA_fast_sub64 )
                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                                   1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-        auto C = circuitParser::parseCircuit("../tests/circuits/sub64.txt");
+        auto C = circuitParser::parse("../tests/circuits/sub64.txt");
         auto feds = atecaGarble::garble(C, 128, util::fast);
         auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
         auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), get<5>(feds));
@@ -421,7 +421,7 @@ BOOST_AUTO_TEST_SUITE( ATECA_fast_sub64 )
                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                                   1,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-        auto C = circuitParser::parseCircuit("../tests/circuits/sub64.txt");
+        auto C = circuitParser::parse("../tests/circuits/sub64.txt");
         auto feds = atecaGarble::garble(C, 128, util::fast);
         auto encodedInput = atecaGarble::encode(get<1>(feds), finput);
         auto Y = atecaGarble::eval(get<0>(feds), encodedInput, C, get<3>(feds), get<4>(feds), get<5>(feds));

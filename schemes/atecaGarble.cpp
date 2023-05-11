@@ -12,7 +12,7 @@ using std::chrono::duration;
 using std::chrono::milliseconds;
 
 tuple<vector<vint>, vector<tuple<vint, vint>>, vector<vint>, int, tuple<vint, vint>, hashTCCR>
-atecaGarble::garble(const vector<std::string> &f, int k, util::hashtype hashtype) {
+atecaGarble::garble(circuit &f, int k, util::hashtype hashtype) {
 
     auto e = Init(f, k);
     auto invVar= genInvVar(k);
@@ -23,12 +23,8 @@ atecaGarble::garble(const vector<std::string> &f, int k, util::hashtype hashtype
 
 
 
-vector<tuple<vint,vint>> atecaGarble::Init(vector<std::string> C, int k) {
-    auto inputs = util::split(C[1], ' ');
-    int inputWires = 0;
-    for (int i = 1; i < inputs.size(); ++i) {
-        inputWires+= stoi(inputs[i]);
-    }
+vector<tuple<vint,vint>> atecaGarble::Init(circuit &C, int k) {
+    int inputWires = circuitParser::getInputSize(C);
     vector<tuple<vint,vint>> e;
     for (int i = 0; i < inputWires; ++i) {
         vint lw0 = util::genBitsNonCrypto(k);
@@ -40,7 +36,7 @@ vector<tuple<vint,vint>> atecaGarble::Init(vector<std::string> C, int k) {
 }
 
 tuple<vector<vint>, vector<tuple<vint, vint>>, tuple<vint, vint>, hashTCCR>
-atecaGarble::GarbleCircuit(int k, vector<std::string> C, vector<tuple<vint, vint>> e,
+atecaGarble::GarbleCircuit(int k, circuit &C, vector<tuple<vint, vint>> e,
                            const tuple<vint, vint> &invVar,
                            util::hashtype hashtype) {
     //my hash struct
@@ -49,9 +45,9 @@ atecaGarble::GarbleCircuit(int k, vector<std::string> C, vector<tuple<vint, vint
         c = hashTCCR(k);
     }
     //get amount of gates, wires and output bits
-    auto gatesAndWires=util::split(C[0], ' ');
-    int outputBits =stoi( util::split(C[2], ' ')[1]);
-    int amountOfWires = stoi(gatesAndWires[1]);
+
+    int outputBits =circuitParser::getOutBits(C);
+    int amountOfWires = circuitParser::getWires(C);
 
     //set the input wires, as in resize the input labels vector to have room for all wires
     auto wires = std::move(e);
@@ -68,17 +64,16 @@ atecaGarble::GarbleCircuit(int k, vector<std::string> C, vector<tuple<vint, vint
 
     double gate_time =0;
     //for every Gate in circuit
-    for (int i = 3; i < C.size(); ++i) {
+    for (int i = 2; i < C.size(); ++i) {
         //find input labels
-        auto gateInfo = util::split(C[i], ' ');
+        auto[inWires, outWires, type]=C[i];
 
-        int gateNo = (i - 3);
+        int gateNo = (i - 2);
         //inverse gate hack
-        if (gateInfo[4] == "INV") {
-            int in0 = stoi(gateInfo[2]);
+        if (type == "INV") {
+            int in0 = inWires[0];
             //int in1 = stoi(gateInfo[3]);
-            out = stoi(gateInfo[3]);
-            string type = gateInfo[4];
+            out = outWires[0];
 
             //calculate garble
             //auto t1 = high_resolution_clock::now();
@@ -88,10 +83,9 @@ atecaGarble::GarbleCircuit(int k, vector<std::string> C, vector<tuple<vint, vint
             //gate_time += ms_double.count();
         }//normal gate
         else {
-            int in0 = stoi(gateInfo[2]);
-            int in1 = stoi(gateInfo[3]);
-            out = stoi(gateInfo[4]);
-            string type = gateInfo[5];
+            int in0 = inWires[0];
+            int in1 = inWires[1];
+            out = outWires[0];
 
             //calculate garble
             //auto t1 = high_resolution_clock::now();
@@ -260,11 +254,11 @@ atecaGarble::encode(vector<tuple<vint, vint>> e,
 }
 
 vector<vint>
-atecaGarble::eval(const vector<vint> &F, const vector<vint> &X, vector<string> C, int k, tuple<vint, vint> invVar,
+atecaGarble::eval(const vector<vint> &F, const vector<vint> &X, circuit &C, int k, tuple<vint, vint> invVar,
                   hashTCCR &dc) {
     int internalSecParam = 8 * k;
-    int outputBits =stoi( util::split(C[2], ' ')[1]);
-    int amountOfWires = stoi(util::split(C[0], ' ')[1]);
+    int outputBits =circuitParser::getOutBits(C);
+    int amountOfWires = circuitParser::getWires(C);
     int firstOutputBit = amountOfWires - outputBits;
     auto [unused, invTrue] = std::move(invVar);
     auto wires = X;
@@ -272,22 +266,22 @@ atecaGarble::eval(const vector<vint> &F, const vector<vint> &X, vector<string> C
 
     auto outputY = vector<vint>(outputBits);
 
-    for (int i = 3; i < C.size(); ++i) {
-        auto gateInfo = util::split(C[i], ' ');
+    for (int i = 2; i < C.size(); ++i) {
+        auto[inWires, outWires, type]=C[i];
         //int inAmount = stoi(gateInfo[0]); int outAmount = stoi(gateInfo[1]);
-        int gateNo = (i-3);
+        int gateNo = (i-2);
         int out;
         vint labelA; vint labelB;
         string hashInputLabel;
-        if (gateInfo[4]=="INV"){
-            int in0 = stoi(gateInfo[2]);
-            out = stoi(gateInfo[3]);
+        if (type=="INV"){
+            int in0 = inWires[0];
+            out = outWires[0];
             labelA = wires[in0];
             labelB = invTrue;
         }else {
-            int in0 = stoi(gateInfo[2]);
-            int in1 = stoi(gateInfo[3]);
-            out = stoi(gateInfo[4]);
+            int in0 = inWires[0];
+            int in1 = inWires[1];
+            out = outWires[0];
             labelA = wires[in0];
             labelB = wires[in1];
         }

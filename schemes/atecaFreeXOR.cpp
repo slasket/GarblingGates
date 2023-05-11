@@ -12,7 +12,7 @@ using std::chrono::duration;
 using std::chrono::milliseconds;
 
 tuple<vector<vint>, vector<tuple<vint, vint>>, vector<vint>, int, tuple<vint, vint>, hashTCCR>
-    atecaFreeXOR::garble(const vector<std::string> &f, int k, util::hashtype hashtype) {
+    atecaFreeXOR::garble(circuit &f, int k, util::hashtype hashtype) {
 
     auto [e,globalDelta] = Init(f, k);
     auto invVar = genInvVar(k, globalDelta);
@@ -22,15 +22,12 @@ tuple<vector<vint>, vector<tuple<vint, vint>>, vector<vint>, int, tuple<vint, vi
     return {F, e, d, k, invVar, c};
 }
 
-tuple<vector<tuple<vint, vint>>, vint> atecaFreeXOR::Init(vector<std::string> C, int k) {
+tuple<vector<tuple<vint, vint>>, vint> atecaFreeXOR::Init(circuit &C, int k) {
     auto globalDelta = util::genBitsNonCrypto(k);
-    auto inputs = util::split(C[1], ' ');
-    int inputWires = 0;
-    for (int i = 1; i < inputs.size(); ++i) {
-        inputWires+= stoi(inputs[i]);
-    }
+    auto inputs = circuitParser::getInputSize(C);
+
     vector<tuple<vint,vint>> e;
-    for (int i = 0; i < inputWires; ++i) {
+    for (int i = 0; i < inputs; ++i) {
         vint lw0 = util::genBitsNonCrypto(k);
         vint lw1 = util::vecXOR(globalDelta, lw0);
         tuple<vint,vint> ew = {lw0,lw1};
@@ -47,7 +44,7 @@ tuple<vint, vint> atecaFreeXOR::genInvVar(int k, vint globalDelta) {
 }
 
 tuple<vector<vint>, vector<tuple<vint, vint>>, tuple<vint, vint>, hashTCCR>
-atecaFreeXOR::GarbleCircuit(int k, vector<std::string> C, vector<tuple<vint, vint>> encoding,
+atecaFreeXOR::GarbleCircuit(int k, circuit &C, vector<tuple<vint, vint>> encoding,
                             const tuple<vint, vint> &invVar, const vint &globalDelta, util::hashtype hashtype) {
 
     hashTCCR c;
@@ -55,9 +52,8 @@ atecaFreeXOR::GarbleCircuit(int k, vector<std::string> C, vector<tuple<vint, vin
         c = hashTCCR(k);
     }
     //get amount of gates, wires and output bits
-    auto gatesAndWires=util::split(C[0], ' ');
-    int outputBits =stoi( util::split(C[2], ' ')[1]);
-    int amountOfWires = stoi(gatesAndWires[1]);
+    int outputBits =circuitParser::getOutBits(C);
+    int amountOfWires = circuitParser::getWires(C);
 
     //set the input wires, as in resize the input labels vector to have room for all wires
     auto wires = std::move(encoding);
@@ -72,20 +68,19 @@ atecaFreeXOR::GarbleCircuit(int k, vector<std::string> C, vector<tuple<vint, vin
     vector<vint> garbledGate;
     int out;
     //for every Gate in circuit
-    for (int i = 3; i < C.size(); ++i) {
+    for (int i = 2; i < C.size(); ++i) {
         //find input labels
-        auto gateInfo = util::split(C[i], ' ');
+        auto[inWires, outWires, type]=C[i];
         //int inAmount = stoi(gateInfo[0]);
         //int outAmount = stoi(gateInfo[1]);
 
-        int gateNo = (i - 3);
+        int gateNo = (i - 2);
         //inverse gate hack
         ///CHECK FOR XOR OR INVERSE
-        if (gateInfo[4] == "INV") {
-            int in0 = stoi(gateInfo[2]);
+        if (type == "INV") {
+            int in0 = inWires[0];
             //int in1 = stoi(gateInfo[3]);
-            out = stoi(gateInfo[3]);
-            string type = gateInfo[4];
+            out = outWires[0];
 
             //calculate garble
             ///must return L0, L1, Delta
@@ -93,21 +88,19 @@ atecaFreeXOR::GarbleCircuit(int k, vector<std::string> C, vector<tuple<vint, vin
             auto l1= util::vecXOR(get<0>(wires[in0]),get<1>(invVar));
             garbledGate = {l0,l1};
 
-        } else if(gateInfo[5] == "XOR"){
-            int in0 = stoi(gateInfo[2]);
-            int in1 = stoi(gateInfo[3]);
-            out = stoi(gateInfo[4]);
-            string type = gateInfo[5];
+        } else if(type == "XOR"){
+            int in0 = inWires[0];
+            int in1 = inWires[1];
+            out = outWires[0];
 
             auto l0= util::vecXOR(get<0>(wires[in0]),get<0>(wires[in1]));
             auto l1= util::vecXOR(get<0>(wires[in0]),get<1>(wires[in1]));
             garbledGate = {l0,l1};
         }//AndGate
         else {
-            int in0 = stoi(gateInfo[2]);
-            int in1 = stoi(gateInfo[3]);
-            out = stoi(gateInfo[4]);
-            string type = gateInfo[5];
+            int in0 = inWires[0];
+            int in1 = inWires[1];
+            out = outWires[0];
 
             //calculate garble
             garbledGate = Gate(wires[in0], wires[in1], gateNo, k, globalDelta, c);
@@ -253,11 +246,11 @@ atecaFreeXOR::encode(vector<tuple<vint, vint>> e, vector<int> x) {
 }
 
 vector<vint>
-atecaFreeXOR::eval(const vector<vint> &F, const vector<vint> &X, vector<string> C, int k, tuple<vint, vint> invVar,
+atecaFreeXOR::eval(const vector<vint> &F, const vector<vint> &X, circuit &C, int k, tuple<vint, vint> invVar,
                    hashTCCR &c) {
     int internalSecParam = 16 * k;
-    int outputBits =stoi( util::split(C[2], ' ')[1]);
-    int numberOfWires = stoi(util::split(C[0], ' ')[1]);
+    int outputBits = circuitParser::getOutBits(C);
+    int numberOfWires = circuitParser::getWires(C);
     int firstOutputBit = numberOfWires - outputBits;
 
     auto wires = X;
@@ -265,25 +258,26 @@ atecaFreeXOR::eval(const vector<vint> &F, const vector<vint> &X, vector<string> 
 
     auto outputY = vector<vint>(outputBits);
 
-    for (int i = 3; i < C.size(); ++i) {
-        auto gateInfo = util::split(C[i], ' ');
+    for (int i = 2; i < C.size(); ++i) {
+        auto[inWires, outWires, type]=C[i];
 
-        int gateNo = (i-3);
+        int gateNo = (i-2);
         int out;
         vint gateOut;
-        if (gateInfo[4]=="INV"){
-            int in0 = stoi(gateInfo[2]);
-            out = stoi(gateInfo[3]);
+        if (type=="INV"){
+            int in0 = inWires[0];
+            //int in1 = stoi(gateInfo[3]);
+            out = outWires[0];
             auto labelA = wires[in0];
             auto labelB = get<1>(invVar);
             gateOut = util::vecXOR(labelA,labelB);
             //perform the gate
             wires[out]=gateOut;
 
-        }else if(gateInfo[5]=="XOR"){
-            int in0 = stoi(gateInfo[2]);
-            int in1 = stoi(gateInfo[3]);
-            out = stoi(gateInfo[4]);
+        }else if(type=="XOR"){
+            int in0 = inWires[0];
+            int in1 = inWires[1];
+            out = outWires[0];
             auto labelA = wires[in0];
             auto labelB = wires[in1];
             gateOut = util::vecXOR(labelA,labelB);
@@ -291,9 +285,9 @@ atecaFreeXOR::eval(const vector<vint> &F, const vector<vint> &X, vector<string> 
             wires[out]=gateOut;
 
         }else{//AND GATE
-            int in0 = stoi(gateInfo[2]);
-            int in1 = stoi(gateInfo[3]);
-            out = stoi(gateInfo[4]);
+            int in0 = inWires[0];
+            int in1 = inWires[1];
+            out = outWires[0];
             auto labelA = wires[in0];
             auto labelB = wires[in1];
             //hash input string

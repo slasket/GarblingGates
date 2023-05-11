@@ -13,6 +13,7 @@
 #include <string>
 #include "../util/util.h"
 #include "../util/hashTCCR.h"
+#include "../util/circuitParser.h"
 
 using namespace customTypeSpace;
 
@@ -22,18 +23,18 @@ class atecaGarble {
 public:
     //garbler public function
     static tuple<vector<vint>, vector<tuple<vint, vint>>, vector<vint>, int, tuple<vint, vint>, hashTCCR>
-            garble(const vector<std::string> &f, int k= 128, util::hashtype hashtype= util::RO);
+            garble(circuit &f, int k= 128, util::hashtype hashtype= util::RO);
     //Evaluator functions
     static vector<vint> encode(vector<tuple<vint,vint>> e, vector<int> x);
     static vector<vint>
-    eval(const vector<vint> &F, const vector<vint> &X, vector<string> C, int k, tuple<vint, vint> invVar,
+    eval(const vector<vint> &F, const vector<vint> &X, circuit &C, int k, tuple<vint, vint> invVar,
          hashTCCR &dc);
     static vint decode(vector<vint> Y, vector<vint> d, hashTCCR &dc);
 
 private:
-    static vector<tuple<vint,vint>> Init(vector<std::string> C, int k);
+    static vector<tuple<vint,vint>> Init(circuit &C, int k);
     static tuple<vector<vint>, vector<tuple<vint, vint>>, tuple<vint, vint>, hashTCCR>
-    GarbleCircuit(int k, vector<std::string> C, vector<tuple<vint, vint>> e, const tuple<vint, vint> &invVar,
+    GarbleCircuit(int k, circuit &C, vector<tuple<vint, vint>> e, const tuple<vint, vint> &invVar,
                   util::hashtype hashtype);
     //single Gate garble
     static vector<vint>

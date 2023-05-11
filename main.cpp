@@ -40,19 +40,14 @@ int main() {
 
     auto k=128;
     vector<string> f = circuitParser::parseCircuit("../tests/circuits/Keccak_f.txt");
-    circuit b = circuitParser::parse("../tests/circuits/adder64.txt");
-    int inputSize = circuitParser::getInputSize(b);
-    auto wire = circuitParser::getWires(b);
-    auto gates = circuitParser::getGates(b);
-    cout << inputSize<< endl;
-    cout << wire<< endl;
-    cout << gates << endl;
+    circuit b = circuitParser::parse("../tests/circuits/Keccak_f.txt");
     vector<int> x = util::genFunctionInput(circuitParser::inputsize(f));
     util::hashtype type = util::fast;
-    //timing::time_circuit_all(f,x,k,type);
+    timing::time_circuit_all(f,b,x,k,type);
     cout<<endl;
     f = circuitParser::parseCircuit("../tests/circuits/aes_128.txt");
-    timing::repetitionTest(f,k,type,1000);
+    auto f2 = circuitParser::parse("../tests/circuits/aes_128.txt");
+    timing::repetitionTest(f,f2,k,type,100);
 
 
     return 0;
@@ -173,7 +168,7 @@ void testFreexorAteca() {
     int lInput =6; int rInput = 1;
     ::uint64_t bloodCompAns = bloodcompatibility::bloodCompLookup(lInput,rInput);
     auto finput = vector<int>{1,1,0,0,0,1,1};
-    auto C = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
+    auto C = circuitParser::parse("../tests/circuits/BloodComp.txt");
 
     cout<<"garbling"<<endl;
     auto [F,encodingInfo,decoding,secL,invVar,hashtype] = atecaFreeXOR::garble(C, 64, util::RO);
@@ -193,7 +188,7 @@ void testsubAteca() {
                               0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                               0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                               0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-    auto C = circuitParser::parseCircuit("../tests/circuits/sub64.txt");
+    auto C = circuitParser::parse("../tests/circuits/sub64.txt");
     cout<<"garbling"<<endl;
     auto feds = atecaGarble::garble(C, 64, util::RO);
     cout<<"encoding"<<endl;
