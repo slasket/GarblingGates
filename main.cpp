@@ -40,12 +40,19 @@ int main() {
 
     auto k=128;
     vector<string> f = circuitParser::parseCircuit("../tests/circuits/Keccak_f.txt");
+    circuit b = circuitParser::parse("../tests/circuits/adder64.txt");
+    int inputSize = circuitParser::getInputSize(b);
+    auto wire = circuitParser::getWires(b);
+    auto gates = circuitParser::getGates(b);
+    cout << inputSize<< endl;
+    cout << wire<< endl;
+    cout << gates << endl;
     vector<int> x = util::genFunctionInput(circuitParser::inputsize(f));
     util::hashtype type = util::fast;
     //timing::time_circuit_all(f,x,k,type);
     cout<<endl;
     f = circuitParser::parseCircuit("../tests/circuits/aes_128.txt");
-    timing::repetitionTest(f,k,type,100);
+    timing::repetitionTest(f,k,type,1000);
 
 
     return 0;
