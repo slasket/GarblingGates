@@ -47,7 +47,7 @@ int main() {
     cout<<endl;
     f = circuitParser::parseCircuit("../tests/circuits/aes_128.txt");
     auto f2 = circuitParser::parse("../tests/circuits/aes_128.txt");
-    timing::repetitionTest(f,f2,k,type,100);
+    timing::repetitionTest(f,f2,512,type,100);
 
 
     return 0;
