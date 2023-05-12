@@ -37,17 +37,23 @@ public:
         vector<double> tccr_times(label_incs);
         vector<double> prf_times(label_incs);
         vector<double> threehalves(label_incs);
-
+        cout<<"varying label length "<< endl;
         for (int i = 0; i < label_incs; ++i) {
             //cout << "i "<<i<<endl;
+            auto labelsize = pow(2,(7+i));
+            auto halfLabelSize = pow(2,(6+i));
             for (int j = 0; j < amount; ++j) {
-                data[j]= util::genBitsNonCrypto(pow(2,(7+i)));
-                //dat[j]= {util::genBitsNonCrypto(64),util::genBitsNonCrypto(64)};
+                dat[j]= {util::genBitsNonCrypto(halfLabelSize),util::genBitsNonCrypto(halfLabelSize)};
+                vint onedat;
+                onedat.insert(onedat.end(), get<0>(dat[j]).begin(), get<0>(dat[j]).end());
+                onedat.insert(onedat.end(), get<1>(dat[j]).begin(), get<1>(dat[j]).end());
+                data[j]= onedat;
                 tweak[j]= util::genBitsNonCrypto(64);
             }
 
             auto outlen =pow(2,(7+i)); //pow(2,(11+i));
-            //cout <<"(" << outlen /pow(2,(i)) << "x)"<<endl;
+            //cout <<"(" << outlen /pow(2,(i)) << "-bit label)"<<endl;
+            cout <<"(" << pow(2,(7+i)) << "-bit label)"<<endl;
             auto t1 = high_resolution_clock::now();
             for (int l = 0; l < amount; ++l) {
                 auto Xk = util::hash_variable(data[l],tweak[l], outlen);

@@ -287,10 +287,8 @@ atecaGarble::eval(const vector<vint> &F, const vector<vint> &X, circuit &C, int 
         }
         //hash input string
         vint hashout;
-        //cout<<"evaluater shit"<<endl;
         if (dc.hashtype==util::RO){
             labelA.insert(labelA.end(), labelB.begin(), labelB.end());
-            //labelA.push_back(gateNo);
             vint tweak{static_cast<unsigned long>(gateNo)};
             //hashInputLabel = util::uintVec2Str(labelA);
             hashout = util::hash_variable(labelA,tweak,internalSecParam);
@@ -305,7 +303,6 @@ atecaGarble::eval(const vector<vint> &F, const vector<vint> &X, circuit &C, int 
             outputY[out - firstOutputBit] = gateOut;
         }
     }
-    return outputY;
     return outputY;
 }
 
@@ -346,31 +343,32 @@ vint inline atecaGarble::masksForSlices(const vint& X_00, const vint& X_01, cons
     auto l01a0 = util::vecInvert(X_01);
     //l01a0
     auto l10a0 = util::vecInvert(X_10);
-    //l11a0
-    auto l11a0 = util::vecInvert(X_11);
 
-    //now that you have vectors with 1 for each 0 and 1 for each 1
-    //compute mask 0000 =  l00a0 ^ l01a0 ^ l10a0 ^ l11a0
-    //masks that and, xor share
-    auto mask0000 =  util::vecAND(util::vecAND(util::vecAND(l00a0, l01a0), l10a0), l11a0);///0000
-    auto mask1111 =  util::vecAND(util::vecAND(util::vecAND(X_00, X_01), X_10), X_11);///1111
-
-    vector<::uint64_t> masksORed(X_00.size());
+     vector<::uint64_t> masksORed(X_00.size());
     //or with 0000 0001 1110 or 1111
     //if there is a one in this vector one of the masks had an 1 in the ith bit
     if (typ=="AND"){
         //and specific masks
-        auto mask0001 =  util::vecAND(util::vecAND(util::vecAND(l00a0, l01a0), l10a0), X_11);///0001
-        auto mask1110 =  util::vecAND(util::vecAND(util::vecAND(X_00, X_01), X_10), l11a0);///1110
+        auto mask000x =  util::vecAND(util::vecAND(l00a0, l01a0), l10a0);///000x
+        auto mask111x =  util::vecAND(util::vecAND(X_00, X_01), X_10);///111x
 
-        masksORed = util::vecOR(util::vecOR(util::vecOR(mask0000,mask1111),mask0001),mask1110);
+        masksORed = util::vecOR(mask000x,mask111x);
         //or with 0000 1001 0110 1111
     }else{//if (typ=="XOR"| typ=="INV")
         //xor and inv specific masks
-        auto mask1001 =  util::vecAND(util::vecAND(util::vecAND(X_00, l01a0), l10a0), X_11);///1001
-        auto mask0110 =  util::vecAND(util::vecAND(util::vecAND(l00a0, X_01), X_10), l11a0);///0110
+        //l11a0
+        auto l11a0 = util::vecInvert(X_11);
+        auto mx00x = util::vecAND(l01a0,l10a0);
+        auto mx11x = util::vecAND(X_01,X_10);
+        auto m0xx0=util::vecAND(l00a0,l11a0);
+        auto m1xx1=util::vecAND(X_00,X_11);
+        //auto mask0000 =  util::vecAND(util::vecAND(util::vecAND(l00a0, l01a0), l10a0), l11a0);///0000
+        //auto mask1111 =  util::vecAND(util::vecAND(util::vecAND(X_00, X_01), X_10), X_11);///1111
+        //auto mask1001 =  util::vecAND(util::vecAND(util::vecAND(X_00, l01a0), l10a0), X_11);///1001
+        //auto mask0110 =  util::vecAND(util::vecAND(util::vecAND(l00a0, X_01), X_10), l11a0);///0110
 
-        masksORed =util::vecOR(util::vecOR(util::vecOR(mask0000,mask1111),mask1001),mask0110);
+        //masksORed =util::vecOR(util::vecOR(util::vecOR(mask0000,mask1111),mask1001),mask0110);
+        masksORed =util::vecAND(util::vecOR(mx00x,mx11x), util::vecOR(m0xx0,m1xx1));
     }
     return masksORed;
 }
