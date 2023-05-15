@@ -7,17 +7,16 @@
 #include <utility>
 
 
-
 tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels>, halfLabels, hashRTCCR>
-threeHalves::garble(vector<string> f, int k, util::hashtype h) {
+threeHalves::garble(circuit f, int k, util::hashtype h) {
     //get number of wires and gates
-    auto &wireAndGates = f[0];
-    auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
-    int numberOfWires = stoi(gatesAndWiresSplit[1]);
+    //auto &wireAndGates = f[0];
+    //auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
+    int numberOfWires = circuitParser::getWires(f);//stoi(gatesAndWiresSplit[1]);
 
     //get number of input and output bits
-    int numberOfInputBits = util::getBits(f[1]);
-    int numberOfOutputBits = util::getBits(f[2]);
+    int numberOfInputBits = circuitParser::getInputSize(f);//util::getBits(f[1]);
+    int numberOfOutputBits = circuitParser::getOutBits(f);//util::getBits(f[2]);
     halfDelta delta = genDeltaHalves(k);
     vector<tuple<halfLabels, int>> labelAndPermuteBitPairs(numberOfWires);
     vector<tuple<halfLabels, int>> inputLabelAndPermuteBitPairs(numberOfInputBits); //testing
@@ -37,13 +36,15 @@ threeHalves::garble(vector<string> f, int k, util::hashtype h) {
     halfLabels invConst = genLabelHalves(k);
 
     Ftype F(numberOfWires);
-    for (int i = 3; i < f.size(); ++i) {
+    for (int i = 2; i < f.size(); ++i) {
         //////////////////////// Getting out gate from string //////////////////////////
-        auto &line = f[i];
-        auto gateInfo = util::extractGate(line);              // "2 1 0 1 2 XOR"
-        auto inputWires = get<0>(gateInfo);             // [ ..., 0, 1]
-        auto outputWires = get<1>(gateInfo);                    // [..., 1, ..., 2]
-        auto gateType = get<2>(gateInfo);               // "XOR"
+        //auto &line = f[i];
+        //auto gateInfo = util::extractGate(line);              // "2 1 0 1 2 XOR"
+        //auto inputWires = get<0>(gateInfo);             // [ ..., 0, 1]
+        //auto outputWires = get<1>(gateInfo);                    // [..., 1, ..., 2]
+        //auto gateType = get<2>(gateInfo);               // "XOR"
+
+        auto [inputWires,outputWires,gateType] = f[i];
 
         tuple<halfLabels, int> A0AndPermuteBit;
         tuple<halfLabels, int> B0AndPermuteBit;
@@ -274,14 +275,14 @@ vector<halfLabels> threeHalves::encode(tuple<halfDelta, vector<tuple<halfLabels,
     return X;
 }
 
-vector<halfLabels> threeHalves::eval(Ftype F, vector<halfLabels> X, vector<string> f, int k, const halfLabels& invConst, hashRTCCR &hash, util::hashtype h) {
-    auto &wireAndGates = f[0];
-    auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
-    int numberOfWires = stoi(gatesAndWiresSplit[1]);
+vector<halfLabels> threeHalves::eval(Ftype F, vector<halfLabels> X, circuit f, int k, const halfLabels& invConst, hashRTCCR &hash, util::hashtype h) {
+    //auto &wireAndGates = f[0];
+    //auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
+    int numberOfWires = circuitParser::getWires(f); //stoi(gatesAndWiresSplit[1]);
 
     //get number of input and output bits
-    int numberOfInputBits = util::getBits(f[1]);
-    int numberOfOutputBits = util::getBits(f[2]);
+    int numberOfInputBits = circuitParser::getInputSize(f); //util::getBits(f[1]);
+    int numberOfOutputBits = circuitParser::getOutBits(f); //util::getBits(f[2]);
 
     vector<halfLabels> Y(numberOfOutputBits);
     vector<tuple<halfLabels, int>> labelAndPermuteBitPairs(numberOfWires);
@@ -291,13 +292,15 @@ vector<halfLabels> threeHalves::eval(Ftype F, vector<halfLabels> X, vector<strin
         labelAndPermuteBitPairs[i] = {X[i], permuteBit};
     }
 
-    for (int i = 3; i < f.size(); ++i) {
+    for (int i = 2; i < f.size(); ++i) {
         //////////////////////// Getting out gate from string //////////////////////////
-        auto &line = f[i];
-        auto gateInfo = util::extractGate(line);              // "2 1 0 1 2 XOR"
-        auto inputWires = get<0>(gateInfo);         // [ ..., 0, 1]
-        auto outputWires = get<1>(gateInfo);        // [..., 1, ..., 2]
-        auto gateType = get<2>(gateInfo);               // "XOR"
+        //auto &line = f[i];
+        //auto gateInfo = util::extractGate(line);              // "2 1 0 1 2 XOR"
+        //auto inputWires = get<0>(gateInfo);         // [ ..., 0, 1]
+        //auto outputWires = get<1>(gateInfo);        // [..., 1, ..., 2]
+        //auto gateType = get<2>(gateInfo);               // "XOR"
+
+        auto [inputWires,outputWires,gateType] = f[i];
 
         auto [A, ApermuteBit] = labelAndPermuteBitPairs[inputWires[0]];
         auto [B, BpermuteBit] = labelAndPermuteBitPairs[inputWires[0]];
@@ -436,14 +439,14 @@ vector<halfLabels> threeHalves::eval(Ftype F, vector<halfLabels> X, vector<strin
     return Y;
 }
 
-vint threeHalves::decode(vector<halfLabels> d, vector<halfLabels> Y, vector<string> f, int k) {
+vint threeHalves::decode(vector<halfLabels> d, vector<halfLabels> Y, circuit f, int k) {
     auto outbits = Y.size();
     auto unit64sNeeded = outbits/64 + ((outbits%64!=0) ? 1 : 0);
     auto outputSets =  vector<bitset<64>>(unit64sNeeded);
 
-    auto &wireAndGates = f[0];
-    auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
-    int numberOfWires = stoi(gatesAndWiresSplit[1]);
+    //auto &wireAndGates = f[0];
+    //auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
+    int numberOfWires = circuitParser::getWires(f);//stoi(gatesAndWiresSplit[1]);
     for (int i = 0; i < Y.size(); ++i) {
         auto Ekpair = Y[i];
         auto [Ekl, Ekr] = Ekpair;
@@ -476,10 +479,10 @@ vint threeHalves::decode(vector<halfLabels> d, vector<halfLabels> Y, vector<stri
     return y;
 }
 
-vector<int> threeHalves::decodeBits(vector<halfLabels> d, vector<halfLabels> Y, vector<string> f, int k) {
-    auto &wireAndGates = f[0];
-    auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
-    int numberOfWires = stoi(gatesAndWiresSplit[1]);
+vector<int> threeHalves::decodeBits(vector<halfLabels> d, vector<halfLabels> Y, circuit f, int k) {
+    //auto &wireAndGates = f[0];
+    //auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
+    int numberOfWires = circuitParser::getWires(f); //stoi(gatesAndWiresSplit[1]);
     vector<int> y;
     for (int i = 0; i < Y.size(); ++i) {
         auto Ekpair = Y[i];

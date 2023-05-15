@@ -10,7 +10,8 @@
 using namespace boost::unit_test;
 
 BOOST_AUTO_TEST_SUITE( Testing_ThreeHalves )
-    vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 XOR"};
+    //vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 XOR"};
+    auto smalltest = circuitParser::parse("../tests/circuits/xorTest.txt");
     auto output = threeHalves::garble(smalltest, 128, util::fast);
     auto F = get<0>(output);
     auto e = get<1>(output);
@@ -27,7 +28,8 @@ BOOST_AUTO_TEST_SUITE( Testing_ThreeHalves )
 BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesAnd )
-    vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 AND"};
+    //vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 AND"};
+    auto smalltest = circuitParser::parse("../tests/circuits/andTest.txt");
     auto output = threeHalves::garble(smalltest, 128, util::fast);
     auto F = get<0>(output);
     auto e = get<1>(output);
@@ -46,7 +48,8 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEncode )
 
-    vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 AND"};
+    //vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 AND"};
+    auto smalltest = circuitParser::parse("../tests/circuits/andTest.txt");
     auto output = threeHalves::garble(smalltest, 128, util::fast);
     auto x = vector<int>{1, 1};
     auto e = get<1>(output);
@@ -70,7 +73,8 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalXOR )
 
-    vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 XOR"};
+    //vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 XOR"};
+    auto smalltest = circuitParser::parse("../tests/circuits/xorTest.txt");
     auto [F,e,d,ic,hash] = threeHalves::garble(smalltest, 128, util::fast);
 
 
@@ -118,7 +122,8 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalAND )
 
-    vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 AND"};
+    //vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 AND"};
+    auto smalltest = circuitParser::parse("../tests/circuits/andTest.txt");
 
     BOOST_AUTO_TEST_CASE( test_Eval1and1 )
     {
@@ -140,7 +145,7 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalINV )
 
-    vector<string> smalltest = circuitParser::parseCircuit("../tests/circuits/invTest.txt");
+    auto smalltest = circuitParser::parse("../tests/circuits/invTest.txt");
 
     BOOST_AUTO_TEST_CASE( test_EvalInv0 )
     {
@@ -162,7 +167,7 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalXORAND )
 
-    vector<string> xorAnd = circuitParser::parseCircuit("../tests/circuits/xorIntoAnd.txt");
+    auto xorAnd = circuitParser::parse("../tests/circuits/xorIntoAnd.txt");
 
     BOOST_AUTO_TEST_CASE( test_Eval1and1XORAND0 )
     {
@@ -185,7 +190,7 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalANDXOR )
 
-    vector<string> xorAnd = circuitParser::parseCircuit("../tests/circuits/andIntoXor.txt");
+    auto xorAnd = circuitParser::parse("../tests/circuits/andIntoXor.txt");
 
     BOOST_AUTO_TEST_CASE( test_Eval1and1XORAND0 )
     {
@@ -248,7 +253,7 @@ BOOST_AUTO_TEST_SUITE( ThreeHalves_bloodComp )
         for (int i = 0; i < 100; ++i) {
             int lInput =6; int rInput = 1;
             auto x = vector<int>{1,1,0,0,0,1,1};
-            auto C = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
+            auto C = circuitParser::parse("../tests/circuits/BloodComp.txt");
             int l = 64;
             auto [F, e, d, ic, hash] = threeHalves::garble(C, 128, util::fast);
             auto encLabels = threeHalves::encode(e, x);
@@ -263,7 +268,7 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( Testing_ThreeHalvesEvalADDER64 )
 
-    vector<string> bigtest = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
+    auto bigtest = circuitParser::parse("../tests/circuits/adder64.txt");
     auto [F,e,d, ic, hash] = threeHalves::garble(bigtest, 128, util::fast);
     auto x = vector<int>{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                          0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -291,7 +296,7 @@ BOOST_AUTO_TEST_SUITE( ThreeHalves_adder64bit )
                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                                   1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-        auto C = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
+        auto C = circuitParser::parse("../tests/circuits/adder64.txt");
         auto [F,e,d,ic, hash] = threeHalves::garble(C, 128, util::fast);
         auto encLabels = threeHalves::encode(e, finput);
         auto Y = threeHalves::eval(F, encLabels, C, 128, ic, hash, util::fast);
@@ -317,7 +322,7 @@ BOOST_AUTO_TEST_SUITE( ThreeHalves_adder64bit )
                                   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
                                   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
                                   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
-        auto C = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
+        auto C = circuitParser::parse("../tests/circuits/adder64.txt");
         auto [F,e,d,ic , hash] = threeHalves::garble(C, 128, util::fast);
         auto encLabels = threeHalves::encode(e, finput);
         auto Y = threeHalves::eval(F, encLabels, C, 128, ic , hash, util::fast);
@@ -345,7 +350,7 @@ BOOST_AUTO_TEST_SUITE( ThreeHalves_sub64 )
                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                                   1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-        auto C = circuitParser::parseCircuit("../tests/circuits/sub64.txt");
+        auto C = circuitParser::parse("../tests/circuits/sub64.txt");
         auto [F,e,d,ic , hash] = threeHalves::garble(C, 128, util::fast);
         auto encLabels = threeHalves::encode(e, finput);
         auto Y = threeHalves::eval(F, encLabels, C, 128, ic , hash, util::fast);
@@ -362,7 +367,7 @@ BOOST_AUTO_TEST_SUITE( ThreeHalves_sub64 )
                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                                   1,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-        auto C = circuitParser::parseCircuit("../tests/circuits/sub64.txt");
+        auto C = circuitParser::parse("../tests/circuits/sub64.txt");
         auto [F,e,d,ic , hash] = threeHalves::garble(C, 128, util::fast);
         auto encLabels = threeHalves::encode(e, finput);
         auto Y = threeHalves::eval(F, encLabels, C, 128, ic , hash, util::fast);

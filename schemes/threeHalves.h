@@ -19,6 +19,7 @@
 #include <tuple>
 #include "../util/util.h"
 #include "../util/hashRTCCR.h"
+#include "../util/circuitParser.h"
 using namespace std;
 using namespace customTypeSpace;
 typedef vector<tuple<vint, vint, vint, vector<uint8_t>>> Ftype;
@@ -78,10 +79,10 @@ public:
                     {0,0,0,0,1,1}
             };
     static tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels>, halfLabels, hashRTCCR>
-    garble(vector<string> f, int k, util::hashtype);
+    garble(circuit f, int k, util::hashtype);
     static vector<halfLabels> encode(tuple<halfDelta, vector<tuple<halfLabels, int>>> e, vector<int> x);
-    static vector<halfLabels> eval(Ftype F, vector<halfLabels> X, vector<string> f, int k, const halfLabels& invConst, hashRTCCR &hash, util::hashtype);
-    static vector<int> decodeBits(vector<halfLabels> d, vector<halfLabels> Y, vector<string> f, int k);
+    static vector<halfLabels> eval(Ftype F, vector<halfLabels> X, circuit f, int k, const halfLabels& invConst, hashRTCCR &hash, util::hashtype);
+    static vector<int> decodeBits(vector<halfLabels> d, vector<halfLabels> Y, circuit f, int k);
     static vint sampleR(int permuteBitA, int permuteBitB);
     static vector<int> computeT(int permuteBitA, int permuteBitB, const string& gateType);
     static vint hashPrime(const vint& input, int k, int tweak);
@@ -101,7 +102,7 @@ public:
         return {leftLabelHalf, rightLabelHalf};
     }
 
-    static vector<uint64_t> decode(vector<halfLabels> d, vector<halfLabels> Y, vector<string> f, int k);
+    static vector<uint64_t> decode(vector<halfLabels> d, vector<halfLabels> Y, circuit f, int k);
 
 private:
     static vector<halfLabels>
