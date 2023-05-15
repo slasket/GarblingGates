@@ -17,15 +17,15 @@ using std::chrono::milliseconds;
 
 //k is security parameter and f is the function to be garbled with 3 lines of metadata
 tuple<tuple<vint, vector<labelPair>, hashRTCCR>, vector<tuple<vint, vint>>, vector<tuple<vint, vint>>>
-baseGarble::garble(vector<string> f, int k, util::hashtype hashtype) {
+baseGarble::garble(circuit f, int k, util::hashtype hashtype) {
     //get number of wires and gates
-    auto &wireAndGates = f[0];
-    auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
-    int numberOfWires = stoi(gatesAndWiresSplit[1]);
+    //auto &wireAndGates = f[0];
+    //auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
+    int numberOfWires = circuitParser::getWires(f);
 
     //get number of input and output bits
-    int numberOfInputBits  = util::getBits(f[1]);
-    int numberOfOutputBits = util::getBits(f[2]);
+    int numberOfInputBits  = circuitParser::getInputSize(f);
+    int numberOfOutputBits = circuitParser::getOutBits(f);
 
     //initialize variables
     auto garbledCircuit = vector<tuple< vint, vint>>();
@@ -53,13 +53,14 @@ baseGarble::garble(vector<string> f, int k, util::hashtype hashtype) {
         wireLabels[i] = inputWiresLabels[i];
     }
     //perform gate by gate garbling
-    for (int i = 3; i < f.size(); ++i) {
+    for (int i = 2; i < f.size(); ++i) {
         //////////////////////// Getting out gate from string //////////////////////////
-        auto &line = f[i];
-        auto [inputWires,outputWires,gateType] = util::extractGate(line);              // "2 1 0 1 2 XOR"
+        //auto &line = f[i];
+        //auto [inputWires,outputWires,gateType] = util::extractGate(line);              // "2 1 0 1 2 XOR"
         //auto inputWires = get<0>(gateInfo);         // [ ..., 0, 1]
         //auto outputWires = get<1>(gateInfo);        // [..., 1, ..., 2]
         //auto gateType = get<2>(gateInfo);               // "XOR"
+        auto [inputWires, outputWires, gateType] = f[i];
 
         ////////////////////////////// Garbling gate ///////////////////////////////////
         //vector<::uint64_t> gate0;
@@ -217,21 +218,21 @@ vector<vint> baseGarble::encode(vector<labelPair> e, vector<int> x) {
 }
 
 vector<vint> baseGarble::eval(tuple<vint, vector<labelPair>, hashRTCCR> F,
-                              vector<vint> X, vector<string> f, int k) {
+                              vector<vint> X, circuit f, int k) {
     //garbled circuit
     auto [invConst, garbledCircuit, hash] = std::move(F);
     //auto inputLabels = get<1>(F);
     //auto outputLabels = get<2>(F);
 
     //get number of wires and gates from non-garbled circuit
-    string &wireAndGates = f[0]; //number of wires and gates
-    auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
-    int numberOfGates = stoi(gatesAndWiresSplit[0]);
-    int numberOfWires = stoi(gatesAndWiresSplit[1]);
-    int numberOfInputBits = util::getBits(f[1]);
-    auto &outputs = f[2]; //number of outputs and how many bits each output is
-    auto outputSplit = util::split(outputs, ' ');
-    int numberOfOutputBits = util::getBits(f[2]);
+    //string &wireAndGates = f[0]; //number of wires and gates
+    //auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
+    int numberOfGates = circuitParser::getGates(f);
+    int numberOfWires = circuitParser::getWires(f);
+    int numberOfInputBits = circuitParser::getInputSize(f);
+    //auto &outputs = f[2]; //number of outputs and how many bits each output is
+    //auto outputSplit = util::split(outputs, ' ');
+    int numberOfOutputBits = circuitParser::getOutBits(f);
 
     //get input labels from e and put them in wireValues
     auto wireValues = vector< vint>(numberOfWires);
@@ -240,10 +241,10 @@ vector<vint> baseGarble::eval(tuple<vint, vector<labelPair>, hashRTCCR> F,
     }
 
     //check if the number of gates in the garbled circuit is the same as the number of gates in the non-garbled circuit
-    if(garbledCircuit.size() != f.size()-3 & f.size()-3 != numberOfGates){
-        cout << "garbledCircuit.size() != f.size()-3 != " << numberOfGates  << " != " << garbledCircuit.size() << " != " << f.size()-3 << endl;
-        //exit(1);
-    }
+    //if(garbledCircuit.size() != f.size()-2 & f.size()-2 != numberOfGates){
+    //    cout << "garbledCircuit.size() != f.size()-3 != " << numberOfGates  << " != " << garbledCircuit.size() << " != " << f.size()-3 << endl;
+    //    //exit(1);
+    //}
 
     //result vector
     vector<vint> Y = vector<vint>(numberOfOutputBits);
@@ -251,8 +252,8 @@ vector<vint> baseGarble::eval(tuple<vint, vector<labelPair>, hashRTCCR> F,
     //evaluate the garbled circuit
     for (int i = 0; i < garbledCircuit.size(); ++i) {
         //////////////////////// Getting out gate from string //////////////////////////
-        auto &line = f[i+3];
-        auto [inputWires, outputWires, gateType] = util::extractGate(line);              // "2 1 0 1 2 XOR"
+        //auto &line = f[i+3];
+        auto [inputWires, outputWires, gateType] = f[i+2];              // "2 1 0 1 2 XOR"
         //auto inputWires = get<0>(gateInfo);         // [ ..., 0, 1]
         //auto outputWires = get<1>(gateInfo);        // [..., 1, ..., 2]
         //auto gateType = get<2>(gateInfo);               // "XOR"

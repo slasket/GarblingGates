@@ -33,6 +33,7 @@ set(TESTS
         tests/test_util.cpp
         tests/test_ateca.cpp
         tests/test_baseline.cpp
+        tests/test_baselineRO.cpp
         tests/test_atecaFreeXOR.cpp
         tests/test_threeHalvesFast.cpp
         tests/test_threeHalvesRO.cpp

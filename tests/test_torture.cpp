@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_SUITE( ATECAfreexor_adder_torture )
 BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( Baseline_adder_torture )
-    auto C = circuitParser::parseCircuit("../tests/circuits/adder64.txt");
+    auto C = circuitParser::parse("../tests/circuits/adder64.txt");
     int l = 128;
     BOOST_AUTO_TEST_CASE( adder_torture)
     {

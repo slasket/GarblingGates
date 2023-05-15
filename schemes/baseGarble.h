@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include "../util/util.h"
+#include "../util/circuitParser.h"
 
 #include "../util/hashRTCCR.h"
 using namespace customTypeSpace;
@@ -17,10 +18,10 @@ class baseGarble {
 public:
     static
     tuple<tuple<vint, vector<labelPair>, hashRTCCR>, vector<labelPair>, vector<labelPair>>
-    garble(vector<string> f, int k, util::hashtype hashtype);
+    garble(circuit f, int k, util::hashtype hashtype);
     static vector<vint> encode(vector<labelPair> e, vector<int> x);
     static vector<vint> eval(tuple<vint, vector<labelPair>, hashRTCCR> F,
-                             vector<vint> X, vector<string> f, int k);
+                             vector<vint> X, circuit f, int k);
     static vector<int> decodeBits(vector<labelPair> d, vector<vint> Y, int k, hashRTCCR hash);
     static vint hashFunc(vint x, int k);
 
