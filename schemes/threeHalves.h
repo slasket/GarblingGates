@@ -113,6 +113,49 @@ private:
 
     static halfLabels zeroes(uint64_t size);
 
+    static void initInputLabels(int k, int numberOfInputBits, vector<tuple<halfLabels, int>> &labelAndPermuteBitPairs,
+                                vector<tuple<halfLabels, int>> &inputLabelAndPermuteBitPairs);
+
+    static void gateXOR(const vector<int> &inputWires, const vector<int> &outputWires,
+                        vector<tuple<halfLabels, int>> &labelAndPermuteBitPairs,
+                        tuple<halfLabels, int> &A0AndPermuteBit,
+                        tuple<halfLabels, int> &B0AndPermuteBit);
+
+    static void gateINV(halfLabels &invConst, const vector<int> &outputWires, const vector<int> &inputWires,
+                        vector<tuple<halfLabels, int>> &labelAndPermuteBitPairs,
+                        tuple<halfLabels, int> &A0AndPermuteBit);
+
+    static void
+    gateAND(int k, const util::hashtype &h, hashRTCCR &hashRTCCR, const vector<int> &inputWires,
+            const vector<int> &outputWires,
+            halfDelta &delta, vector<tuple<halfLabels, int>> &labelAndPermuteBitPairs, Ftype &F,
+            tuple<halfLabels, int> &A0AndPermuteBit, tuple<halfLabels, int> &B0AndPermuteBit);
+
+
+    static vector<vint> calcVZ(const vector<halfLabels> &Zij);
+
+    static vector<vint>
+    calcVRP(const vint &A0Left, const vint &A0Right, const vint &B0Left, const vint &deltaLeft,
+            const vint &deltaRight);
+
+    static vector<vint> &hashRO(int k, vector<vint> &hashes, const vector<halfLabels> &inputs);
+
+    static vector<vint> &
+    hashFast(int k, hashRTCCR &hashRTCCR, halfLabels &A0, halfLabels &A1, halfLabels &B0, halfLabels &B1,
+             const vint &A0Left, vector<vint> &hashes, halfLabels &A0xorB0, halfLabels &A0xorB0xorDelta,
+             vector<halfLabels> &inputs);
+
+    static void sliceHashes(vint &HA0, vint &HA1, vint &HB0, vint &HB1, vint &HA0xorB0, vint &HA0xorB0xorDelta);
+
+    static vector<vint>
+    calcHprime(vint &HA0, vint &HA1, vint &HB0, vint &HB1, const vint &HA0xorB0, vint &HA0xorB0xorDelta);
+
+    static void
+    calcZCG(const vector<vint> &VInvZ, const vector<vint> &VInvRpABDelta, const vector<vint> &HVecPrime,
+            vector<vint> &CG,
+            vector<uint8_t> &zVec);
+
+    static vector<halfLabels> &calcRZ(vint &rVec, vector<halfLabels> &Zij);
 };
 
 

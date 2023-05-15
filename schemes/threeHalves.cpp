@@ -10,23 +10,16 @@
 tuple<Ftype, tuple<halfDelta, vector<tuple<halfLabels, int>>>, vector<halfLabels>, halfLabels, hashRTCCR>
 threeHalves::garble(circuit f, int k, util::hashtype h) {
     //get number of wires and gates
-    //auto &wireAndGates = f[0];
-    //auto gatesAndWiresSplit = util::split(wireAndGates, ' ');
-    int numberOfWires = circuitParser::getWires(f);//stoi(gatesAndWiresSplit[1]);
+    int numberOfWires = circuitParser::getWires(f);
 
     //get number of input and output bits
-    int numberOfInputBits = circuitParser::getInputSize(f);//util::getBits(f[1]);
-    int numberOfOutputBits = circuitParser::getOutBits(f);//util::getBits(f[2]);
+    int numberOfInputBits = circuitParser::getInputSize(f);
+    int numberOfOutputBits = circuitParser::getOutBits(f);
     halfDelta delta = genDeltaHalves(k);
     vector<tuple<halfLabels, int>> labelAndPermuteBitPairs(numberOfWires);
     vector<tuple<halfLabels, int>> inputLabelAndPermuteBitPairs(numberOfInputBits); //testing
     vector<halfLabels> encryptedOutputLabels(numberOfOutputBits);
-    for (int i = 0; i < numberOfInputBits; i++){
-        auto label0 = genLabelHalves(k);
-        auto permuteBit = (int)util::random_bitset<1>().to_ulong();
-        labelAndPermuteBitPairs[i] = {label0, permuteBit};
-        inputLabelAndPermuteBitPairs[i] = {label0, permuteBit};
-    }
+    initInputLabels(k, numberOfInputBits, labelAndPermuteBitPairs, inputLabelAndPermuteBitPairs);
 
     vint key = util::genBitsNonCrypto(256);
     vint iv = util::genBitsNonCrypto(256);
@@ -49,172 +42,15 @@ threeHalves::garble(circuit f, int k, util::hashtype h) {
         tuple<halfLabels, int> A0AndPermuteBit;
         tuple<halfLabels, int> B0AndPermuteBit;
         if(gateType == "XOR") {
-            A0AndPermuteBit = labelAndPermuteBitPairs[inputWires[0]];
-            B0AndPermuteBit = labelAndPermuteBitPairs[inputWires[1]];
+            gateXOR(inputWires, outputWires, labelAndPermuteBitPairs, A0AndPermuteBit, B0AndPermuteBit);
 
-            halfLabels A0 = get<0>(A0AndPermuteBit);
-            halfLabels B0 = get<0>(B0AndPermuteBit);
-            vint leftHalf = util::vecXOR(get<0>(A0), get<0>(B0));
-            vint rightHalf = util::vecXOR(get<1>(A0), get<1>(B0));
-            int APermuteBit = get<1>(A0AndPermuteBit);
-            int BPermuteBit = get<1>(B0AndPermuteBit);
-            int permuteBitXOR = APermuteBit ^ BPermuteBit;
-
-            halfLabels outputLabel = {leftHalf, rightHalf};
-            auto outputCipher = make_tuple(outputLabel, permuteBitXOR);
-
-            labelAndPermuteBitPairs[outputWires[0]] = outputCipher;
         }
         else if(gateType == "INV") {
-            A0AndPermuteBit = labelAndPermuteBitPairs[inputWires[0]];
-
-            halfLabels A0 = get<0>(A0AndPermuteBit);
-            vint leftHalf = util::vecXOR(get<0>(A0), get<0>(invConst));
-            vint rightHalf = util::vecXOR(get<1>(A0), get<1>(invConst));
-            int APermuteBit = get<1>(A0AndPermuteBit);
-            int icPermuteBit = get<0>(invConst)[0] & 1;
-            int permuteBitXOR = APermuteBit ^ icPermuteBit;
-
-            halfLabels outputLabel = {leftHalf, rightHalf};
-            auto outputCipher = make_tuple(outputLabel, 1- permuteBitXOR);
-
-            labelAndPermuteBitPairs[outputWires[0]] = outputCipher;
+            gateINV(invConst, outputWires, inputWires, labelAndPermuteBitPairs, A0AndPermuteBit);
         }
         else if( gateType == "AND") {
-            A0AndPermuteBit = labelAndPermuteBitPairs[inputWires[0]];
-            B0AndPermuteBit = labelAndPermuteBitPairs[inputWires[1]];
-            auto [A0, permuteBitA] = A0AndPermuteBit;
-            auto [B0, permuteBitB] = B0AndPermuteBit;
-            auto rVec = sampleR(permuteBitA, permuteBitB);
-
-            //Compute A1 and B1
-            auto A1 = util::halfLabelXOR(A0, delta);
-            auto B1 = util::halfLabelXOR(B0, delta);
-            auto [A0Left, A0Right] = A0;
-            auto [B0Left, B0Right] = B0;
-            auto [A1Left, A1Right] = A1;
-            auto [B1Left, B1Right] = B1;
-            auto [deltaLeft, deltaRight] = delta;
-
-            //Calculate Zij
-            auto Zij = calcZij(A0, B0, A1, B1, rVec, permuteBitA, permuteBitB, delta);
-
-            //Prepend rVec to Z
-            for (int l = 0; l < 4; ++l) {
-                auto [left, right] = Zij[l];
-                left = util::prependBitToVint(left, util::checkIthBit(rVec, l * 2));
-                right = util::prependBitToVint(right, util::checkIthBit(rVec, l * 2 + 1));
-                Zij[l] = {left, right};
-            }
-            //VInvZ is calculated per discord picture
-            vector<vint> VInvZ(5);
-            VInvZ[0] = get<0>(Zij[0]);
-            VInvZ[1] = get<1>(Zij[0]);
-            VInvZ[2] = util::vecXOR({get<0>(Zij[2]), get<1>(Zij[2]), get<0>(Zij[0]), get<1>(Zij[0])});
-            VInvZ[3] = util::vecXOR({get<0>(Zij[1]), get<1>(Zij[1]), get<0>(Zij[0]), get<1>(Zij[0])});
-            VInvZ[4] = util::vecXOR(get<0>(Zij[3]), get<0>(Zij[2]));
-
-            //VInvRpABDelta is calculated per discord picture
-            vector<vint> VInvRpABDelta(5);
-            VInvRpABDelta[0] = B0Left;
-            VInvRpABDelta[1] = A0Right;
-            VInvRpABDelta[2] = util::vecXOR(deltaRight, B0Left);
-            VInvRpABDelta[3] = util::vecXOR(deltaLeft, A0Right);
-            vint zeroes(A0Left.size());
-            VInvRpABDelta[4] = zeroes;
-            //Prepend 0's to all entries to make lenghts match (According to Lance)
-            for (int l = 0; l < 5; ++l) {
-                util::prependBitToVint(VInvRpABDelta[l], 0);
-            }
-
-            //HVecPrime is calculated per discord picture
-            vint hashA0;
-            vint hashA1;
-            vint hashB0;
-            vint hashB1;
-            vint hashA0xorB0;
-            vint hashA0xorB0xorDelta;
-            vector<vint> hashes({hashA0, hashA1, hashB0, hashB1, hashA0xorB0, hashA0xorB0xorDelta});
-            halfLabels A0xorB0 = {util::vecXOR(A0Left, B0Left), util::vecXOR(A0Right, B0Right)};
-            //A0 XOR B0 XOR Delta = A0 XOR B1
-            halfLabels A0xorB0xorDelta = {util::vecXOR(A0Left, B1Left), util::vecXOR(A0Right, B1Right)};
-            vector<halfLabels> inputs({A0, A1, B0, B1, A0xorB0, A0xorB0xorDelta});
-            if (h == util::RO) {
-                vector<vint> in_for_RO(inputs.size());
-                uint64_t tweak ((3 * k) - 3);
-                for (int j = 0; j < inputs.size(); ++j) {
-                    //inputgen
-                    in_for_RO[j] = util::vecConcat(get<0>(inputs[j]),get<1>(inputs[j]));
-                    if (j==2||j==4){
-                        tweak += 1;
-                    }
-                    hashes[j] = util::hash_variable(in_for_RO[j], {tweak}, ((k / 2) + 8));
-                }
-            } else if(h==util::fast){
-                for (halfLabels lbl: inputs) {
-                    get<0>(lbl).emplace_back(0);
-                    get<1>(lbl).emplace_back(0);
-                }
-                ::uint64_t k64 = k;
-                vint tweak0 {((3 * k64) - 3)};
-                vint tweak1 {((3 * k64) - 2)};
-                vint tweak2 {((3 * k64) - 1)};
-
-                hashes[0] = hashRTCCR.hash(A0             , tweak0);
-                hashes[1] = hashRTCCR.hash(A1             , tweak0);
-                hashes[2] = hashRTCCR.hash(B0             , tweak1);
-                hashes[3] = hashRTCCR.hash(B1             , tweak1);
-                hashes[4] = hashRTCCR.hash(A0xorB0        , tweak2);
-                hashes[5] = hashRTCCR.hash(A0xorB0xorDelta, tweak2);
-
-                int size = hashes[0].size()-(A0Left.size()+1);
-                for (int j = 0; j < size; ++j) {
-                    for (int hIx = 0; hIx < hashes.size(); ++hIx) {
-                        hashes[hIx].pop_back();
-                    }
-                }
-            }
-            vint HA0 = hashes[0];
-            vint HA1 = hashes[1];
-            vint HB0 = hashes[2];
-            vint HB1 = hashes[3];
-            vint HA0xorB0 = hashes[4];
-            vint HA0xorB0xorDelta = hashes[5];
-
-            //make sure hash vectors extra bit is only one bit
-            HA0[HA0.size() - 1] = HA0[HA0.size() - 1] & 1;
-            HA1[HA1.size() - 1] = HA1[HA1.size() - 1] & 1;
-            HB0[HB0.size() - 1] = HB0[HB0.size() - 1] & 1;
-            HB1[HB1.size() - 1] = HB1[HB1.size() - 1] & 1;
-            HA0xorB0[HA0xorB0.size() - 1] = HA0xorB0[HA0xorB0.size() - 1] & 1;
-            HA0xorB0xorDelta[HA0xorB0xorDelta.size() - 1] = HA0xorB0xorDelta[HA0xorB0xorDelta.size() - 1] & 1;
-
-
-            vector<vint> HVecPrime(5);
-            HVecPrime[0] = util::vecXOR(HA0, HA0xorB0);
-            HVecPrime[1] = util::vecXOR(HB0, HA0xorB0);
-            HVecPrime[2] = util::vecXOR(HA1, HA0);
-            HVecPrime[3] = util::vecXOR(HB1, HB0);
-            HVecPrime[4] = util::vecXOR(HA0xorB0xorDelta, HA0xorB0);
-
-
-            vector<vint> CG(5);
-            vector<uint8_t> zVec(5);
-            //XOR stuff together
-            for (int l = 0; l < 5; ++l) {
-                auto zConcatCG = util::vecXOR({VInvZ[l], VInvRpABDelta[l], HVecPrime[l]});
-                zVec[l] = (zConcatCG[zConcatCG.size()-1]);
-                zConcatCG.pop_back();
-                CG[l] = zConcatCG;
-            }
-            uint64_t permuteBitCipher = CG[0][0] & 1;
-            halfLabels cipherLabel = {CG[0], CG[1]}; //C left and C right
-            if(permuteBitCipher == 1) {
-                cipherLabel = util::halfLabelXOR(cipherLabel, delta);
-            }
-            auto outputCipher = make_tuple(cipherLabel, permuteBitCipher);
-            labelAndPermuteBitPairs[outputWires[0]] = outputCipher;
-            F[outputWires[0]] = {CG[2], CG[3], CG[4], zVec};
+            gateAND(k, h, hashRTCCR, inputWires, outputWires, delta, labelAndPermuteBitPairs, F, A0AndPermuteBit,
+                    B0AndPermuteBit);
         }
         else {
             cout << "Got a non-supported gate" << endl;
@@ -251,6 +87,246 @@ threeHalves::garble(circuit f, int k, util::hashtype h) {
 
     //Return F, e, d.
     return make_tuple(F, e, d, invConst, hashRTCCR);
+}
+
+void threeHalves::gateAND(int k, const util::hashtype &h, hashRTCCR &hashRTCCR, const vector<int> &inputWires,
+                          const vector<int> &outputWires, halfDelta &delta,
+                          vector<tuple<halfLabels, int>> &labelAndPermuteBitPairs, Ftype &F,
+                          tuple<halfLabels, int> &A0AndPermuteBit, tuple<halfLabels, int> &B0AndPermuteBit) {
+    A0AndPermuteBit = labelAndPermuteBitPairs[inputWires[0]];
+    B0AndPermuteBit = labelAndPermuteBitPairs[inputWires[1]];
+    auto [A0, permuteBitA] = A0AndPermuteBit;
+    auto [B0, permuteBitB] = B0AndPermuteBit;
+
+    //Compute A1 and B1
+    auto A1 = util::halfLabelXOR(A0, delta);
+    auto B1 = util::halfLabelXOR(B0, delta);
+    auto [A0Left, A0Right] = A0;
+    auto [B0Left, B0Right] = B0;
+    auto [A1Left, A1Right] = A1;
+    auto [B1Left, B1Right] = B1;
+    auto [deltaLeft, deltaRight] = delta;
+
+    //SampleR
+    auto rVec = sampleR(permuteBitA, permuteBitB);
+
+    //Calculate Zij
+    auto Zij = calcZij(A0, B0, A1, B1, rVec, permuteBitA, permuteBitB, delta);
+
+    //Prepend rVec to Z
+    Zij = calcRZ(rVec, Zij);
+    //VInvZ is calculated per discord picture
+    vector<vint> VInvZ = calcVZ(Zij);
+
+    //VInvRpABDelta is calculated per discord picture
+    vector<vint> VInvRpABDelta = calcVRP(A0Left, A0Right, B0Left, deltaLeft, deltaRight);
+    //Prepend 0's to all entries to make lenghts match (According to Lance)
+    for (int l = 0; l < 5; ++l) {
+        util::prependBitToVint(VInvRpABDelta[l], 0);
+    }
+
+    //HVecPrime is calculated per discord picture
+    vint hashA0;
+    vint hashA1;
+    vint hashB0;
+    vint hashB1;
+    vint hashA0xorB0;
+    vint hashA0xorB0xorDelta;
+    vector<vint> hashes({hashA0, hashA1, hashB0, hashB1, hashA0xorB0, hashA0xorB0xorDelta});
+    halfLabels A0xorB0 = {util::vecXOR(A0Left, B0Left), util::vecXOR(A0Right, B0Right)};
+    //A0 XOR B0 XOR Delta = A0 XOR B1
+    halfLabels A0xorB0xorDelta = {util::vecXOR(A0Left, B1Left), util::vecXOR(A0Right, B1Right)};
+    vector<halfLabels> inputs({A0, A1, B0, B1, A0xorB0, A0xorB0xorDelta});
+    if (h == util::RO) {
+        hashes = hashRO(k, hashes, inputs);
+    } else if(h==util::fast){
+        hashes = hashFast(k, hashRTCCR, A0, A1, B0, B1, A0Left, hashes, A0xorB0, A0xorB0xorDelta, inputs);
+
+    }
+    vint HA0 = hashes[0];
+    vint HA1 = hashes[1];
+    vint HB0 = hashes[2];
+    vint HB1 = hashes[3];
+    vint HA0xorB0 = hashes[4];
+    vint HA0xorB0xorDelta = hashes[5];
+
+    //make sure hash vectors extra bit is only one bit
+    sliceHashes(HA0, HA1, HB0, HB1, HA0xorB0, HA0xorB0xorDelta);
+
+
+    vector<vint> HVecPrime = calcHprime(HA0, HA1, HB0, HB1, HA0xorB0, HA0xorB0xorDelta);
+
+
+    vector<vint> CG(5);
+    vector<uint8_t> zVec(5);
+    //XOR stuff together
+    calcZCG(VInvZ, VInvRpABDelta, HVecPrime, CG, zVec);
+
+    uint64_t permuteBitCipher = CG[0][0] & 1;
+    halfLabels cipherLabel = {CG[0], CG[1]}; //C left and C right
+    if(permuteBitCipher == 1) {
+        cipherLabel = util::halfLabelXOR(cipherLabel, delta);
+    }
+    auto outputCipher = make_tuple(cipherLabel, permuteBitCipher);
+    labelAndPermuteBitPairs[outputWires[0]] = outputCipher;
+    F[outputWires[0]] = {CG[2], CG[3], CG[4], zVec};
+}
+
+vector<halfLabels> &threeHalves::calcRZ(vint &rVec, vector<halfLabels> &Zij) {
+    for (int l = 0; l < 4; ++l) {
+        auto [left, right] = Zij[l];
+        left = util::prependBitToVint(left, util::checkIthBit(rVec, l * 2));
+        right = util::prependBitToVint(right, util::checkIthBit(rVec, l * 2 + 1));
+        Zij[l] = {left, right};
+    }
+    return Zij;
+}
+
+void
+threeHalves::calcZCG(const vector<vint> &VInvZ, const vector<vint> &VInvRpABDelta, const vector<vint> &HVecPrime,
+                     vector<vint> &CG, vector<uint8_t> &zVec) {
+    for (int l = 0; l < 5; ++l) {
+        auto zConcatCG = util::vecXOR({VInvZ[l], VInvRpABDelta[l], HVecPrime[l]});
+        zVec[l] = (zConcatCG[zConcatCG.size()-1]);
+        zConcatCG.pop_back();
+        CG[l] = zConcatCG;
+    }
+}
+
+vector<vint>
+threeHalves::calcHprime(vint &HA0, vint &HA1, vint &HB0, vint &HB1, const vint &HA0xorB0, vint &HA0xorB0xorDelta) {
+    vector<vint> HVecPrime(5);
+    HVecPrime[0] = util::vecXOR(HA0, HA0xorB0);
+    HVecPrime[1] = util::vecXOR(HB0, HA0xorB0);
+    HVecPrime[2] = util::vecXOR(HA1, HA0);
+    HVecPrime[3] = util::vecXOR(HB1, HB0);
+    HVecPrime[4] = util::vecXOR(HA0xorB0xorDelta, HA0xorB0);
+    return HVecPrime;
+}
+
+void
+threeHalves::sliceHashes(vint &HA0, vint &HA1, vint &HB0, vint &HB1, vint &HA0xorB0, vint &HA0xorB0xorDelta) {
+    HA0[HA0.size() - 1] = HA0[HA0.size() - 1] & 1;
+    HA1[HA1.size() - 1] = HA1[HA1.size() - 1] & 1;
+    HB0[HB0.size() - 1] = HB0[HB0.size() - 1] & 1;
+    HB1[HB1.size() - 1] = HB1[HB1.size() - 1] & 1;
+    HA0xorB0[HA0xorB0.size() - 1] = HA0xorB0[HA0xorB0.size() - 1] & 1;
+    HA0xorB0xorDelta[HA0xorB0xorDelta.size() - 1] = HA0xorB0xorDelta[HA0xorB0xorDelta.size() - 1] & 1;
+}
+
+vector<vint> &
+threeHalves::hashFast(int k, hashRTCCR &hashRTCCR, halfLabels &A0, halfLabels &A1, halfLabels &B0, halfLabels &B1,
+                      const vint &A0Left, vector<vint> &hashes, halfLabels &A0xorB0, halfLabels &A0xorB0xorDelta,
+                      vector<halfLabels> &inputs) {
+    for (halfLabels lbl: inputs) {
+        get<0>(lbl).emplace_back(0);
+        get<1>(lbl).emplace_back(0);
+    }
+    uint64_t k64 = k;
+    vint tweak0 {((3 * k64) - 3)};
+    vint tweak1 {((3 * k64) - 2)};
+    vint tweak2 {((3 * k64) - 1)};
+
+    hashes[0] = hashRTCCR.hash(A0             , tweak0);
+    hashes[1] = hashRTCCR.hash(A1             , tweak0);
+    hashes[2] = hashRTCCR.hash(B0             , tweak1);
+    hashes[3] = hashRTCCR.hash(B1             , tweak1);
+    hashes[4] = hashRTCCR.hash(A0xorB0        , tweak2);
+    hashes[5] = hashRTCCR.hash(A0xorB0xorDelta, tweak2);
+
+    int size = hashes[0].size()-(A0Left.size()+1);
+    for (int j = 0; j < size; ++j) {
+        for (int hIx = 0; hIx < hashes.size(); ++hIx) {
+            hashes[hIx].pop_back();
+        }
+    }
+    return hashes;
+}
+
+vector<vint> &threeHalves::hashRO(int k, vector<vint> &hashes, const vector<halfLabels> &inputs) {
+    vector<vint> in_for_RO(inputs.size());
+    uint64_t tweak ((3 * k) - 3);
+    for (int j = 0; j < inputs.size(); ++j) {
+        //inputgen
+        in_for_RO[j] = util::vecConcat(get<0>(inputs[j]),get<1>(inputs[j]));
+        if (j==2||j==4){
+            tweak += 1;
+        }
+        hashes[j] = util::hash_variable(in_for_RO[j], {tweak}, ((k / 2) + 8));
+    }
+    return hashes;
+}
+
+vector<vint>
+threeHalves::calcVRP(const vint &A0Left, const vint &A0Right, const vint &B0Left, const vint &deltaLeft,
+                     const vint &deltaRight) {
+    vector<vint> VInvRpABDelta(5);
+    VInvRpABDelta[0] = B0Left;
+    VInvRpABDelta[1] = A0Right;
+    VInvRpABDelta[2] = util::vecXOR(deltaRight, B0Left);
+    VInvRpABDelta[3] = util::vecXOR(deltaLeft, A0Right);
+    vint zeroes(A0Left.size());
+    VInvRpABDelta[4] = zeroes;
+    return VInvRpABDelta;
+}
+
+vector<vint> threeHalves::calcVZ(const vector<halfLabels> &Zij) {
+    vector<vint> VInvZ(5);
+    VInvZ[0] = get<0>(Zij[0]);
+    VInvZ[1] = get<1>(Zij[0]);
+    VInvZ[2] = util::vecXOR({get<0>(Zij[2]), get<1>(Zij[2]), get<0>(Zij[0]), get<1>(Zij[0])});
+    VInvZ[3] = util::vecXOR({get<0>(Zij[1]), get<1>(Zij[1]), get<0>(Zij[0]), get<1>(Zij[0])});
+    VInvZ[4] = util::vecXOR(get<0>(Zij[3]), get<0>(Zij[2]));
+    return VInvZ;
+}
+
+void threeHalves::gateINV(halfLabels &invConst, const vector<int> &outputWires, const vector<int> &inputWires,
+                          vector<tuple<halfLabels, int>> &labelAndPermuteBitPairs,
+                          tuple<halfLabels, int> &A0AndPermuteBit) {
+    A0AndPermuteBit = labelAndPermuteBitPairs[inputWires[0]];
+
+    halfLabels A0 = get<0>(A0AndPermuteBit);
+    vint leftHalf = util::vecXOR(get<0>(A0), get<0>(invConst));
+    vint rightHalf = util::vecXOR(get<1>(A0), get<1>(invConst));
+    int APermuteBit = get<1>(A0AndPermuteBit);
+    int icPermuteBit = get<0>(invConst)[0] & 1;
+    int permuteBitXOR = APermuteBit ^ icPermuteBit;
+
+    halfLabels outputLabel = {leftHalf, rightHalf};
+    auto outputCipher = make_tuple(outputLabel, 1- permuteBitXOR);
+
+    labelAndPermuteBitPairs[outputWires[0]] = outputCipher;
+}
+
+void threeHalves::gateXOR(const vector<int> &inputWires, const vector<int> &outputWires,
+                          vector<tuple<halfLabels, int>> &labelAndPermuteBitPairs,
+                          tuple<halfLabels, int> &A0AndPermuteBit, tuple<halfLabels, int> &B0AndPermuteBit) {
+    A0AndPermuteBit = labelAndPermuteBitPairs[inputWires[0]];
+    B0AndPermuteBit = labelAndPermuteBitPairs[inputWires[1]];
+
+    halfLabels A0 = get<0>(A0AndPermuteBit);
+    halfLabels B0 = get<0>(B0AndPermuteBit);
+    vint leftHalf = util::vecXOR(get<0>(A0), get<0>(B0));
+    vint rightHalf = util::vecXOR(get<1>(A0), get<1>(B0));
+    int APermuteBit = get<1>(A0AndPermuteBit);
+    int BPermuteBit = get<1>(B0AndPermuteBit);
+    int permuteBitXOR = APermuteBit ^ BPermuteBit;
+
+    halfLabels outputLabel = {leftHalf, rightHalf};
+    auto outputCipher = make_tuple(outputLabel, permuteBitXOR);
+
+    labelAndPermuteBitPairs[outputWires[0]] = outputCipher;
+}
+
+void
+threeHalves::initInputLabels(int k, int numberOfInputBits, vector<tuple<halfLabels, int>> &labelAndPermuteBitPairs,
+                             vector<tuple<halfLabels, int>> &inputLabelAndPermuteBitPairs) {
+    for (int i = 0; i < numberOfInputBits; i++){
+        auto label0 = genLabelHalves(k);
+        auto permuteBit = (int)util::random_bitset<1>().to_ulong();
+        labelAndPermuteBitPairs[i] = {label0, permuteBit};
+        inputLabelAndPermuteBitPairs[i] = {label0, permuteBit};
+    }
 }
 
 vector<halfLabels> threeHalves::encode(tuple<halfDelta, vector<tuple<halfLabels, int>>> e, vector<int> x) {
