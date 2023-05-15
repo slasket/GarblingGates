@@ -62,7 +62,7 @@ void threehalves_Test() {
     int lInput =6;
     int rInput = 1;
     auto xb = vector<int>{1,1,0,0,0,1,1};
-    auto Cb = circuitParser::parseCircuit("../tests/circuits/BloodComp.txt");
+    auto Cb = circuitParser::parse("../tests/circuits/BloodComp.txt");
 
     auto [Fb, eb, db, icb, hashb] = threeHalves::garble(Cb, 128, util::fast);
     auto encLabelsb = threeHalves::encode(eb, xb);
@@ -72,7 +72,7 @@ void threehalves_Test() {
 
     cout << (yb[0]==bloodCompAns) << endl;
 
-    vector<string> smalltest = {"1 3", "2 1 1", "1 1", "2 1 0 1 2 AND"};
+    auto smalltest = circuitParser::parse("../tests/circuits/andTest.txt");
     int k = 256;
     int h = 1;
     auto [F,e,d,ic, hash] = threeHalves::garble(smalltest, k, util::fast);

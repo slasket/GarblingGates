@@ -276,26 +276,26 @@ public:
         switch (type) {
             case util::scheme::baseline:{
                 boost::timer timer;
-                auto [F,e,d] = baseGarble::garble(f, k, hashfunc);//needs hash type
+                auto [F,e,d] = baseGarble::garble(f2, k, hashfunc);//needs hash type
                 auto hash = get<2>(F);
                 timings[0] += timer.elapsed();
                 auto base_X = baseGarble::encode(e, x);
                 timer.restart();
-                auto base_Y = baseGarble::eval(F, base_X, f, k);
+                auto base_Y = baseGarble::eval(F, base_X, f2, k);
                 timings[1] += timer.elapsed();
                 auto base_y = baseGarble::decode(d, base_Y, k, hash);
                 break;
             }
             case util::threehalves:{
                 boost::timer timer;
-                auto [three_F,three_e,three_d, three_ic, three_hash] = threeHalves::garble(f, k, hashfunc);
+                auto [three_F,three_e,three_d, three_ic, three_hash] = threeHalves::garble(f2, k, hashfunc);
                 timings[0] += timer.elapsed();
                 auto three_X = threeHalves::encode(three_e, x);
 
                 timer.restart();
-                auto three_Y = threeHalves::eval(three_F, three_X, f, k, three_ic, three_hash, hashfunc);
+                auto three_Y = threeHalves::eval(three_F, three_X, f2, k, three_ic, three_hash, hashfunc);
                 timings[1] += timer.elapsed();
-                auto three_y = threeHalves::decode(three_d, three_Y, f, k);
+                auto three_y = threeHalves::decode(three_d, three_Y, f2, k);
 
                 break;
             }
@@ -358,7 +358,7 @@ public:
                 title = "baseline w. ";
                 cout<<title << hashtype<<endl;
                 auto t1 = high_resolution_clock::now();
-                auto [F,e,d] = baseGarble::garble(f, k, hashfunc);//needs hash type
+                auto [F,e,d] = baseGarble::garble(f2, k, hashfunc);//needs hash type
 
                 auto t2 = high_resolution_clock::now();
                 duration<double, std::milli> ms_double = t2 - t1;
@@ -366,7 +366,7 @@ public:
                 auto hash = get<2>(F);
                 auto base_X = baseGarble::encode(e, x);
                 t1 = high_resolution_clock::now();
-                auto base_Y = baseGarble::eval(F, base_X, f, k);
+                auto base_Y = baseGarble::eval(F, base_X, f2, k);
                 t2 = high_resolution_clock::now();
                 ms_double = t2 - t1;
                 cout<< "evaluation: " <<ms_double.count()<< "ms"<<endl;
@@ -378,7 +378,7 @@ public:
                 title = "three halves w. ";
                 cout<<title << hashtype<<endl;
                 auto t1 = high_resolution_clock::now();
-                auto [three_F,three_e,three_d, three_ic, three_hash] = threeHalves::garble(f, k, hashfunc);
+                auto [three_F,three_e,three_d, three_ic, three_hash] = threeHalves::garble(f2, k, hashfunc);
                 auto t2 = high_resolution_clock::now();
                 duration<double, std::milli> ms_double = t2 - t1;
                 cout<< "garbling: " <<ms_double.count()<< "ms"<<endl;
@@ -386,12 +386,12 @@ public:
                 auto three_X = threeHalves::encode(three_e, x);
 
                 t1 = high_resolution_clock::now();
-                auto three_Y = threeHalves::eval(three_F, three_X, f, k, three_ic, three_hash, hashfunc);
+                auto three_Y = threeHalves::eval(three_F, three_X, f2, k, three_ic, three_hash, hashfunc);
                 t2 = high_resolution_clock::now();
                 ms_double = t2 - t1;
                 cout<< "evaluation: " <<ms_double.count()<< "ms"<<endl;
 
-                auto three_y = threeHalves::decode(three_d, three_Y, f, k);
+                auto three_y = threeHalves::decode(three_d, three_Y, f2, k);
                 cout<< "three: " << three_y[0] <<endl;
                 break;
             }
