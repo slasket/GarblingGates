@@ -333,7 +333,7 @@ vint baseGarble::evalGate(const vint &invConst, int k,
             }
         }
     }
-    return cipher;
+   return cipher;
 }
 
 vint baseGarble::decode(vector<labelPair> d, vector<vint> Y, int k, hashRTCCR hash) {

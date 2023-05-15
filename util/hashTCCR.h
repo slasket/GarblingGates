@@ -50,7 +50,7 @@ public:
 
     hashTCCR(int k){//, vint key={0}){
         this->iv = util::genBitsNonCrypto(128);
-        this->key =  util::genBitsNonCrypto(128);
+        this->key= util::genBitsNonCrypto(128);
         this->u1 = util::genBitsNonCrypto((k/2));
         this->u2 = util::genBitsNonCrypto((k/2));
         this->e = AES_vint_init(key,iv);

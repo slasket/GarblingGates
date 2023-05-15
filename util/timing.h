@@ -23,7 +23,7 @@ using namespace std;
 class timing{
 public:
     static void testLabelLength(int label_incs=7) {
-        auto amount = 1000000;
+        auto amount = 100000;
 
         vint key = util::genBitsNonCrypto(256);
         vint iv = util::genBitsNonCrypto(256);
@@ -218,6 +218,7 @@ public:
         vector<double> three(2);
         vector<double> ate(2);
         vector<double> ate_f(2);
+        vector<vector<::uint64_t>> dataSize({{0,0,0},{0,0,0},{0,0,0},{0,0,0}});
         int inputsize = circuitParser::inputsize(f);
 
 
@@ -232,36 +233,52 @@ public:
         for (int i = 0; i < repetitions; ++i) {
             //inputgen
             vector<int> x = util::genFunctionInput(inputsize);
-            runGarble(f,f2, util::baseline, k, hashfunc, baseline, x);
-            runGarble(f,f2, util::threehalves, k, hashfunc, three, x);
-            runGarble(f,f2, util::ateca, k, hashfunc, ate, x);
-            runGarble(f,f2, util::atecaFXOR, k, hashfunc, ate_f, x);
+            runGarble(f,f2, util::baseline, k, hashfunc, baseline, x, dataSize);
+            runGarble(f,f2, util::threehalves, k, hashfunc, three, x, dataSize);
+            runGarble(f,f2, util::ateca, k, hashfunc, ate, x, dataSize);
+            runGarble(f,f2, util::atecaFXOR, k, hashfunc, ate_f, x, dataSize);
         }
 
-        printResult(util::baseline, baseline, hashfunc);
-        printResult(util::threehalves, three, hashfunc);
-        printResult(util::ateca, ate, hashfunc);
-        printResult(util::atecaFXOR, ate_f, hashfunc);
+        printResult(util::baseline, baseline, hashfunc, dataSize, repetitions, f2);
+        printResult(util::threehalves, three, hashfunc, dataSize, repetitions, f2);
+        printResult(util::ateca, ate, hashfunc, dataSize, repetitions, f2);
+        printResult(util::atecaFXOR, ate_f, hashfunc, dataSize, repetitions, f2);
 
     }
 
-    static void printResult(util::scheme scheme, const vector<double> &baseline, util::hashtype hashfunc) {
+    static void printResult(util::scheme scheme, const vector<double> &baseline, util::hashtype hashfunc,vector<vector<::uint64_t>>& dataSize, int repetitions, circuit& f2) {
         string title;
+        //all and gates
+        auto gates =  6400;
+        int hashSize; int Fsize; int decodingsize;
         switch (scheme) {
             case util::baseline: {
                 title = "###baseline###";
+                hashSize = dataSize[0][0];
+                Fsize = dataSize[0][1];
+                decodingsize = dataSize[0][2];
                 break;
             }
             case util::threehalves: {
                 title = "###threehalves###";
+                hashSize = dataSize[1][0];
+                Fsize = dataSize[1][1];
+                decodingsize = dataSize[1][2];
                 break;
             }
             case util::ateca: {
                 title = "###ateca###";
+                hashSize = dataSize[2][0];
+                Fsize = dataSize[2][1];
+                decodingsize = dataSize[2][2];
+                gates = circuitParser::getGates(f2);
                 break;
             }
             case util::atecaFXOR: {
                 title = "###atecaFXOR###";
+                hashSize = dataSize[3][0];
+                Fsize = dataSize[3][1];
+                decodingsize = dataSize[3][2];
                 break;
             }
         }
@@ -269,10 +286,17 @@ public:
         vector<string> categories = {"garble", "eval"};
         for (int i = 0; i < 2; ++i) {
             cout << categories[i] << " " << baseline[i] << " s" << endl;
+
         }
+
+        auto outWires = circuitParser::getOutBits(f2);
+        cout<< "hashSize: " << hashSize/repetitions << " bits"<<endl;
+        cout<< "FSize:    " << (Fsize/gates)/repetitions <<" x" << gates<< " bits"<<endl;
+        cout<< "Decoding: " << (decodingsize/outWires)/repetitions <<" x" << outWires<< " bits"<<endl;
+        cout<< "total:    " << ((hashSize+Fsize+decodingsize)/repetitions) *0.000125<< " KB"<<endl;
     }
 
-    static void runGarble(const vector<string> &f, circuit& f2, util::scheme type, int k, util::hashtype &hashfunc, vector<double> &timings, vector<int> &x) {
+    static void runGarble(const vector<string> &f, circuit& f2, util::scheme type, int k, util::hashtype &hashfunc, vector<double> &timings, vector<int> &x, vector<vector<::uint64_t>> &dataSize) {
         switch (type) {
             case util::scheme::baseline:{
                 boost::timer timer;
@@ -284,6 +308,28 @@ public:
                 auto base_Y = baseGarble::eval(F, base_X, f2, k);
                 timings[1] += timer.elapsed();
                 auto base_y = baseGarble::decode(d, base_Y, k, hash);
+
+                auto [Inv,GarbF,h] = F;
+                auto size = h.getU1().size();
+                size += h.getU2().size();
+                size += h.getAlpha().size();
+                size += h.getIv().size();
+                //size += h.getKey().size();
+                //size += sizeof(h.getE());
+                //the E struct is 512 bits in size
+                dataSize[0][0] += size*64;
+
+                for (int i = 0; i < GarbF.size(); ++i) {
+                    auto xd = GarbF[i];
+                    auto firstVint = get<0>(xd);
+                    if (firstVint.size()!=0){
+                        dataSize[0][1] += 2*k;
+                    }
+                }
+
+                auto dtuples = d.size();
+                dataSize[0][2] += dtuples*2*k;
+
                 break;
             }
             case util::threehalves:{
@@ -297,6 +343,27 @@ public:
                 timings[1] += timer.elapsed();
                 auto three_y = threeHalves::decode(three_d, three_Y, f2, k);
 
+                auto h = three_hash;
+                auto size = h.getU1().size();
+                size += h.getU2().size();
+                size += h.getAlpha().size();
+                size += h.getIv().size();
+                //size += h.getKey().size();
+                //size += sizeof(h.getE());
+                //the E struct is 512 bits in size
+                dataSize[1][0] += size*64;
+
+                auto tuples = three_F.size();
+                for (int i = 0; i < three_F.size(); ++i) {
+                    if (get<0>(three_F[i]).size()!=0){
+                        dataSize[1][1] += 3*(k/2)+8;
+                    }
+                }
+                //the unit8 should be  sin single value lol.
+
+                auto dtuples = three_d.size();
+                dataSize[1][2] += dtuples*2*k;
+
                 break;
             }
             case util::ateca:{
@@ -309,6 +376,32 @@ public:
                 auto ate_Y = atecaGarble::eval(ate_F, ate_X, f2, ate_k, ate_ic, ate_hash);
                 timings[1] += timer.elapsed();
                 auto ate_y = atecaGarble::decode(ate_Y, ate_d, ate_hash);
+
+
+
+                auto h = ate_hash;
+                //auto size = h.getU1().size();
+                //size += h.getU2().size();
+                auto size = h.getIv().size();
+                //size += h.getKey().size();
+                //size += sizeof(h.getE());
+                //the E struct is 512 bits in size
+                dataSize[2][0] += size*64;
+
+                auto approxkeysize =0;
+                for (int i = 0; i < ate_F.size(); ++i) {
+                    for (int j = 0; j < ate_F[i].size(); ++j) {
+                        if (ate_F[i][j]!=0){
+                            approxkeysize +=64;
+                        }
+                    }
+                }
+
+                dataSize[2][1] += approxkeysize;
+
+                auto decodingVals = ate_d.size();
+                dataSize[2][2] += decodingVals*k;
+
                 break;
             }
             case util::atecaFXOR:{
@@ -321,6 +414,30 @@ public:
                 auto atef_Y = atecaFreeXOR::eval(atef_F, atef_X, f2, atef_k, atef_ic, atef_hash);
                 timings[1] += timer.elapsed();
                 auto atef_y = atecaFreeXOR::decode(atef_Y, atef_d, atef_hash);
+
+                auto h = atef_hash;
+                auto size = h.getU1().size();
+                size += h.getU2().size();
+                size += h.getIv().size();
+                //size += h.getKey().size();
+                size += sizeof(h.getE());
+                //the E struct is 512 bits in size
+                dataSize[3][0] += size*64;
+
+                auto approxkeysize =0;
+                for (int i = 0; i < atef_F.size(); ++i) {
+                    for (int j = 0; j < atef_F[i].size(); ++j) {
+                        if (atef_F[i][j]!=0){
+                            approxkeysize +=64;
+                        }
+                    }
+                }
+
+                dataSize[3][1] += approxkeysize;
+
+                auto decodingVals = atef_d.size();
+                dataSize[3][2] += decodingVals*k;
+
                 break;
             }
         }
