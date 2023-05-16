@@ -47,6 +47,20 @@ private:
     static tuple<vint, vint> ateFXorSlicing(const vint& X_00, const vint& X_01, const vint& X_10, const vint& X_11);
 
     static int ateFXORSliceCheck(const vint &globalDelta, const vint& d0flags, const vint& d1flags, int hw, int j);
+
+    static void
+    invGate(const tuple<vint, vint> &invVar, const vector<tuple<vint, vint>> &wires, vector<vint> &garbledGate,
+            int &out,
+            vector<int> &inWires, vector<int> &outWires);
+
+
+    static void xorGate(vector<tuple<vint, vint>> &wires, vector<vint> &garbledGate, int &out, vector<int> &inWires,
+                        vector<int> &outWires);
+
+    static void
+    andGate(int k, const vint &globalDelta, const vector<tuple<vint, vint>> &wires, int gateNo, hashTCCR &c,
+            vector<vint> &F,
+            vector<vint> &garbledGate, int &out, vector<int> &inWires, vector<int> &outWires);
 };
 
 

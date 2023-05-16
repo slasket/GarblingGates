@@ -336,7 +336,7 @@ tuple<vint, vint> atecaGarble::genInvVar(int k) {
     return {lw0,lw1};
 }
 
-vint inline atecaGarble::masksForSlices(const vint& X_00, const vint& X_01, const vint& X_10, const vint& X_11, const string& typ) {
+vint atecaGarble::masksForSlices(const vint& X_00, const vint& X_01, const vint& X_10, const vint& X_11, const string& typ) {
     //l00a0 is X_00 inverted
     auto l00a0 = util::vecInvert(X_00);
     //l01a0

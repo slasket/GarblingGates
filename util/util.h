@@ -46,14 +46,14 @@ public:
     //template for splitting strings taken from:
     // https://stackoverflow.com/questions/236129/how-do-i-iterate-over-the-words-of-a-string
     template <typename Out>
-    static  void split(const std::string &s, char delim, Out result) {
+    static void split(const std::string &s, char delim, Out result) {
         std::istringstream iss(s);
         std::string item;
         while (std::getline(iss, item, delim)) {
             *result++ = item;
         }
     }
-    static  std::vector<std::string> split(const std::string &s, char delim) {
+    static std::vector<std::string> split(const std::string &s, char delim) {
         std::vector<std::string> elems;
         split(s, delim, std::back_inserter(elems));
         return elems;
@@ -77,7 +77,7 @@ public:
         }
         return res;
     }
-    static  std::string uintVec2Str(std::vector<::uint64_t>vec){
+    static std::string uintVec2Str(std::vector<::uint64_t>vec){
         std::stringstream res;
         copy(vec.begin(),vec.end(),std::ostream_iterator<::uint64_t>(res));
         return res.str();
@@ -123,7 +123,7 @@ public:
         wiresLabel = make_pair(a0, a1);
     }
 
-    static  vector <::uint64_t> genBitsNonCrypto(int bits) {
+    static vector <::uint64_t> genBitsNonCrypto(int bits) {
         auto res = vector<::uint64_t>((bits+64-1)/64);
         for (int blockNum = 0; blockNum <(bits+64-1)/64; ++blockNum) {
             res[blockNum] = random_bitset<64>().to_ullong();
@@ -134,7 +134,7 @@ public:
     }
     //ith bit of vector might have fucked up indexing, nice (:
     //checks right to left
-    static  int checkIthBit(vector<uint64_t> ui, int i) {
+    static int checkIthBit(vector<uint64_t> ui, int i) {
         //ith bit
         int bit = i%64;
         //find block
@@ -142,29 +142,29 @@ public:
         return checkBit(ui[block],bit);
     }
 
-    static  int checkBit(::uint64_t num, int i){  //# From https://stackoverflow.com/questions/18111488/convert-integer-to-binary-in-python-and-compare-the-bits
+    static int checkBit(::uint64_t num, int i){  //# From https://stackoverflow.com/questions/18111488/convert-integer-to-binary-in-python-and-compare-the-bits
         return (num >> i) & 1;
     }
 
-    static  int ithBitL2R(const vector<uint64_t>& v, int i){
+    static int ithBitL2R(const vector<uint64_t>& v, int i){
         int block = i / 64;
         return checkBitL2R(v[block],(63-(i%64)));
     }
 
     //this has reverse index, will check from the left most bit
     //checks left to right
-    static  int checkBitL2R(::uint64_t num, int i){  //# From https://stackoverflow.com/questions/18111488/convert-integer-to-binary-in-python-and-compare-the-bits
+    static int checkBitL2R(::uint64_t num, int i){  //# From https://stackoverflow.com/questions/18111488/convert-integer-to-binary-in-python-and-compare-the-bits
         return (num >> i) & 1;
     }
 
-    static  void setIthBitTo1L2R(vector<uint64_t>* vec, int pos){
+    static void setIthBitTo1L2R(vector<uint64_t>* vec, int pos){
         int block = pos / 64;
         int index = (63-(pos%64));
         //::int64_t val = (*vec)[block];
         auto oneshifted = ((uint64_t)1) << index;
         (*vec)[block] |= oneshifted;
     }
-    static  uint64_t setBit1L2R(uint64_t a, int pos){
+    static uint64_t setBit1L2R(uint64_t a, int pos){
         int index = (63-(pos%64));
         auto oneshifted = ((uint64_t)1) << (63-(pos%64));
         //_bittestandset64(&sval, index);
@@ -172,7 +172,7 @@ public:
         return a;
     }
 
-    static  vector<::uint64_t> vecXOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
+    static vector<::uint64_t> vecXOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
         auto size = max(left.size(),right.size());
         left.reserve(size);
         for (int i = 0; i < size; ++i) {
@@ -186,45 +186,45 @@ public:
         return left;
     }
 
-    static  vint vecXOR(const vector<vint>& vints){
+    static vint vecXOR(const vector<vint>& vints){
         vint res = vints[0];
         for (int i = 1; i < vints.size(); ++i) {
             res = vecXOR(res,vints[i]);
         }
         return res;
     }
-    static  vector<::uint64_t> vecAND(vector<::uint64_t>left, const vector<::uint64_t>& right){
+    static vector<::uint64_t> vecAND(vector<::uint64_t>left, const vector<::uint64_t>& right){
         for (int i = 0; i < left.size(); ++i) {
             left[i] = left[i] & right[i];
         }
         return left;
     }
-    static  vector<::uint64_t> vecOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
+    static vector<::uint64_t> vecOR(vector<::uint64_t>left, const vector<::uint64_t>& right){
         for (int i = 0; i < left.size(); ++i) {
             left[i] = left[i] | right[i];
         }
         return left;
     }
 
-    static  vector<::uint64_t> vecAndStatic(vector<::uint64_t> v, ::uint64_t s){
+    static vector<::uint64_t> vecAndStatic(vector<::uint64_t> v, ::uint64_t s){
         for (int i = 0; i < v.size(); ++i) {
             v[i] = v[i] & s;
         }
         return v;
     }
     //computes the nor operation
-    static  uint64_t norOP(uint64_t a, uint64_t b){
+    static uint64_t norOP(uint64_t a, uint64_t b){
         return ~(~(~(a) & ~(b)));
     }
 
-    static  vector<::uint64_t> vecNorStatic(vector<::uint64_t> v, ::uint64_t s){
+    static vector<::uint64_t> vecNorStatic(vector<::uint64_t> v, ::uint64_t s){
         for (int i = 0; i <v.size(); ++i) {
             v[i] = norOP(v[i],s);
         }
         return v;
     }
 
-    static  vector<::uint64_t> vecInvert(vector<::uint64_t> v){
+    static vector<::uint64_t> vecInvert(vector<::uint64_t> v){
         for (int i = 0; i <v.size(); ++i) {
             v[i] = ~v[i];
         }
@@ -234,7 +234,7 @@ public:
 
     //taken from https://www.appsloveworld.com/cplus/100/112/c-efficient-way-to-generate-random-bitset-with-configurable-mean-1s-to-0s-r
     template< size_t size>
-    static  typename std::bitset<size> random_bitset( double p = 0.5) {
+    static typename std::bitset<size> random_bitset( double p = 0.5) {
 
         typename std::bitset<size> bits;
         std::random_device rd;
@@ -249,17 +249,17 @@ public:
     }
 
     //taken from https://helloacm.com/c-coding-exercise-number-of-1-bits-revisited/
-    static  int hammingWeight(uint64_t x) {
+    static int hammingWeight(uint64_t x) {
         x -= (x >> 1) & 0x5555555555555555;             //put count of each 2 bits into those 2 bits
         x = (x & 0x3333333333333333) + ((x >> 2) & 0x3333333333333333); //put count of each 4 bits into those 4 bits
         x = (x + (x >> 4)) & 0x0f0f0f0f0f0f0f0f;        //put count of each 8 bits into those 8 bits
         return (x * 0x0101010101010101) >> 56;  //returns left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ...
     }
-    //static  int fastHW(::uint64_t x){
+    //static int fastHW(::uint64_t x){
     //    return _mm_popcnt_u64(x);
     //}
 
-    static  int vecHW(const vector<uint64_t>& x) {
+    static int vecHW(const vector<uint64_t>& x) {
         int hw = 0;
         for (int i = 0; i < x.size(); ++i) {
             hw += hammingWeight(x[i]);
@@ -268,7 +268,7 @@ public:
     }
 
     //perform variable output length hash
-    static  vector<uint64_t> hash_variable(const vint& in, const vint& tweak , int output_length_bits = 128)
+    static vector<uint64_t> hash_variable(const vint& in, const vint& tweak , int output_length_bits = 128)
     {
         //append tweak
         vector<::uint64_t> input = in;
@@ -358,10 +358,10 @@ public:
 
     }
 
-    static  ::uint64_t leftShiftFill1(::uint64_t x){
+    static ::uint64_t leftShiftFill1(::uint64_t x){
         return ~((~x)<<1);
     }
-    static  vector<bitset<64>> insertBitVecBitset(vector<bitset<64>> vec, int bit, int i){
+    static vector<bitset<64>> insertBitVecBitset(vector<bitset<64>> vec, int bit, int i){
 
         int block = i/64;
         //for left to right insertion
@@ -372,7 +372,7 @@ public:
         return vec;
     }
 
-    static   string
+    static  string
     sliceVecL2R(const vint& X_00, const vint& X_01, const vint& X_10, const vint& X_11, int j) {
         int x00j = ithBitL2R(X_00,j);
         int x01j = ithBitL2R(X_01,j);
@@ -381,7 +381,7 @@ public:
         return to_string(x00j).append(to_string(x01j)).append(to_string(x10j)).append(to_string(x11j));
     }
 
-    static  string
+    static string
     sliceVecL2RAtecaFreeXorSpecial(const vint& globalDelta, const vint& X_00, const vint& X_01, const vint& X_10, const vint& X_11, int jprime, int j) {
         int gdj = ithBitL2R(globalDelta,jprime);
         int x00j = ithBitL2R(X_00,j);
@@ -392,7 +392,7 @@ public:
     }
 
 
-    static  int getBits(string &f) {
+    static int getBits(string &f) {
         int numberOfInputBits= 0;
         auto split = util::split(f, ' ');
         int numberOfInputWires = stoi(split[0]);
@@ -425,26 +425,25 @@ public:
         return make_tuple(inputWires, outputWires, gateType);
     }
 
-    static  halfLabels halfLabelXOR(halfLabels &input1, halfLabels &input2) {
-        auto [left1, right1] = input1;
-        auto [left2, right2] = input2;
-        auto newLeft = vecXOR(left1, left2);
-        auto newRight = vecXOR(right1, right2);
-        //auto newLeft = vecXOR(get<0>(input1), get<0>(input2));
-        //auto newRight = vecXOR(get<1>(input1), get<1>(input2));
-
+    static halfLabels halfLabelXOR(halfLabels &input1, halfLabels &input2) {
+        //auto [left1, right1] = input1;
+        //auto [left2, right2] = input2;
+        //auto newLeft = vecXOR(left1, left2);
+        //auto newRight = vecXOR(right1, right2);
+        auto newLeft = vecXOR(get<0>(input1), get<0>(input2));
+        auto newRight = vecXOR(get<1>(input1), get<1>(input2));
         return {newLeft, newRight};
     }
-    static  vint prependBitToVint(vint &label, uint64_t bit) {
+    static vint prependBitToVint(vint &label, uint64_t bit) {
         label.push_back(bit);
         return label;
     }
-    static  string halfLabelsToFullLabelString(halfLabels &halfLabel){
+    static string halfLabelsToFullLabelString(halfLabels &halfLabel){
         auto [left, right] = halfLabel;
         return uintVec2Str(left) + uintVec2Str(right);
     }
 
-    static  vector<int> genFunctionInput(int bits) {
+    static vector<int> genFunctionInput(int bits) {
         vector<int> x;
         x.reserve(bits);
         for (int i = 0; i < bits; ++i) {
@@ -474,7 +473,7 @@ public:
      * moved up
      * a o b 0100 1000 0000 ...
      */
-    static  vint projection(const vint& a,const vint& b){
+    static vint projection(const vint& a,const vint& b){
         //projection A o B means take the bit A[i] if B[i]=1
         int k = util::vecHW(b);
         int uintsNeeded = k / 64 + ((k % 64 != 0) ? 1 : 0);
@@ -497,7 +496,7 @@ public:
         return res;
     }
 
-    static  vint fastproj(const vint& a, const vint& b, const int& k) {
+    static vint fastproj(const vint& a, const vint& b, const int& k) {
         //projection A o B means take the bit A[i] if B[i]=1
         //int k = util::vecHW(b);
         int uintsNeeded = k / 64 + ((fast_modulo(k,64) != 0) ? 1 : 0);
@@ -530,7 +529,7 @@ public:
         return input >= ceil ? input % ceil : input;
         // NB: the assumption here is that the numbers are positive
     }
-    static  vint vecConcat(vint a, const vint& b){
+    static vint vecConcat(vint a, const vint& b){
         a.insert(a.end(), b.begin(), b.end());
         return a;
     }

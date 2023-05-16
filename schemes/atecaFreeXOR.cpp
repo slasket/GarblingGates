@@ -78,33 +78,15 @@ atecaFreeXOR::GarbleCircuit(int k, circuit &C, vector<tuple<vint, vint>> encodin
         //inverse gate hack
         ///CHECK FOR XOR OR INVERSE
         if (type == "INV") {
-            int in0 = inWires[0];
-            //int in1 = stoi(gateInfo[3]);
-            out = outWires[0];
-
-            //calculate garble
-            ///must return L0, L1, Delta
-            auto l0= util::vecXOR(get<1>(wires[in0]),get<1>(invVar));
-            auto l1= util::vecXOR(get<0>(wires[in0]),get<1>(invVar));
-            garbledGate = {l0,l1};
+            invGate(invVar, wires, garbledGate, out, inWires, outWires);
 
         } else if(type == "XOR"){
-            int in0 = inWires[0];
-            int in1 = inWires[1];
-            out = outWires[0];
+            xorGate(wires, garbledGate, out, inWires, outWires);
 
-            auto l0= util::vecXOR(get<0>(wires[in0]),get<0>(wires[in1]));
-            auto l1= util::vecXOR(get<0>(wires[in0]),get<1>(wires[in1]));
-            garbledGate = {l0,l1};
         }//AndGate
         else {
-            int in0 = inWires[0];
-            int in1 = inWires[1];
-            out = outWires[0];
+            andGate(k, globalDelta, wires, gateNo, c, F, garbledGate, out, inWires, outWires);
 
-            //calculate garble
-            garbledGate = Gate(wires[in0], wires[in1], gateNo, k, globalDelta, c);
-            F[gateNo] = garbledGate[2];
         }
         //add Delta to F set for a Gate
         //if (gateInfo[4]=="INV" ||gateInfo[5]=="XOR"){
@@ -121,6 +103,44 @@ atecaFreeXOR::GarbleCircuit(int k, circuit &C, vector<tuple<vint, vint>> encodin
 
     return {F,D, invVar,c};
 }
+
+void
+atecaFreeXOR::andGate(int k, const vint &globalDelta, const vector<tuple<vint, vint>> &wires, int gateNo, hashTCCR &c,
+                      vector<vint> &F, vector<vint> &garbledGate, int &out, vector<int> &inWires, vector<int> &outWires) {
+    int in0 = inWires[0];
+    int in1 = inWires[1];
+    out = outWires[0];
+
+    //calculate garble
+    garbledGate = Gate(wires[in0], wires[in1], gateNo, k, globalDelta, c);
+    F[gateNo] = garbledGate[2];
+}
+
+void
+atecaFreeXOR::xorGate(vector<tuple<vint, vint>> &wires, vector<vint> &garbledGate, int &out, vector<int> &inWires,
+                      vector<int> &outWires) {
+    int in0 = inWires[0];
+    int in1 = inWires[1];
+    out = outWires[0];
+
+    auto l0= util::vecXOR(get<0>(wires[in0]),get<0>(wires[in1]));
+    auto l1= util::vecXOR(get<0>(wires[in0]),get<1>(wires[in1]));
+    garbledGate = {l0,l1};
+}
+
+void atecaFreeXOR::invGate(const tuple<vint, vint> &invVar, const vector<tuple<vint, vint>> &wires,
+                           vector<vint> &garbledGate, int &out, vector<int> &inWires, vector<int> &outWires) {
+    int in0 = inWires[0];
+    //int in1 = stoi(gateInfo[3]);
+    out = outWires[0];
+
+    //calculate garble
+///must return L0, L1, Delta
+    auto l0= util::vecXOR(get<1>(wires[in0]),get<1>(invVar));
+    auto l1= util::vecXOR(get<0>(wires[in0]),get<1>(invVar));
+    garbledGate = {l0,l1};
+}
+
 
 vector<vint>
 atecaFreeXOR::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, int gateNo, int k,
@@ -361,7 +381,7 @@ inline tuple<vint, vint> atecaFreeXOR::ateFXorSlicing(const vint& X_00, const vi
 
 }
 
-inline int atecaFreeXOR::ateFXORSliceCheck(const vint& globalDelta, const vint& d0flags, const vint& d1flags, int hw, int j) {
+int atecaFreeXOR::ateFXORSliceCheck(const vint& globalDelta, const vint& d0flags, const vint& d1flags, int hw, int j) {
     int gdj = util::ithBitL2R(globalDelta,hw);
     if (gdj){
         //if gdj is 1 check d1flags for a 1

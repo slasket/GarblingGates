@@ -31,26 +31,17 @@ threeHalves::garble(circuit f, int k, util::hashtype h) {
     Ftype F(numberOfWires);
     for (int i = 2; i < f.size(); ++i) {
         //////////////////////// Getting out gate from string //////////////////////////
-        //auto &line = f[i];
-        //auto gateInfo = util::extractGate(line);              // "2 1 0 1 2 XOR"
-        //auto inputWires = get<0>(gateInfo);             // [ ..., 0, 1]
-        //auto outputWires = get<1>(gateInfo);                    // [..., 1, ..., 2]
-        //auto gateType = get<2>(gateInfo);               // "XOR"
-
         auto [inputWires,outputWires,gateType] = f[i];
 
-        tuple<halfLabels, int> A0AndPermuteBit;
-        tuple<halfLabels, int> B0AndPermuteBit;
         if(gateType == "XOR") {
-            gateXOR(inputWires, outputWires, labelAndPermuteBitPairs, A0AndPermuteBit, B0AndPermuteBit);
+            gateXOR(inputWires, outputWires, labelAndPermuteBitPairs);
 
         }
         else if(gateType == "INV") {
-            gateINV(invConst, outputWires, inputWires, labelAndPermuteBitPairs, A0AndPermuteBit);
+            gateINV(invConst, outputWires, inputWires, labelAndPermuteBitPairs);
         }
         else if( gateType == "AND") {
-            gateAND(k, h, hashRTCCR, inputWires, outputWires, delta, labelAndPermuteBitPairs, F, A0AndPermuteBit,
-                    B0AndPermuteBit);
+            gateAND(k, h, hashRTCCR, inputWires, outputWires, delta, labelAndPermuteBitPairs, F);
         }
         else {
             cout << "Got a non-supported gate" << endl;
@@ -91,10 +82,9 @@ threeHalves::garble(circuit f, int k, util::hashtype h) {
 
 void threeHalves::gateAND(int k, const util::hashtype &h, hashRTCCR &hashRTCCR, const vector<int> &inputWires,
                           const vector<int> &outputWires, halfDelta &delta,
-                          vector<tuple<halfLabels, int>> &labelAndPermuteBitPairs, Ftype &F,
-                          tuple<halfLabels, int> &A0AndPermuteBit, tuple<halfLabels, int> &B0AndPermuteBit) {
-    A0AndPermuteBit = labelAndPermuteBitPairs[inputWires[0]];
-    B0AndPermuteBit = labelAndPermuteBitPairs[inputWires[1]];
+                          vector<tuple<halfLabels, int>> &labelAndPermuteBitPairs, Ftype &F) {
+    auto A0AndPermuteBit = labelAndPermuteBitPairs[inputWires[0]];
+    auto B0AndPermuteBit = labelAndPermuteBitPairs[inputWires[1]];
     auto [A0, permuteBitA] = A0AndPermuteBit;
     auto [B0, permuteBitB] = B0AndPermuteBit;
 
@@ -281,9 +271,8 @@ vector<vint> threeHalves::calcVZ(const vector<halfLabels> &Zij) {
 }
 
 void threeHalves::gateINV(halfLabels &invConst, const vector<int> &outputWires, const vector<int> &inputWires,
-                          vector<tuple<halfLabels, int>> &labelAndPermuteBitPairs,
-                          tuple<halfLabels, int> &A0AndPermuteBit) {
-    A0AndPermuteBit = labelAndPermuteBitPairs[inputWires[0]];
+                          vector<tuple<halfLabels, int>> &labelAndPermuteBitPairs) {
+    auto A0AndPermuteBit = labelAndPermuteBitPairs[inputWires[0]];
 
     halfLabels A0 = get<0>(A0AndPermuteBit);
     vint leftHalf = util::vecXOR(get<0>(A0), get<0>(invConst));
@@ -299,17 +288,16 @@ void threeHalves::gateINV(halfLabels &invConst, const vector<int> &outputWires, 
 }
 
 void threeHalves::gateXOR(const vector<int> &inputWires, const vector<int> &outputWires,
-                          vector<tuple<halfLabels, int>> &labelAndPermuteBitPairs,
-                          tuple<halfLabels, int> &A0AndPermuteBit, tuple<halfLabels, int> &B0AndPermuteBit) {
-    A0AndPermuteBit = labelAndPermuteBitPairs[inputWires[0]];
-    B0AndPermuteBit = labelAndPermuteBitPairs[inputWires[1]];
+                          vector<tuple<halfLabels, int>> &labelAndPermuteBitPairs) {
+    //A0AndPermuteBit = labelAndPermuteBitPairs[inputWires[0]];
+    //B0AndPermuteBit = labelAndPermuteBitPairs[inputWires[1]];
 
-    halfLabels A0 = get<0>(A0AndPermuteBit);
-    halfLabels B0 = get<0>(B0AndPermuteBit);
+    halfLabels A0 = get<0>(labelAndPermuteBitPairs[inputWires[0]]);
+    halfLabels B0 = get<0>(labelAndPermuteBitPairs[inputWires[1]]);
     vint leftHalf = util::vecXOR(get<0>(A0), get<0>(B0));
     vint rightHalf = util::vecXOR(get<1>(A0), get<1>(B0));
-    int APermuteBit = get<1>(A0AndPermuteBit);
-    int BPermuteBit = get<1>(B0AndPermuteBit);
+    int APermuteBit = get<1>(labelAndPermuteBitPairs[inputWires[0]]);
+    int BPermuteBit = get<1>(labelAndPermuteBitPairs[inputWires[1]]);
     int permuteBitXOR = APermuteBit ^ BPermuteBit;
 
     halfLabels outputLabel = {leftHalf, rightHalf};
@@ -652,56 +640,54 @@ threeHalves::calcZij(halfLabels &A0, halfLabels &B0, halfLabels &A1, halfLabels 
     auto [A1Left, A1Right] = A1;
     auto [B1Left, B1Right] = B1;
 
-    for (int i = 0; i <= 1; ++i) {
-        for (int j = 0; j <= 1; ++j) {
-            int index1 = 4 * i + 2 * j;
-            int index2 = 4 * i + 2 * j + 1;
 
-            int r1 = util::checkIthBit(rVec, index1);
-            int r2 = util::checkIthBit(rVec, index2);
-            vint ALeft = A0Left;
-            vint ARight = A0Right;
-            vint BLeft = B0Left;
-            vint BRight = B0Right;
-            if(i == 1){
-                ALeft = A1Left;
-                ARight = A1Right;
-            }
-            if(j == 1){
-                BLeft = B1Left;
-                BRight = B1Right;
-            }
-            halfLabels rS1AjBl = zeroes(ALeft.size());
-            halfLabels rS2AjBl = zeroes(ALeft.size());
-            if(r1 == 1){
-                /*
-                 * Calculate S1 * [Aj Bl]
-                 */
-                auto left = util::vecXOR(util::vecXOR(BLeft, ARight), ALeft);
-                auto right = util::vecXOR(BRight, ALeft);
-                rS1AjBl = {left, right};
-            }
-            if(r2 == 1){
-                /*
-                 * Calculate S2 * [Ai Bj]
-                 */
-                auto left = util::vecXOR(BRight, ALeft);
-                auto right = util::vecXOR(util::vecXOR(BRight, BLeft), ARight);
-                rS2AjBl = {left, right};
-            }
+    Zij[0] = calcZijHelper(rVec, permuteBitA, permuteBitB, delta, A0Left, A0Right, B0Left, B0Right, 0, 0);
+    Zij[1] = calcZijHelper(rVec, permuteBitA, permuteBitB, delta, A0Left, A0Right, B1Left,
+                           B1Right, 0, 1);
+    Zij[2] = calcZijHelper(rVec, permuteBitA, permuteBitB, delta, A1Left, A1Right, B0Left, B0Right, 1, 0);
+    Zij[3] = calcZijHelper(rVec, permuteBitA, permuteBitB, delta, A1Left, A1Right, B1Left,
+                           B1Right, 1, 1);
 
-            halfLabels Yij = util::halfLabelXOR(rS1AjBl, rS2AjBl);
-            bool includeDelta = (permuteBitA ^ i) & (permuteBitB ^ j);
-            if(includeDelta) {
-                Yij = util::halfLabelXOR(Yij, delta);
-            }
-
-
-            Zij[ctr] = Yij;
-            ctr++;
-        }
-    }
     return Zij;
+}
+
+halfLabels threeHalves::calcZijHelper(vint &rVec, int permuteBitA, int permuteBitB, halfLabels &delta,
+                                      const vint &ALeft, const vint &ARight,
+                                      const vint &BLeft, const vint &BRight,
+                                      int i,
+                                      int j) {
+    int index1 = 4 * i + 2 * j;
+    int index2 = 4 * i + 2 * j + 1;
+
+    int r1 = util::checkIthBit(rVec, index1);
+    int r2 = util::checkIthBit(rVec, index2);
+
+    vint zeroes(ALeft.size());
+    halfLabels rS1AjBl = {zeroes, zeroes};
+    halfLabels rS2AjBl = {zeroes, zeroes};
+    if(r1 == 1){
+        /*
+         * Calculate S1 * [Aj Bl]
+         */
+        auto left = util::vecXOR(util::vecXOR(BLeft, ARight), ALeft);
+        auto right = util::vecXOR(BRight, ALeft);
+        rS1AjBl = {left, right};
+    }
+    if(r2 == 1){
+        /*
+         * Calculate S2 * [Ai Bj]
+         */
+        auto left = util::vecXOR(BRight, ALeft);
+        auto right = util::vecXOR(util::vecXOR(BRight, BLeft), ARight);
+        rS2AjBl = {left, right};
+    }
+
+    halfLabels Yij = util::halfLabelXOR(rS1AjBl, rS2AjBl);
+    bool includeDelta = (permuteBitA ^ i) & (permuteBitB ^ j);
+    if(includeDelta) {
+        Yij = util::halfLabelXOR(Yij, delta);
+    }
+    return Yij;
 }
 
 halfLabels threeHalves::decodeR(vector<uint64_t> rVec, halfLabels A, halfLabels B, int Aperm, int Bperm) {

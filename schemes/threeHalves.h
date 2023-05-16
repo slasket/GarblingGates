@@ -117,19 +117,15 @@ private:
                                 vector<tuple<halfLabels, int>> &inputLabelAndPermuteBitPairs);
 
     static void gateXOR(const vector<int> &inputWires, const vector<int> &outputWires,
-                        vector<tuple<halfLabels, int>> &labelAndPermuteBitPairs,
-                        tuple<halfLabels, int> &A0AndPermuteBit,
-                        tuple<halfLabels, int> &B0AndPermuteBit);
+                        vector<tuple<halfLabels, int>> &labelAndPermuteBitPairs);
 
     static void gateINV(halfLabels &invConst, const vector<int> &outputWires, const vector<int> &inputWires,
-                        vector<tuple<halfLabels, int>> &labelAndPermuteBitPairs,
-                        tuple<halfLabels, int> &A0AndPermuteBit);
+                        vector<tuple<halfLabels, int>> &labelAndPermuteBitPairs);
 
     static void
     gateAND(int k, const util::hashtype &h, hashRTCCR &hashRTCCR, const vector<int> &inputWires,
             const vector<int> &outputWires,
-            halfDelta &delta, vector<tuple<halfLabels, int>> &labelAndPermuteBitPairs, Ftype &F,
-            tuple<halfLabels, int> &A0AndPermuteBit, tuple<halfLabels, int> &B0AndPermuteBit);
+            halfDelta &delta, vector<tuple<halfLabels, int>> &labelAndPermuteBitPairs, Ftype &F);
 
 
     static vector<vint> calcVZ(const vector<halfLabels> &Zij);
@@ -156,6 +152,11 @@ private:
             vector<uint8_t> &zVec);
 
     static vector<halfLabels> &calcRZ(vint &rVec, vector<halfLabels> &Zij);
+    static halfLabels
+    calcZijHelper(vint &rVec, int permuteBitA, int permuteBitB, halfLabels &delta,
+                  const vint &ALeft, const vint &ARight,
+                  const vint &BLeft, const vint &BRight,
+                  int i, int j);
 };
 
 

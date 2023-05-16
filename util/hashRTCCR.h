@@ -81,7 +81,7 @@ public:
     hashRTCCR(){
     }
 
-    static  uint64_t gfmulPCF(uint64_t a, uint64_t b){
+    static uint64_t gfmulPCF(uint64_t a, uint64_t b){
         auto aepi64 = _mm_set_epi64x(0,a);
         auto bepi64 = _mm_set_epi64x(0,b);
         auto res = _mm_clmulepi64_si128(aepi64, bepi64, 0);
@@ -89,7 +89,7 @@ public:
     }
 
 //may not be correct
-    static  vint gfmulPCF(vint& a, vint& b){
+    static vint gfmulPCF(vint& a, vint& b){
         vint res;
         int sizeDiff = a.size() - b.size();
         if(sizeDiff > 0){
@@ -108,7 +108,7 @@ public:
     }
 
 
-    static  vint gfmul(uint64_t a, uint64_t b){
+    static vint gfmul(uint64_t a, uint64_t b){
         vint res = {0};
         uint64_t mask = 1;
         for (int i = 0; i < 64; ++i) {
@@ -125,7 +125,7 @@ public:
         return res;
     }
 
-    static  vint gfmul(vint a, vint b){
+    static vint gfmul(vint a, vint b){
         vint res = {0,0};
         for (int i = 0; i < a.size(); ++i) {
             vint temp = gfmul(a[i], b[i]);
@@ -142,7 +142,7 @@ public:
     }
 
 //change to halflabels
-    static  vint sigmaFunc(vint& labelLeft, vint & labelRight, vint& alpha){
+    static vint sigmaFunc(vint& labelLeft, vint & labelRight, vint& alpha){
         //gfmul half of input with alpha
         //vint halfInput1;
         //vint halfInput2;
@@ -157,7 +157,7 @@ public:
         return res1;
     }
 
-    static  EVP_CIPHER_CTX * AES_vint_init(vint key, vint iv){
+    static EVP_CIPHER_CTX * AES_vint_init(vint key, vint iv){
         if(key.size() != 4){ //4 is hardcoded for 256 bit input
             int size = 4-key.size();
             for (int i = 0; i < size; ++i) {
@@ -184,7 +184,7 @@ public:
 
 
 
-    static  vint AES_vint_encrypt(vint input, vint key, vint iv, EVP_CIPHER_CTX *e){
+    static vint AES_vint_encrypt(vint input, vint key, vint iv, EVP_CIPHER_CTX *e){
         if(input.size() != 4){ //4 is hardcoded for 256 bit input
             int size = 4-input.size();
             for (int i = 0; i < size; ++i) {
@@ -220,7 +220,7 @@ public:
         return res;
     }
 
-    static  vint AES_vint_decrypt(vint input, vint key, vint iv, EVP_CIPHER_CTX *e){
+    static vint AES_vint_decrypt(vint input, vint key, vint iv, EVP_CIPHER_CTX *e){
         if(input.size() != 4){ //4 is hardcoded for 256 bit input
             int size = 4-input.size();
             for (int i = 0; i < size; ++i) {

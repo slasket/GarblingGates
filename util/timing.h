@@ -213,13 +213,13 @@ public:
     }
 
 
-    static void repetitionTest(const vector<string>&f, circuit& f2, int k,util::hashtype hashfunc, int repetitions){
+    static void repetitionTest(circuit& f2, int k,util::hashtype hashfunc, int repetitions){
         vector<double> baseline(2);
         vector<double> three(2);
         vector<double> ate(2);
         vector<double> ate_f(2);
         vector<vector<::uint64_t>> dataSize({{0,0,0},{0,0,0},{0,0,0},{0,0,0}});
-        int inputsize = circuitParser::inputsize(f);
+        int inputsize = circuitParser::getInputSize(f2);
 
 
         string hashtype;
@@ -228,15 +228,14 @@ public:
         }else{
             hashtype= "RO";
         }
-        cout<<"garbling all 4 schemes for aes_128 " << repetitions <<" reps"<<endl;
-        cout << "hashtype: "<< hashtype<<endl;
+        cout<<"garbling all 4 schemes for aes_128 " << repetitions <<" reps hashtype: "<< hashtype<<endl;
         for (int i = 0; i < repetitions; ++i) {
             //inputgen
             vector<int> x = util::genFunctionInput(inputsize);
-            runGarble(f,f2, util::baseline, k, hashfunc, baseline, x, dataSize);
-            runGarble(f,f2, util::threehalves, k, hashfunc, three, x, dataSize);
-            runGarble(f,f2, util::ateca, k, hashfunc, ate, x, dataSize);
-            runGarble(f,f2, util::atecaFXOR, k, hashfunc, ate_f, x, dataSize);
+            runGarble(f2, util::baseline, k, hashfunc, baseline, x, dataSize);
+            runGarble(f2, util::threehalves, k, hashfunc, three, x, dataSize);
+            runGarble(f2, util::ateca, k, hashfunc, ate, x, dataSize);
+            runGarble(f2, util::atecaFXOR, k, hashfunc, ate_f, x, dataSize);
         }
 
         printResult(util::baseline, baseline, hashfunc, dataSize, repetitions, f2);
@@ -249,8 +248,8 @@ public:
     static void printResult(util::scheme scheme, const vector<double> &baseline, util::hashtype hashfunc,vector<vector<::uint64_t>>& dataSize, int repetitions, circuit& f2) {
         string title;
         //all and gates
-        auto gates =  6400;
-        int hashSize; int Fsize; int decodingsize;
+        auto gates = 19626;
+        ::uint64_t hashSize; uint64_t Fsize; uint64_t decodingsize;
         switch (scheme) {
             case util::baseline: {
                 title = "###baseline###";
@@ -289,14 +288,14 @@ public:
 
         }
 
-        auto outWires = circuitParser::getOutBits(f2);
-        cout<< "hashSize: " << hashSize/repetitions << " bits"<<endl;
-        cout<< "FSize:    " << (Fsize/gates)/repetitions <<" x" << gates<< " bits"<<endl;
-        cout<< "Decoding: " << (decodingsize/outWires)/repetitions <<" x" << outWires<< " bits"<<endl;
-        cout<< "total:    " << ((hashSize+Fsize+decodingsize)/repetitions) *0.000125<< " KB"<<endl;
+        //auto outWires = circuitParser::getOutBits(f2);
+        //cout<< "hashSize: " << hashSize/repetitions << " bits"<<endl;
+        //cout<< "FSize:    " << (Fsize/gates)/repetitions <<" x" << gates<< " bits"<<endl;
+        //cout<< "Decoding: " << (decodingsize/outWires)/repetitions <<" x" << outWires<< " bits"<<endl;
+        //cout<< "total:    " << ((hashSize+Fsize+decodingsize)/repetitions) *0.000125<< " KB"<<endl;
     }
 
-    static void runGarble(const vector<string> &f, circuit& f2, util::scheme type, int k, util::hashtype &hashfunc, vector<double> &timings, vector<int> &x, vector<vector<::uint64_t>> &dataSize) {
+    static void runGarble(circuit& f2, util::scheme type, int k, util::hashtype &hashfunc, vector<double> &timings, vector<int> &x, vector<vector<::uint64_t>> &dataSize) {
         switch (type) {
             case util::scheme::baseline:{
                 boost::timer timer;
@@ -319,13 +318,13 @@ public:
                 //the E struct is 512 bits in size
                 dataSize[0][0] += size*64;
 
-                for (int i = 0; i < GarbF.size(); ++i) {
-                    auto xd = GarbF[i];
-                    auto firstVint = get<0>(xd);
-                    if (firstVint.size()!=0){
-                        dataSize[0][1] += 2*k;
-                    }
-                }
+                //for (int i = 0; i < GarbF.size(); ++i) {
+                //    auto xd = GarbF[i];
+                //    auto firstVint = get<0>(xd);
+                //    if (firstVint.size()!=0){
+                //        dataSize[0][1] += 2*k;
+                //    }
+                //}
 
                 auto dtuples = d.size();
                 dataSize[0][2] += dtuples*2*k;
@@ -354,11 +353,11 @@ public:
                 dataSize[1][0] += size*64;
 
                 auto tuples = three_F.size();
-                for (int i = 0; i < three_F.size(); ++i) {
-                    if (get<0>(three_F[i]).size()!=0){
-                        dataSize[1][1] += 3*(k/2)+8;
-                    }
-                }
+                //for (int i = 0; i < three_F.size(); ++i) {
+                //    if (get<0>(three_F[i]).size()!=0){
+                //        dataSize[1][1] += 3*(k/2)+8;
+                //    }
+                //}
                 //the unit8 should be  sin single value lol.
 
                 auto dtuples = three_d.size();
@@ -389,13 +388,13 @@ public:
                 dataSize[2][0] += size*64;
 
                 auto approxkeysize =0;
-                for (int i = 0; i < ate_F.size(); ++i) {
-                    for (int j = 0; j < ate_F[i].size(); ++j) {
-                        if (ate_F[i][j]!=0){
-                            approxkeysize +=64;
-                        }
-                    }
-                }
+                //for (int i = 0; i < ate_F.size(); ++i) {
+                //    for (int j = 0; j < ate_F[i].size(); ++j) {
+                //        if (ate_F[i][j]!=0){
+                //            approxkeysize +=64;
+                //        }
+                //    }
+                //}
 
                 dataSize[2][1] += approxkeysize;
 
@@ -425,13 +424,13 @@ public:
                 dataSize[3][0] += size*64;
 
                 auto approxkeysize =0;
-                for (int i = 0; i < atef_F.size(); ++i) {
-                    for (int j = 0; j < atef_F[i].size(); ++j) {
-                        if (atef_F[i][j]!=0){
-                            approxkeysize +=64;
-                        }
-                    }
-                }
+                //for (int i = 0; i < atef_F.size(); ++i) {
+                //    for (int j = 0; j < atef_F[i].size(); ++j) {
+                //        if (atef_F[i][j]!=0){
+                //            approxkeysize +=64;
+                //        }
+                //    }
+                //}
 
                 dataSize[3][1] += approxkeysize;
 
@@ -561,6 +560,74 @@ public:
             default:
                 break;
         }
+    }
+
+    static void testSchemesVariableLabelSize(util::hashtype hashfunc, int repetitions) {
+        auto c = circuitParser::parse("../tests/circuits/aes_128.txt");
+        int inputsize = circuitParser::getInputSize(c);
+        auto k = 128;
+        cout<< "varing label size for aes_128 ";
+        for (int i = 0; i < 7; ++i) {
+            vector<double> baseline(2);
+            vector<double> three(2);
+            vector<double> ate(2);
+            vector<double> ate_f(2);
+            vector<vector<::uint64_t>> dataSize({{0,0,0},{0,0,0},{0,0,0},{0,0,0}});
+            cout << "#inc;"<<pow(2,i)<<"x128" <<endl;
+            int labelsize = pow(2,(7+i));
+            for (int j = 0; j < repetitions; ++j) {
+                vector<int> x = util::genFunctionInput(inputsize);
+                runGarble(c, util::baseline, labelsize, hashfunc, baseline, x, dataSize);
+                runGarble(c, util::threehalves, labelsize, hashfunc, three, x, dataSize);
+                runGarble(c, util::ateca, labelsize, hashfunc, ate, x, dataSize);
+                runGarble(c, util::atecaFXOR, labelsize, hashfunc, ate_f, x, dataSize);
+            }
+
+            printGarblinTime(util::baseline, baseline, hashfunc, dataSize, repetitions, c);
+            printGarblinTime(util::threehalves, three, hashfunc, dataSize, repetitions, c);
+            printGarblinTime(util::ateca, ate, hashfunc, dataSize, repetitions, c);
+            printGarblinTime(util::atecaFXOR, ate_f, hashfunc, dataSize, repetitions, c);
+
+        }
+    }
+
+    static void printGarblinTime(util::scheme scheme, const vector<double> &baseline, util::hashtype hashfunc,vector<vector<::uint64_t>>& dataSize, int repetitions, circuit& f2) {
+        string title;
+        //all and gates
+        auto gates = 19626;
+        ::uint64_t hashSize; uint64_t Fsize; uint64_t decodingsize;
+        switch (scheme) {
+            case util::baseline: {
+                title = "base;";
+                hashSize = dataSize[0][0];
+                Fsize = dataSize[0][1];
+                decodingsize = dataSize[0][2];
+                break;
+            }
+            case util::threehalves: {
+                title = "three;";
+                hashSize = dataSize[1][0];
+                Fsize = dataSize[1][1];
+                decodingsize = dataSize[1][2];
+                break;
+            }
+            case util::ateca: {
+                title = "ateca;";
+                hashSize = dataSize[2][0];
+                Fsize = dataSize[2][1];
+                decodingsize = dataSize[2][2];
+                gates = circuitParser::getGates(f2);
+                break;
+            }
+            case util::atecaFXOR: {
+                title = "atecaFxor;";
+                hashSize = dataSize[3][0];
+                Fsize = dataSize[3][1];
+                decodingsize = dataSize[3][2];
+                break;
+            }
+        }
+        cout << title << baseline[0]<< endl;
     }
 };
 

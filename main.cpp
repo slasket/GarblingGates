@@ -35,18 +35,20 @@ int main() {
 
 
     //auto k=256;
-    timing::hashOutputLengthTest();
-    timing::testLabelLength();
+    //timing::hashOutputLengthTest();
+    //timing::testLabelLength();
     auto k=128;
     vector<string> f = circuitParser::parseCircuit("../tests/circuits/Keccak_f.txt");
     circuit b = circuitParser::parse("../tests/circuits/Keccak_f.txt");
     vector<int> x = util::genFunctionInput(circuitParser::inputsize(f));
     util::hashtype type = util::fast;
     //timing::time_circuit_all(f,b,x,k,type);
-    cout<<endl;
+    //cout<<endl;
     f = circuitParser::parseCircuit("../tests/circuits/aes_128.txt");
     auto f2 = circuitParser::parse("../tests/circuits/aes_128.txt");
-    timing::repetitionTest(f,f2,k,type,100);
+    //auto f2 = circuitParser::parse("../tests/circuits/aes_128.txt");
+    timing::testSchemesVariableLabelSize(type, 100);
+    //timing::repetitionTest(f2,k,type,100);
 
 
     return 0;
