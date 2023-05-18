@@ -37,6 +37,7 @@ int main() {
     //auto k=256;
     //timing::hashOutputLengthTest();
     //timing::testLabelLength();
+
     auto k=128;
     vector<string> f = circuitParser::parseCircuit("../tests/circuits/Keccak_f.txt");
     circuit b = circuitParser::parse("../tests/circuits/Keccak_f.txt");
@@ -47,8 +48,8 @@ int main() {
     f = circuitParser::parseCircuit("../tests/circuits/aes_128.txt");
     auto f2 = circuitParser::parse("../tests/circuits/aes_128.txt");
     //auto f2 = circuitParser::parse("../tests/circuits/aes_128.txt");
-    timing::testSchemesVariableLabelSize(type, 100);
-    //timing::repetitionTest(f2,k,type,100);
+    //timing::testSchemesVariableLabelSize(type, 100);
+    timing::repetitionTest(f2,k,type,1000);
 
 
     return 0;

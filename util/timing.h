@@ -121,7 +121,7 @@ public:
         vector<double> ateFxor(8);
         vector<double> threeHash(1);
         auto internal = 1000;
-        auto external = 100;
+        auto external = 1000;
         vint key = util::genBitsNonCrypto(256);
         vint iv = util::genBitsNonCrypto(256);
 
@@ -139,7 +139,7 @@ public:
             }
             //call aes 128->256
             //shake
-            for (int j = 0; j < 8; ++j) {
+            for (int j = 0; j < 1; ++j) {
                 auto outlen = k*pow(2,j);
                 auto t1 = high_resolution_clock::now();
                 for (int l = 0; l < internal; ++l) {
@@ -152,7 +152,7 @@ public:
 
             //prf
             auto e = hashTCCR(k);
-            for (int j = 0; j < 8; ++j) {
+            for (int j = 0; j < 1; ++j) {
                 auto outlen = k*pow(2,j);
                 auto t1 = high_resolution_clock::now();
                 for (int j = 0; j < internal; ++j) {
@@ -167,7 +167,7 @@ public:
             }
 
             auto tccr = hashTCCR(k);
-            for (int j = 0; j < 8; ++j) {
+            for (int j = 0; j < 1; ++j) {
                 auto outlen = k*pow(2,(j));
                 auto t1 = high_resolution_clock::now();
                 for (int l = 0; l < internal; ++l) {
