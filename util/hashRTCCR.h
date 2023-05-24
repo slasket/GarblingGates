@@ -173,7 +173,7 @@ public:
         memcpy(aes_iv, iv.data(), AES_BLOCK_SIZE);
         EVP_CIPHER_CTX *e;
         e = EVP_CIPHER_CTX_new();
-        EVP_EncryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, aes_iv);
+        EVP_EncryptInit_ex(e, EVP_aes_128_cbc(), NULL, aes_key, aes_iv);
 
         //EVP_DecryptInit_ex(e, EVP_aes_256_cbc(), NULL, aes_key, iv);
         EVP_CIPHER_CTX_set_padding(e, 0);
