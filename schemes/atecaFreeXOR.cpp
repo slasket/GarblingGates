@@ -22,9 +22,9 @@ tuple<vector<vint>, vector<tuple<vint, vint>>, vector<vint>, int, tuple<vint, vi
     return {F, e, d, k, invVar, c};
 }
 
-tuple<vector<tuple<vint, vint>>, vint> atecaFreeXOR::Init(circuit &C, int k) {
+tuple<vector<tuple<vint, vint>>, vint> atecaFreeXOR::Init(circuit &f, int k) {
     auto globalDelta = util::genBitsNonCrypto(k);
-    auto inputs = circuitParser::getInputSize(C);
+    auto inputs = circuitParser::getInputSize(f);
 
     vector<tuple<vint,vint>> e;
     for (int i = 0; i < inputs; ++i) {
@@ -44,7 +44,7 @@ tuple<vint, vint> atecaFreeXOR::genInvVar(int k, vint globalDelta) {
 }
 
 tuple<vector<vint>, vector<tuple<vint, vint>>, tuple<vint, vint>, hashTCCR>
-atecaFreeXOR::GarbleCircuit(int k, circuit &C, vector<tuple<vint, vint>> encoding,
+atecaFreeXOR::GarbleCircuit(int k, circuit &f, vector<tuple<vint, vint>> encoding,
                             const tuple<vint, vint> &invVar, const vint &globalDelta, util::hashtype hashtype) {
 
     hashTCCR c;
@@ -52,31 +52,25 @@ atecaFreeXOR::GarbleCircuit(int k, circuit &C, vector<tuple<vint, vint>> encodin
         c = hashTCCR(k);
     }
     //get amount of gates, wires and output bits
-    int outputBits =circuitParser::getOutBits(C);
-    int amountOfWires = circuitParser::getWires(C);
+    int outputBits =circuitParser::getOutBits(f);
+    int amountOfWires = circuitParser::getWires(f);
 
     //set the input wires, as in resize the input labels vector to have room for all wires
     auto wires = std::move(encoding);
     wires.resize(amountOfWires);
 
     //gabled vector
-    auto F = vector<vint>(amountOfWires);//too large remove input wires
-    //decoding vector
+    auto F = vector<vint>(amountOfWires);
     auto D = vector<tuple<vint,vint>>(outputBits);
-    //output bits are defined as the last k wires, where k is the amount of output bits
     int firstOutputBit = amountOfWires - outputBits;
     vector<vint> garbledGate;
     int out;
     //for every Gate in circuit
-    for (int i = 2; i < C.size(); ++i) {
+    for (int i = 2; i < f.size(); ++i) {
         //find input labels
-        auto[inWires, outWires, type]=C[i];
-        //int inAmount = stoi(gateInfo[0]);
-        //int outAmount = stoi(gateInfo[1]);
+        auto[inWires, outWires, type]=f[i];
 
         int gateNo = (i - 2);
-        //inverse gate hack
-        ///CHECK FOR XOR OR INVERSE
         if (type == "INV") {
             invGate(invVar, wires, garbledGate, out, inWires, outWires);
 
@@ -88,11 +82,6 @@ atecaFreeXOR::GarbleCircuit(int k, circuit &C, vector<tuple<vint, vint>> encodin
             andGate(k, globalDelta, wires, gateNo, c, F, garbledGate, out, inWires, outWires);
 
         }
-        //add Delta to F set for a Gate
-        //if (gateInfo[4]=="INV" ||gateInfo[5]=="XOR"){
-        //    F[gateNo] = {};}else{
-        //    F[gateNo] = garbledGate[2];}
-        //the gates output labels
         wires[out] = {garbledGate[0], garbledGate[1]};
         //if g is an output Gate, add it to D
         if (out >= firstOutputBit) {
@@ -266,11 +255,11 @@ atecaFreeXOR::encode(vector<tuple<vint, vint>> e, vector<int> x) {
 }
 
 vector<vint>
-atecaFreeXOR::eval(const vector<vint> &F, const vector<vint> &X, circuit &C, int k, tuple<vint, vint> invVar,
+atecaFreeXOR::eval(const vector<vint> &F, const vector<vint> &X, circuit &f, int k, tuple<vint, vint> invVar,
                    hashTCCR &c) {
     int internalSecParam = 16 * k;
-    int outputBits = circuitParser::getOutBits(C);
-    int numberOfWires = circuitParser::getWires(C);
+    int outputBits = circuitParser::getOutBits(f);
+    int numberOfWires = circuitParser::getWires(f);
     int firstOutputBit = numberOfWires - outputBits;
 
     auto wires = X;
@@ -278,15 +267,14 @@ atecaFreeXOR::eval(const vector<vint> &F, const vector<vint> &X, circuit &C, int
 
     auto outputY = vector<vint>(outputBits);
 
-    for (int i = 2; i < C.size(); ++i) {
-        auto[inWires, outWires, type]=C[i];
+    for (int i = 2; i < f.size(); ++i) {
+        auto[inWires, outWires, type]=f[i];
 
         int gateNo = (i-2);
         int out;
         vint gateOut;
         if (type=="INV"){
             int in0 = inWires[0];
-            //int in1 = stoi(gateInfo[3]);
             out = outWires[0];
             auto labelA = wires[in0];
             auto labelB = get<1>(invVar);

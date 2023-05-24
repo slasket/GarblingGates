@@ -23,8 +23,8 @@ atecaGarble::garble(circuit &f, int k, util::hashtype hashtype) {
 
 
 
-vector<tuple<vint,vint>> atecaGarble::Init(circuit &C, int k) {
-    int inputWires = circuitParser::getInputSize(C);
+vector<tuple<vint,vint>> atecaGarble::Init(circuit &f, int k) {
+    int inputWires = circuitParser::getInputSize(f);
     vector<tuple<vint,vint>> e;
     for (int i = 0; i < inputWires; ++i) {
         vint lw0 = util::genBitsNonCrypto(k);
@@ -36,7 +36,7 @@ vector<tuple<vint,vint>> atecaGarble::Init(circuit &C, int k) {
 }
 
 tuple<vector<vint>, vector<tuple<vint, vint>>, tuple<vint, vint>, hashTCCR>
-atecaGarble::GarbleCircuit(int k, circuit &C, vector<tuple<vint, vint>> e,
+atecaGarble::GarbleCircuit(int k, circuit &f, vector<tuple<vint, vint>> e,
                            const tuple<vint, vint> &invVar,
                            util::hashtype hashtype) {
     //my hash struct
@@ -46,8 +46,8 @@ atecaGarble::GarbleCircuit(int k, circuit &C, vector<tuple<vint, vint>> e,
     }
     //get amount of gates, wires and output bits
 
-    int outputBits =circuitParser::getOutBits(C);
-    int amountOfWires = circuitParser::getWires(C);
+    int outputBits =circuitParser::getOutBits(f);
+    int amountOfWires = circuitParser::getWires(f);
 
     //set the input wires, as in resize the input labels vector to have room for all wires
     auto wires = std::move(e);
@@ -64,9 +64,9 @@ atecaGarble::GarbleCircuit(int k, circuit &C, vector<tuple<vint, vint>> e,
 
     double gate_time =0;
     //for every Gate in circuit
-    for (int i = 2; i < C.size(); ++i) {
+    for (int i = 2; i < f.size(); ++i) {
         //find input labels
-        auto[inWires, outWires, type]=C[i];
+        auto[inWires, outWires, type]=f[i];
 
         int gateNo = (i - 2);
         //inverse gate hack
@@ -120,15 +120,11 @@ atecaGarble::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, co
         auto [l00,l11] = in0;
         auto [l_0,l_1] = in1;
         l00.insert(l00.end(), l_0.begin(), l_0.end());
-        //l00.push_back(gateNo);
         auto l01 = get<0>(in0);
         l01.insert(l01.end(), l_1.begin(), l_1.end());
-        //l01.push_back(gateNo);
         auto l10 = get<1>(in0);
         l10.insert(l10.end(), l_0.begin(), l_0.end());
-        //l10.push_back(gateNo);
         l11.insert(l11.end(), l_1.begin(), l_1.end());
-        //l11.push_back(gateNo);
         vint tweak {static_cast<unsigned long>(gateNo)};
         X_00 = util::hash_variable(l00, tweak, internalParam);
         X_01 = util::hash_variable(l01, tweak, internalParam);
@@ -143,10 +139,7 @@ atecaGarble::Gate(const tuple<vint, vint> &in0, const tuple<vint, vint> &in1, co
         X_01 = c.prfHash(a0,b1,{(::uint64_t)gateNo},internalParam);
         X_10 = c.prfHash(a1,b0,{(::uint64_t)gateNo},internalParam);
         X_11 = c.prfHash(a1,b1,{(::uint64_t)gateNo},internalParam);
-        //util::printUintVec(X_00);
-        //util::printUintVec(X_01);
-        //util::printUintVec(X_10);
-        //util::printUintVec(X_11);
+
     }
     //auto t2 = high_resolution_clock::now();
     //duration<double, std::milli> ms_double = t2 - t1;

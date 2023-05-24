@@ -32,9 +32,9 @@ public:
     static vint decode(vector<vint> Y, vector<vint> d, hashTCCR &dc);
 
 private:
-    static vector<tuple<vint,vint>> Init(circuit &C, int k);
+    static vector<tuple<vint,vint>> Init(circuit &f, int k);
     static tuple<vector<vint>, vector<tuple<vint, vint>>, tuple<vint, vint>, hashTCCR>
-    GarbleCircuit(int k, circuit &C, vector<tuple<vint, vint>> e, const tuple<vint, vint> &invVar,
+    GarbleCircuit(int k, circuit &f, vector<tuple<vint, vint>> e, const tuple<vint, vint> &invVar,
                   util::hashtype hashtype);
     //single Gate garble
     static vector<vint>
