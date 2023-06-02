@@ -23,7 +23,7 @@ public:
     static vector<vint> eval(tuple<vint, vector<labelPair>, hashRTCCR> F,
                              vector<vint> X, circuit f, int k);
     static vector<int> decodeBits(vector<labelPair> d, vector<vint> Y, int k, hashRTCCR hash);
-    static vint hashFunc(vint x, int k);
+    static vint hashFunc(vint &x, int k);
 
     static void
     andGate(const vector<::uint64_t> &globalDelta, int permuteBitA, int permuteBitB, vint &A0,
@@ -46,13 +46,13 @@ public:
 
     static vint evalGate(const vint &invConst, int k,
                          const vector<labelPair> &garbledCircuit,
-                         const vector<vint> &wireValues, int i, vector<int> inputWires,
+                         const vector<vint> &wireValues, int i, vector<int> &inputWires,
                          const string& gateType,
-                         hashRTCCR hash);
+                         hashRTCCR &hash);
 
     static vint decode(vector<labelPair> d, vector<vint> Y, int k, hashRTCCR hash);
 
-    static vint hashXORfast(vint labelA, vint labelB, int k, hashRTCCR &fh);
+    static vint hashXORfast(vint &labelA, vint &labelB, int k, hashRTCCR &fh);
 };
 
 

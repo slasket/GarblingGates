@@ -347,21 +347,21 @@ vint atecaFreeXOR::decode(vector<vint> Y, vector<vint> d, hashTCCR &dc) {
 }
 
 inline tuple<vint, vint> atecaFreeXOR::ateFXorSlicing(const vint& X_00, const vint& X_01, const vint& X_10, const vint& X_11) {
-    //l00a0 is X_00 inverted
-    auto l00a0 = util::vecInvert(X_00);
-    //l01a0
-    auto l01a0 = util::vecInvert(X_01);
-    //l01a0
-    auto l10a0 = util::vecInvert(X_10);
-    //l11a0
-    auto l11a0 = util::vecInvert(X_11);
+    //invX_00 is X_00 inverted
+    auto invX_00 = util::vecInvert(X_00);
+    //invX_01
+    auto invX_01 = util::vecInvert(X_01);
+    //invX_01
+    auto invX_10 = util::vecInvert(X_10);
+    //invX_11
+    auto invX_11 = util::vecInvert(X_11);
 
     ///truthbits for Delta=0
-    auto mask0000=util::vecAND(util::vecAND(util::vecAND(l00a0,l01a0),l10a0),l11a0);///0000
+    auto mask0000=util::vecAND(util::vecAND(util::vecAND(invX_00, invX_01), invX_10), invX_11);///0000
     auto mask1111=util::vecAND(util::vecAND(util::vecAND(X_00,X_01),X_10),X_11);///1111
     ///truthbits for delta=1
-    auto mask0001=util::vecAND(util::vecAND(util::vecAND(l00a0,l01a0),l10a0),X_11);///0001
-    auto mask1110=util::vecAND(util::vecAND(util::vecAND(X_00,X_01),X_10),l11a0);///1110
+    auto mask0001=util::vecAND(util::vecAND(util::vecAND(invX_00, invX_01), invX_10), X_11);///0001
+    auto mask1110=util::vecAND(util::vecAND(util::vecAND(X_00,X_01),X_10), invX_11);///1110
 
     auto dlt0Mask = util::vecOR(mask0000,mask1111);
     auto dlt1Mask = util::vecOR(mask0001,mask1110);

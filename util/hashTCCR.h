@@ -179,7 +179,7 @@ public:
         vint block0 = util::vecXOR(x,y0);
         //block0.emplace_back(tweak);
         if (!tweak.empty()){
-        block0.insert(block0.end(),tweak.begin(),tweak.end());
+        block0=util::vecXOR(block0,tweak);
         }
         //create the counters as 64 bit blocks
         vint input(internalLength/64);

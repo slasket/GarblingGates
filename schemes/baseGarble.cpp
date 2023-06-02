@@ -280,9 +280,9 @@ vector<vint> baseGarble::eval(tuple<vint, vector<labelPair>, hashRTCCR> F,
 
 vint baseGarble::evalGate(const vint &invConst, int k,
                           const vector<labelPair> &garbledCircuit,
-                          const vector<vint> &wireValues, int i, vector<int> inputWires,
+                          const vector<vint> &wireValues, int i, vector<int> &inputWires,
                           const string& gateType,
-                          hashRTCCR hash) {//get input values
+                          hashRTCCR &hash) {//get input values
     int input0 = inputWires[0];
     int input1;
     if(gateType == "INV"){
@@ -385,7 +385,7 @@ vector<int> baseGarble::decodeBits(vector<labelPair> d, vector<vint> Y, int k, h
     return y;
 }
 
-vint baseGarble::hashFunc(vint x, int k) {
+vint baseGarble::hashFunc(vint &x, int k) {
     //auto xstring = util::printBitsetofVectorofUints(std::move(x));
     return util::hash_variable(x,{0}, k);
 }
@@ -396,7 +396,7 @@ vint baseGarble::hashXOR(vint &labelA, vint &labelB, int k){
     return util::vecXOR(hashFunc(labelA, k), hashFunc(labelB, k));
 }
 
-vint baseGarble::hashXORfast(vint labelA, vint labelB, int k, hashRTCCR &fh){
+vint baseGarble::hashXORfast(vint &labelA, vint &labelB, int k, hashRTCCR &fh){
     uint64_t k64 = k;
     vint tweak = {k64};
     auto a = fh.hashVint(labelA, tweak);

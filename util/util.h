@@ -136,7 +136,7 @@ public:
     //checks right to left
     static int checkIthBit(vector<uint64_t> ui, int i) {
         //ith bit
-        int bit = i%64;
+        int bit = mod64(i);
         //find block
         int block = i / 64;
         return checkBit(ui[block],bit);
@@ -148,7 +148,7 @@ public:
 
     static int ithBitL2R(const vector<uint64_t>& v, int i){
         int block = i / 64;
-        return checkBitL2R(v[block],(63-(i%64)));
+        return checkBitL2R(v[block],(63-(mod64(i))));
     }
 
     //this has reverse index, will check from the left most bit
@@ -159,14 +159,14 @@ public:
 
     static void setIthBitTo1L2R(vector<uint64_t>* vec, int pos){
         int block = pos / 64;
-        int index = (63-(pos%64));
+        int index = (63-(mod64(pos)));
         //::int64_t val = (*vec)[block];
         auto oneshifted = ((uint64_t)1) << index;
         (*vec)[block] |= oneshifted;
     }
     static uint64_t setBit1L2R(uint64_t a, int pos){
         int index = (63-(pos%64));
-        auto oneshifted = ((uint64_t)1) << (63-(pos%64));
+        auto oneshifted = ((uint64_t)1) << (63-(mod64(pos)));
         //_bittestandset64(&sval, index);
         a |= oneshifted;
         return a;
@@ -272,7 +272,8 @@ public:
     {
         //append tweak
         vector<::uint64_t> input = in;
-        input.insert(input.end(), tweak.begin(),tweak.end());
+        input = vecXOR(input,tweak);
+        //input.insert(input.end(), tweak.begin(),tweak.end());
         //input padding
         if (input.size()<4){
             int diff = 4-input.size();
@@ -282,14 +283,11 @@ public:
         }
 
         //int byteInputSize = sizeof(::uint64_t)*input.size();
-
         size_t size_in_bytes = input.size() * sizeof(uint64_t);
-
         //auto *plaintext = static_cast<unsigned char *>(malloc(size_in_bytes));
         //memcpy(plaintext, input.data(), size_in_bytes);
         //vector<unsigned char> arr(size_in_bytes);
         //memcpy(arr.data(), reinterpret_cast<const unsigned char*>(input.data()), size_in_bytes);
-
         EVP_MD_CTX* ctx = EVP_MD_CTX_create();
         EVP_DigestInit_ex(ctx, EVP_shake256(), NULL);
         //EVP_DigestUpdate(ctx, reinterpret_cast<const unsigned char*>(input.data()), size_in_bytes);
@@ -368,7 +366,7 @@ public:
         //int pos = 63-(i%64);
         //vec[block][pos] = bit;
         //for left to right uint but right to left index
-        vec[block][i%64] = bit;
+        vec[block][mod64(i)] = bit;
         return vec;
     }
 
@@ -499,13 +497,13 @@ public:
     static vint fastproj(const vint& a, const vint& b, const int& k) {
         //projection A o B means take the bit A[i] if B[i]=1
         //int k = util::vecHW(b);
-        int uintsNeeded = k / 64 + ((fast_modulo(k,64) != 0) ? 1 : 0);
+        int uintsNeeded = k / 64 + ((mod64(k) != 0) ? 1 : 0);
         uint64_t projection =0;
         auto res = vint(uintsNeeded);
         int bitsProjected =0; int j =0; int blockNum =0;
         do {
             auto blockIndex = j / 64;
-            int intIndex = (63 - (fast_modulo(j,64)));
+            int intIndex = (63 - mod64(j));
             //if the ith bit of b ==1 find the ith bit in a and set the projection bit to that value
             if (util::checkBitL2R(b[blockIndex], intIndex) == 1){
                 auto ithBitA = util::checkBitL2R(a[blockIndex],intIndex);
@@ -513,7 +511,7 @@ public:
                     projection = util::setBit1L2R(projection,bitsProjected);
                 }
                 bitsProjected++;
-                if (bitsProjected == k||(fast_modulo(bitsProjected,64)==0 && bitsProjected !=0)){
+                if (bitsProjected == k||(mod64(bitsProjected)==0 && bitsProjected !=0)){
                     res[blockNum] = projection;
                     projection=0;
                     blockNum++;
@@ -532,6 +530,10 @@ public:
     static vint vecConcat(vint a, const vint& b){
         a.insert(a.end(), b.begin(), b.end());
         return a;
+    }
+
+    static inline ::uint64_t mod64(const ::uint64_t in){
+        return (in & (63));
     }
 };
 

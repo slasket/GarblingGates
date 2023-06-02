@@ -48,7 +48,7 @@ int main() {
     f = circuitParser::parseCircuit("../tests/circuits/aes_128.txt");
     auto f2 = circuitParser::parse("../tests/circuits/aes_128.txt");
     //auto f2 = circuitParser::parse("../tests/circuits/aes_128.txt");
-    //timing::testSchemesVariableLabelSize(type, 100);
+    //timing::testSchemesVariableLabelSize(type, 1000);
     timing::repetitionTest(f2,k,type,1000);
 
 

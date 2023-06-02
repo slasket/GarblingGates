@@ -330,35 +330,35 @@ tuple<vint, vint> atecaGarble::genInvVar(int k) {
 }
 
 vint atecaGarble::masksForSlices(const vint& X_00, const vint& X_01, const vint& X_10, const vint& X_11, const string& typ) {
-    //l00a0 is X_00 inverted
-    auto l00a0 = util::vecInvert(X_00);
-    //l01a0
-    auto l01a0 = util::vecInvert(X_01);
-    //l01a0
-    auto l10a0 = util::vecInvert(X_10);
+    //invX_00 is X_00 inverted
+    auto invX_00 = util::vecInvert(X_00);
+    //invX_01
+    auto invX_01 = util::vecInvert(X_01);
+    //invX_01
+    auto invX_10 = util::vecInvert(X_10);
 
      vector<::uint64_t> masksORed(X_00.size());
     //or with 0000 0001 1110 or 1111
     //if there is a one in this vector one of the masks had an 1 in the ith bit
     if (typ=="AND"){
         //and specific masks
-        auto mask000x =  util::vecAND(util::vecAND(l00a0, l01a0), l10a0);///000x
+        auto mask000x =  util::vecAND(util::vecAND(invX_00, invX_01), invX_10);///000x
         auto mask111x =  util::vecAND(util::vecAND(X_00, X_01), X_10);///111x
 
         masksORed = util::vecOR(mask000x,mask111x);
         //or with 0000 1001 0110 1111
     }else{//if (typ=="XOR"| typ=="INV")
         //xor and inv specific masks
-        //l11a0
-        auto l11a0 = util::vecInvert(X_11);
-        auto mx00x = util::vecAND(l01a0,l10a0);
+        //invX_11
+        auto invX_11 = util::vecInvert(X_11);
+        auto mx00x = util::vecAND(invX_01, invX_10);
         auto mx11x = util::vecAND(X_01,X_10);
-        auto m0xx0=util::vecAND(l00a0,l11a0);
+        auto m0xx0=util::vecAND(invX_00, invX_11);
         auto m1xx1=util::vecAND(X_00,X_11);
-        //auto mask0000 =  util::vecAND(util::vecAND(util::vecAND(l00a0, l01a0), l10a0), l11a0);///0000
+        //auto mask0000 =  util::vecAND(util::vecAND(util::vecAND(invX_00, invX_01), invX_10), invX_11);///0000
         //auto mask1111 =  util::vecAND(util::vecAND(util::vecAND(X_00, X_01), X_10), X_11);///1111
-        //auto mask1001 =  util::vecAND(util::vecAND(util::vecAND(X_00, l01a0), l10a0), X_11);///1001
-        //auto mask0110 =  util::vecAND(util::vecAND(util::vecAND(l00a0, X_01), X_10), l11a0);///0110
+        //auto mask1001 =  util::vecAND(util::vecAND(util::vecAND(X_00, invX_01), invX_10), X_11);///1001
+        //auto mask0110 =  util::vecAND(util::vecAND(util::vecAND(invX_00, X_01), X_10), invX_11);///0110
 
         //masksORed =util::vecOR(util::vecOR(util::vecOR(mask0000,mask1111),mask1001),mask0110);
         masksORed =util::vecAND(util::vecOR(mx00x,mx11x), util::vecOR(m0xx0,m1xx1));

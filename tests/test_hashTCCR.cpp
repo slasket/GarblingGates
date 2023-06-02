@@ -29,9 +29,8 @@ BOOST_AUTO_TEST_SUITE( TCCR_Encryption_128 )
         //compute e ^ U(Y)
         y0.insert(y0.end(), y1.begin(),y1.end());
         vint block0 = util::vecXOR(x,y0);
-        //block0.emplace_back(tweak);
         if (!tweak.empty()){
-            block0.insert(block0.end(),tweak.begin(),tweak.end());
+            block0 = util::vecXOR(block0,tweak);
         }
         //create the counters as 64 bit blocks
         vint input(internalLength/64);
@@ -62,7 +61,7 @@ BOOST_AUTO_TEST_SUITE( TCCR_Encryption_128_16internal )
         vint block0 = util::vecXOR(x,y0);
         //block0.emplace_back(tweak);
         if (!tweak.empty()){
-            block0.insert(block0.end(),tweak.begin(),tweak.end());
+            block0 = util::vecXOR(block0,tweak);
         }
         //create the counters as 64 bit blocks
         vint input(internalLength/64);
@@ -94,7 +93,7 @@ BOOST_AUTO_TEST_SUITE( TCCR_arbitrary_label_length )
         vint block0 = util::vecXOR(x,y0);
         //block0.emplace_back(tweak);
         if (!tweak.empty()){
-            block0.insert(block0.end(),tweak.begin(),tweak.end());
+            block0 = util::vecXOR(block0,tweak);
         }
         //create the counters as 64 bit blocks
         vint input(internalLength/64);
@@ -128,7 +127,7 @@ BOOST_AUTO_TEST_SUITE( TCCR_torture_test_128bit )
             vint block0 = util::vecXOR(x,y0);
             //block0.emplace_back(tweak);
             if (!tweak.empty()){
-                block0.insert(block0.end(),tweak.begin(),tweak.end());
+                block0 = util::vecXOR(block0,tweak);
             }
             //create the counters as 64 bit blocks
             vint input(internalLength/64);
