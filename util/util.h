@@ -132,6 +132,15 @@ public:
         }
         return res;
     }
+    static vector <::uint64_t> gen64bitsNonCrypto(int bits) {
+        auto res = vector<::uint64_t>((bits+64-1)/64);
+        std::random_device rd;
+        std::mt19937_64 gen( rd());
+        for (int blockNum = 0; blockNum <(bits+64-1)/64; ++blockNum) {
+            res[blockNum] = gen();
+        }
+        return res;
+    }
     //ith bit of vector might have fucked up indexing, nice (:
     //checks right to left
     static int checkIthBit(vector<uint64_t> ui, int i) {

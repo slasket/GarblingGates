@@ -35,10 +35,10 @@ int main() {
 
 
     //auto k=256;
-    //timing::hashOutputLengthTest();
+    //timing::hashOutputLengthTest(128);
     //timing::testLabelLength();
 
-    auto k=128;
+    auto k=256;
     vector<string> f = circuitParser::parseCircuit("../tests/circuits/Keccak_f.txt");
     circuit b = circuitParser::parse("../tests/circuits/Keccak_f.txt");
     vector<int> x = util::genFunctionInput(circuitParser::inputsize(f));
@@ -49,7 +49,7 @@ int main() {
     auto f2 = circuitParser::parse("../tests/circuits/aes_128.txt");
     //auto f2 = circuitParser::parse("../tests/circuits/aes_128.txt");
     //timing::testSchemesVariableLabelSize(type, 1000);
-    timing::repetitionTest(f2,k,type,1000);
+    timing::repetitionTest(f2,k,type,100);
 
 
     return 0;
