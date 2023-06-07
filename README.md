@@ -33,6 +33,22 @@ This returns a string on the form: `-DCMAKE_TOOLCHAIN_FILE=[vcpkg root]/scripts/
 7. Add the -DCMAKE... line to Clion's section for cmake options(Build, Execution, Deployment > CMake). Add the line under `CMake options`.
 
 ### Linux
-penguin magic
+Our setup on linux is as follows: Ubuntu using Clion with the Clang compiler.
+The libraries mentioned above can be installed using the command line.
+1. Install Boost
+```cmd
+> sudo apt install libboost-all-dev
+```
+2. Install openssl 3. We followed this [OpenSSL guide](https://nextgentips.com/2022/03/23/how-to-install-openssl-3-on-ubuntu-20-04/) and it worked for ubuntu 22 aswell:
+   
+3. Install Clang
+```cmd
+> sudo apt install clang
+```
+4. Configure clang in Clion.
 
+5. 
 ### Running our program
+Our program as two executable targets defined:
+- The Test target, which runs all our tests.
+- GarblingGates, which runs the test of garbling the AES_128 circuit 1000 times for each scheme and recording the time it takes.

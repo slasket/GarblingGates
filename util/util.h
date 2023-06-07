@@ -268,10 +268,10 @@ public:
     }
 
     //perform variable output length hash
-    static vector<uint64_t> hash_variable(const vint& in, const vint& tweak , int output_length_bits = 128)
+    static vector<uint64_t> hash_variable(vint input, const vint& tweak , int output_length_bits = 128)
     {
         //append tweak
-        vector<::uint64_t> input = in;
+        //vector<::uint64_t> input = in;
         input = vecXOR(input,tweak);
         //input.insert(input.end(), tweak.begin(),tweak.end());
         //input padding
