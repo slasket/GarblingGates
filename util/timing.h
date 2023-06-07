@@ -23,17 +23,18 @@ using namespace std;
 class timing{
 public:
     static void testLabelLength(int label_incs=7) {
-        auto amount = 100000;
+        auto amount = 1000000;
 
-        vint key = util::genBitsNonCrypto(256);
-        vint iv = util::genBitsNonCrypto(256);
+        vint key = util::gen64bitsNonCrypto(128);
+        vint iv = util::gen64bitsNonCrypto(128);
         ////
-        vint keys = util::genBitsNonCrypto(128);
-        vint ivs = util::genBitsNonCrypto(128);
+        vint keys = util::gen64bitsNonCrypto(128);
+        vint ivs = util::gen64bitsNonCrypto(128);
         vector<vint> data(amount);
         vector<halfLabels> dat(amount);
         vector<vint> tweak(amount);
         vector<double> hashvariable_times(label_incs);
+        vector<double> hashvariable_times16(label_incs);
         vector<double> tccr_times(label_incs);
         vector<double> prf_times(label_incs);
         vector<double> threehalves(label_incs);
@@ -43,108 +44,117 @@ public:
             auto labelsize = pow(2,(7+i));
             auto halfLabelSize = pow(2,(6+i));
             for (int j = 0; j < amount; ++j) {
-                dat[j]= {util::genBitsNonCrypto(halfLabelSize),util::genBitsNonCrypto(halfLabelSize)};
+                dat[j]= {util::gen64bitsNonCrypto(halfLabelSize),util::gen64bitsNonCrypto(halfLabelSize)};
                 vint onedat;
                 onedat.insert(onedat.end(), get<0>(dat[j]).begin(), get<0>(dat[j]).end());
                 onedat.insert(onedat.end(), get<1>(dat[j]).begin(), get<1>(dat[j]).end());
                 data[j]= onedat;
-                tweak[j]= util::genBitsNonCrypto(64);
+                tweak[j]= util::gen64bitsNonCrypto(64);
             }
 
-            auto outlen =pow(2,(7+i)); //pow(2,(11+i));
+            auto outlen8X =labelsize*8; //pow(2,(11+i));
+            auto outlen16X =labelsize*16; //pow(2,(11+i));
             //cout <<"(" << outlen /pow(2,(i)) << "-bit label)"<<endl;
             cout <<"(" << pow(2,(7+i)) << "-bit label)"<<endl;
             auto t1 = high_resolution_clock::now();
             for (int l = 0; l < amount; ++l) {
-                auto Xk = util::hash_variable(data[l],tweak[l], outlen);
+                auto Xk = util::hash_variable(data[l],tweak[l], outlen8X);
             }
             auto t2 = high_resolution_clock::now();
             duration<double, std::milli> ms_double = t2 - t1;
             hashvariable_times[i] += ms_double.count();
 
-
-            auto tccr = hashTCCR(128);
             t1 = high_resolution_clock::now();
             for (int l = 0; l < amount; ++l) {
-                auto Xk = tccr.hash(data[l],data[l],tweak[l],outlen);
+                auto Xk = util::hash_variable(data[l],tweak[l], outlen16X);
+            }
+            t2 = high_resolution_clock::now();
+            ms_double = t2 - t1;
+            hashvariable_times16[i] += ms_double.count();
+
+
+            auto tccr = hashTCCR(labelsize);
+            t1 = high_resolution_clock::now();
+            for (int l = 0; l < amount; ++l) {
+                auto Xk = tccr.hash(data[l],data[l],tweak[l],outlen16X);
             }
             t2 = high_resolution_clock::now();
             ms_double = t2 - t1;
             tccr_times[i] += ms_double.count();
 
 
-            auto prf = hashTCCR(128);
+            auto prf = hashTCCR(labelsize);
             t1 = high_resolution_clock::now();
             for (int l = 0; l < amount; ++l) {
-                auto Xk = tccr.prfHash(data[l],data[l],tweak[l],outlen);
+                auto Xk = tccr.prfHash(data[l],data[l],tweak[l],outlen8X);
             }
             t2 = high_resolution_clock::now();
             ms_double = t2 - t1;
             prf_times[i] += ms_double.count();
 
-            auto rtccr = hashRTCCR(key, iv,256);
-            t1 = high_resolution_clock::now();
-            for (int j = 0; j < amount; ++j) {
-                //use index 6 now
-                auto res = rtccr.hash(dat[j],tweak[j]);
-                //cout<<"rt length "<< res.size()<<endl;
-            }
-            t2 = high_resolution_clock::now();
-            ms_double = t2 - t1;
-            threehalves[i] += ms_double.count();
+            //auto rtccr = hashRTCCR(key, iv,labelsize);
+            //t1 = high_resolution_clock::now();
+            //for (int j = 0; j < amount; ++j) {
+            //    auto res = rtccr.hash(dat[j],tweak[j]);
+            //}
+            //t2 = high_resolution_clock::now();
+            //ms_double = t2 - t1;
+            //threehalves[i] += ms_double.count();
 
         }
 
         for (int i = 0; i < label_incs; ++i) {
-            cout<< "shake256 "<< hashvariable_times[i]/1000<< " s for "<<  pow(2,(7+i)) << " label length"<<endl;
+            cout<< "shake256-8x  "<< hashvariable_times[i]/1000<< " s for "<<  pow(2,(7+i)) << " label length"<<endl;
         }
         for (int i = 0; i < label_incs; ++i) {
-            cout<< "tccr     "<< tccr_times[i]/1000<< " s for "<<  pow(2,(7+i)) << " label length"<<endl;
+            cout<< "shake256-16x "<< hashvariable_times16[i]/1000<< " s for "<<  pow(2,(7+i)) << " label length"<<endl;
         }
         for (int i = 0; i < label_incs; ++i) {
-            cout<< "PRF      "<< prf_times[i]/1000<< " s for "<<  pow(2,(7+i)) << " label length"<<endl;
+            cout<< "tccr(16x)    "<< tccr_times[i]/1000<< " s for "<<  pow(2,(7+i)) << " label length"<<endl;
         }
         for (int i = 0; i < label_incs; ++i) {
-            cout<< "rtccr    "<< threehalves[i]/1000<< " s for "<<  pow(2,(7+i)) << " label length"<<endl;
+            cout<< "PRF(8x)      "<< prf_times[i]/1000<< " s for "<<  pow(2,(7+i)) << " label length"<<endl;
+        }
+        for (int i = 0; i < label_incs; ++i) {
+            cout<< "rtccr        "<< threehalves[i]/1000<< " s for "<<  pow(2,(7+i)) << " label length"<<endl;
         }
 
     }
 
-    static void hashOutputLengthTest(){
+    static void hashOutputLengthTest(int a){
         using std::chrono::high_resolution_clock;
         using std::chrono::duration_cast;
         using std::chrono::duration;
         using std::chrono::milliseconds;
-        auto k= 128;
-        vector<double> shake(8);
-        vector<double> prf(8);
-        vector<double> ateFxor(8);
+        auto k= a;
+        vector<double> shake(10);
+        vector<double> prf(10);
+        vector<double> ateFxor(10);
         vector<double> threeHash(1);
         auto internal = 1000;
         auto external = 1000;
-        vint key = util::genBitsNonCrypto(256);
-        vint iv = util::genBitsNonCrypto(256);
+        auto extexternal = 1;
+        vint key = util::gen64bitsNonCrypto(128);
+        vint iv = util::gen64bitsNonCrypto(128);
 
-        cout<<internal*external <<" hashings tests"<<endl;
+        cout<<internal*external*extexternal <<" hashings tests"<<endl;
+        vector<vint> data(internal);
+        vector<halfLabels> dat(internal);
+        vector<vint> tweak(internal);
+        for (int o = 0; o < extexternal; ++o) {
         for (int i = 0; i < external; ++i) {
-            vector<vint> data(internal);
-            vector<halfLabels> dat(internal);
-            vector<vint> tweak(internal);
-
             for (int j = 0; j < internal; ++j) {
-                data[j]= util::genBitsNonCrypto(128);
-                dat[i]= {util::genBitsNonCrypto(64),util::genBitsNonCrypto(64)};
-                tweak[i]= util::genBitsNonCrypto(3*64);
-                //dataAsString[j] = util::uintVec2Str(data[j]);
+                data[j]= util::gen64bitsNonCrypto(k);
+                dat[i]= {util::gen64bitsNonCrypto(k/2),util::gen64bitsNonCrypto(k/2)};
+                tweak[i]= util::gen64bitsNonCrypto(k);
             }
             //call aes 128->256
             //shake
-            for (int j = 0; j < 1; ++j) {
+            for (int j = 0; j < 8; ++j) {
                 auto outlen = k*pow(2,j);
                 auto t1 = high_resolution_clock::now();
                 for (int l = 0; l < internal; ++l) {
-                    auto Xk = util::hash_variable(data[l],tweak[l], outlen);
-                }
+                    auto Xk = util::hash_variable(data[l],tweak[l], outlen);}
                 auto t2 = high_resolution_clock::now();
                 duration<double, std::milli> ms_double = t2 - t1;
                 shake[j] += ms_double.count();
@@ -152,13 +162,11 @@ public:
 
             //prf
             auto e = hashTCCR(k);
-            for (int j = 0; j < 1; ++j) {
+            for (int j = 0; j < 8; ++j) {
                 auto outlen = k*pow(2,j);
                 auto t1 = high_resolution_clock::now();
                 for (int j = 0; j < internal; ++j) {
-                    //use index 6 now
                     auto res = e.prfHash(data[j], key, tweak[j],outlen);
-                    //cout<<"aes length "<< res.size()<<endl;
                 }
                 auto t2 = high_resolution_clock::now();
                 duration<double, std::milli> ms_double = t2 - t1;
@@ -167,7 +175,7 @@ public:
             }
 
             auto tccr = hashTCCR(k);
-            for (int j = 0; j < 1; ++j) {
+            for (int j = 0; j < 8; ++j) {
                 auto outlen = k*pow(2,(j));
                 auto t1 = high_resolution_clock::now();
                 for (int l = 0; l < internal; ++l) {
@@ -179,20 +187,15 @@ public:
             }
 
 
-            auto rtccr = hashRTCCR(key, iv,256);
+            auto rtccr = hashRTCCR(key, iv,128);
             auto t1 = high_resolution_clock::now();
             for (int j = 0; j < internal; ++j) {
-                //use index 6 now
                 auto res = rtccr.hash(dat[j],tweak[j]);
-                //cout<<"rt length "<< res.size()<<endl;
             }
             auto t2 = high_resolution_clock::now();
             duration<double, std::milli> ms_double = t2 - t1;
             threeHash[0] += ms_double.count();
-
-
-
-
+        }
         }
         for (int i = 0; i < 8; ++i) {
             auto outlen = k*pow(2,i);
@@ -228,7 +231,7 @@ public:
         }else{
             hashtype= "RO";
         }
-        cout<<"garbling all 4 schemes for aes_128 " << repetitions <<" reps hashtype: "<< hashtype<<endl;
+        cout<<"4 schemes for aes_128 " << repetitions <<"0 reps hashtype: "<< hashtype<< " labelsize "<< k<<endl;
         for (int i = 0; i < repetitions; ++i) {
             //inputgen
             vector<int> x = util::genFunctionInput(inputsize);
@@ -562,12 +565,13 @@ public:
         }
     }
 
-    static void testSchemesVariableLabelSize(util::hashtype hashfunc, int repetitions) {
+    static void testSchemesVariableLabelSize(int repetitions) {
         auto c = circuitParser::parse("../tests/circuits/aes_128.txt");
         int inputsize = circuitParser::getInputSize(c);
         auto k = 128;
-        cout<< "varing label size for aes_128 ";
-        for (int i = 0; i < 7; ++i) {
+        auto type = util::RO;
+        cout<< "varing label size for aes_128 using RO ";
+        for (int i = 0; i < 11; ++i) {
             vector<double> baseline(2);
             vector<double> three(2);
             vector<double> ate(2);
@@ -577,16 +581,16 @@ public:
             int labelsize = pow(2,(7+i));
             for (int j = 0; j < repetitions; ++j) {
                 vector<int> x = util::genFunctionInput(inputsize);
-                runGarble(c, util::baseline, labelsize, hashfunc, baseline, x, dataSize);
-                runGarble(c, util::threehalves, labelsize, hashfunc, three, x, dataSize);
-                runGarble(c, util::ateca, labelsize, hashfunc, ate, x, dataSize);
-                runGarble(c, util::atecaFXOR, labelsize, hashfunc, ate_f, x, dataSize);
+                runGarble(c, util::baseline, labelsize, type, baseline, x, dataSize);
+                runGarble(c, util::threehalves, labelsize, type, three, x, dataSize);
+                runGarble(c, util::ateca, labelsize, type, ate, x, dataSize);
+                runGarble(c, util::atecaFXOR, labelsize, type, ate_f, x, dataSize);
             }
 
-            printGarblinTime(util::baseline, baseline, hashfunc, dataSize, repetitions, c);
-            printGarblinTime(util::threehalves, three, hashfunc, dataSize, repetitions, c);
-            printGarblinTime(util::ateca, ate, hashfunc, dataSize, repetitions, c);
-            printGarblinTime(util::atecaFXOR, ate_f, hashfunc, dataSize, repetitions, c);
+            printGarblinTime(util::baseline, baseline, type, dataSize, repetitions, c);
+            printGarblinTime(util::threehalves, three, type, dataSize, repetitions, c);
+            printGarblinTime(util::ateca, ate, type, dataSize, repetitions, c);
+            printGarblinTime(util::atecaFXOR, ate_f, type, dataSize, repetitions, c);
 
         }
     }
@@ -628,6 +632,29 @@ public:
             }
         }
         cout << title << baseline[0]<< endl;
+    }
+
+    static void datagentime() {
+        auto xd = 10000000;
+        vector<double> time(2);
+
+        auto t1 = high_resolution_clock::now();
+        for (int l = 0; l < xd; ++l) {
+            util::genBitsNonCrypto(128);
+        }
+        auto t2 = high_resolution_clock::now();
+        duration<double, std::milli> ms_double = t2 - t1;
+        time[0] += ms_double.count();
+
+        t1 = high_resolution_clock::now();
+        for (int l = 0; l < xd; ++l) {
+            util::gen64bitsNonCrypto(128);
+        }
+        t2 = high_resolution_clock::now();
+        ms_double = t2 - t1;
+        time[1] += ms_double.count();
+
+        cout<<"old: "<< time[0] <<" new: "<< time[1];
     }
 };
 

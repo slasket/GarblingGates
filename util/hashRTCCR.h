@@ -59,7 +59,7 @@ public:
     }
 
     hashRTCCR(const vint& key, const vint& iv, int k){
-        if(k < 256) k=256;
+        //if(k > 256) k=256;
         this->key = key;
         this->iv = iv;
         this->alpha = util::genBitsNonCrypto((k/2)+1);
@@ -69,7 +69,7 @@ public:
         this->hashtype = util::fast;
     }
     hashRTCCR(const vint& key, const vint& iv, int k, int base){
-        if(k < 256) k=256;
+        //if(k > 256) k=256;
         this->key = key;
         this->iv = iv;
         this->alpha = util::genBitsNonCrypto(   (k/2));
