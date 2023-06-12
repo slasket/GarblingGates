@@ -45,9 +45,16 @@ The libraries mentioned above can be installed using the command line.
 ```cmd
 > sudo apt install clang
 ```
-4. Configure clang in Clion.
+4. Choose Clang as a compiler by selecting it in the ToolChains menu(Build, Execution, Deployment > Toolchains). Our installation directory was `/bin/clang-cpp-xx` where xx is the verison number.
 
-5. 
+5. Add the -DCMAKE... line to Clion's section for cmake options(Build, Execution, Deployment > CMake). Add the following under `CMake options`.
+```cmd
+-DCMAKE_C_COMPILER=clang
+-DCMAKE_CXX_COMPILER=clang++
+-DCMAKE_INCLUDE_PATH=/usr/local/ssl/include
+-DOPENSSL_ROOT_DIR=/usr/local/ssl
+-DOPENSSL_CRYPTO_LIBRARY=/usr/local/ssl/lib64/libcrypto.so
+```
 ### Running our program
 Our program as two executable targets defined:
 - The Test target, which runs all our tests.
