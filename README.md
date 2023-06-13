@@ -7,7 +7,7 @@ The project uses C++ 17 and Cmake to build our project. The libraries used for t
 - Openssl 3.x
 - Boost
 
-This project also takes advantage of the [SSE2](https://en.wikipedia.org/wiki/SSE2) instruction set, and thus all packages has to be compiled for x64.
+This project also takes advantage of the [SSE2](https://en.wikipedia.org/wiki/SSE2) instruction set, and thus all packages has to be compiled for x64. Specifically it uses instruction from SSE4.2.
 
 ### Windows
 Our setup on Windows is as follows: Clion using the MSVC C++ compiler.
